@@ -17,10 +17,17 @@ from dataclasses import dataclass
 class Token:
     datatype: str
     value: any
-    position: list
+    position: list[int]
 
 # TOKENIZER -> CLASS
 class Tokenizer:
+    # CLASS -> VARIABLES
+    code: str
+    tokens: list[Token | None]
+    position: list[int]
+    lineStart: int
+    index: int
+    regex: re.Pattern
     # CLASS -> TOKENS
     spec = {
         "KEYWORD": r"[A-Z][a-z]{2}(&[a-z]+)?",
@@ -39,15 +46,15 @@ class Tokenizer:
         self.index = 0
         self.regex = re.compile("|".join(f"(?P<{name}>{pattern})" for name, pattern in self.spec.items()))
     # CLASS -> TOKENIZER
-    def run(self: object) -> list:
+    def run(self: object) -> list[Token]:
         while self.index < len(self.code):
             pseudoToken = self.regex.match(self.code, self.index)
             if not pseudoToken:
-                sys.exit(f"[TOKENIZER ERROR] Unexpected character {self.code[self.index]!r} on line {self.position[0]}")
+                sys.exit(f"[TOKENIZER ISSUE] Unexpected character {self.code[self.index]!r} on line {self.position[0]}")
             self.tokens.append(self.tokenMatch(pseudoToken))
         return [token for token in self.tokens if token is not None]
     # CLASS -> TOKEN MATCHER
-    def tokenMatch(self: object, pseudoToken: re.Match) -> Token:
+    def tokenMatch(self: object, pseudoToken: re.Match) -> Token | None:
         kind = pseudoToken.lastgroup
         value = pseudoToken.group(kind)
         self.index = pseudoToken.end()
@@ -74,7 +81,7 @@ class ASTNode: pass
 # AST -> PROGRAM
 @dataclass
 class Program(ASTNode):
-    statements: list
+    statements: list[ASTNode]
 
 # AST -> DECLARATION
 @dataclass
@@ -85,13 +92,17 @@ class Declaration(ASTNode):
 
 # AST -> PARSER
 class Parser:
+    # PARSER -> VARIABLES
+    tokens: list[Token]
+    strict: bool
+    position: int
     # PARSER -> INIT
     def __init__(self: object, tokens: list, strict: bool) -> None:
         self.tokens = tokens
         self.strict = strict
         self.position = 0
     # PARSER -> GET CURRENT TOKEN
-    def thisToken(self: object) -> Token:
+    def thisToken(self: object) -> Token | None:
         return self.tokens[self.position] if self.position < len(self.tokens) else None
     # PARSER -> CONSUME TOKEN
     def consume(self: object, expectedType: str) -> Token:
@@ -105,21 +116,21 @@ class Parser:
             return token
     # PARSER -> PARSE
     def parse(self: object) -> Program:
-        statements = []
+        statements: list[Declaration] = []
         while self.thisToken() is not None:
             statements.append(self.declaration())
         return Program(statements)
     # PARSER -> DECLARATION PARSING
     def declaration(self: object) -> Declaration:
-        arguments = []
+        data: list[str | None] = []
         if self.strict or self.thisToken().datatype == "KEYWORD":
-            arguments.append(self.consume("KEYWORD").value)
+            data.append(self.consume("KEYWORD").value)
         else:
-            arguments.append(None)
-        arguments.append(self.consume("IDENTIFIER").value)
+            data.append(None)
+        data.append(self.consume("IDENTIFIER").value)
         self.consume("EQUALITY")
-        arguments.append(self.consume("NUMBER").value)
-        return Declaration(*arguments)
+        data.append(self.consume("NUMBER").value)
+        return Declaration(*data)
 
 
 #
@@ -128,6 +139,9 @@ class Parser:
 
 # SEMANTIC -> ANALYZER
 class Analyzer:
+    # ANALYZER -> VARIABLES
+    strict: bool
+    symbols: dict
     # ANALYZER -> INIT
     def __init__(self: object, strict: bool) -> None:
         self.strict = strict
@@ -156,9 +170,9 @@ class Analyzer:
 
 # MAIN -> FUNCTION
 def main() -> None:
-    strict = sys.argv[1].endswith(".calc")
     if len(sys.argv) != 2:
-        sys.exit("[ENTRY ERROR] Usage: python compiler.py <filename>")
+        sys.exit("[ENTRY ISSUE] Usage: python compiler.py <filename>")
+    strict = sys.argv[1].endswith(".calc")
     with open(sys.argv[1], "r") as file:
         print(Analyzer(strict).Program(Parser(Tokenizer(file.read()).run(), strict).parse()))
 
