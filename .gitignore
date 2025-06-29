@@ -1,1 +1,4 @@
 *.js
+python/mathsys.egg-info/
+dist/
+python/mathsys/main/__pycache__/

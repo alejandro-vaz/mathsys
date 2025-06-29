@@ -1,0 +1,46 @@
+#
+#   1ºLEVEL
+#
+
+# 1ºLEVEL -> STRUCTURES
+program         ::= (declaration (NEWLINE* declaration)* NEWLINE*)?
+
+
+#
+#   2ºLEVEL
+#
+
+# 2ºLEVEL -> STRUCTURES
+declaration     ::= KEYWORD? IDENTIFIER EQUALITY expression
+
+
+#
+#   3ºLEVEL
+#
+
+# 3ºLEVEL -> STRUCTURES
+expression      ::= value+
+value           ::= SIGNS? (NUMBER | IDENTIFIER | LPAREN expression RPAREN)
+
+
+#
+#   TOKENS
+#
+
+# TOKENS -> VALUABLE
+KEYWORD         ::= "Num" | "Num&int" | "Num&float"
+IDENTIFIER      ::= "[A-Za-z]+"
+NUMBER          ::= [0-9]+ ("." [0-9]+)?
+SIGNS           ::= "([+-](\s*[+-])*)"
+
+# TOKENS -> LENGTH
+NEWLINE         ::= "\n+"
+
+# TOKENS -> BARE
+EQUALITY        ::= "="
+LPAREN          ::= "("
+RPAREN          ::= ")"
+
+# TOKENS -> SILENCED
+SPACE           ::= " +"
+MISMATCH        ::= "."

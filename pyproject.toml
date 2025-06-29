@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mathsys"
+version = "0.2.1"
+description = "The Domain Specific Language for math."
+readme = "README.md"
+license = {text = "MIT"}
+authors = [{ name = "Alejandro Vaz", email = "notyetimplemented@abscissa.eu" }]
+keywords = ["dsl", "math", "mathsys", "compiler", "language"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent"
+]
+requires-python = ">=3.10"
+dependencies = []
+
+[tool.setuptools]
+package-dir = {"" = "python"}
+packages = ["mathsys"]
+
+[tool.setuptools.package-data]
+mathsys = ["py.typed"]

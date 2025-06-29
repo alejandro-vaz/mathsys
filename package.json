@@ -1,0 +1,34 @@
+{
+  "name": "mathsys",
+  "version": "0.2.1",
+  "description": "The Domain Specific Language for math.",
+  "keywords": [
+    "dsl",
+    "abscissa",
+    "math",
+    "mathsys",
+    "language",
+    "compiler"
+  ],
+  "homepage": "https://github.com/abscissa-math/mathsys#readme",
+  "bugs": {
+    "url": "https://github.com/abscissa-math/mathsys/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/abscissa-math/mathsys.git"
+  },
+  "license": "MIT",
+  "author": "alejandro-vaz",
+  "type": "module",
+  "main": "typescript/index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "buildts": "cd typescript && tsc && cd ..",
+    "buildpy": "python -m build",
+    "publishpy": "twine upload dist/*",
+    "publishts": "npm publish"
+  }
+}
