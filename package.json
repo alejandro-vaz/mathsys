@@ -1,6 +1,6 @@
 {
   "name": "mathsys",
-  "version": "0.2.1",
+  "version": "0.2.4",
   "description": "The Domain Specific Language for math.",
   "keywords": [
     "dsl",
@@ -28,7 +28,7 @@
   "scripts": {
     "buildts": "cd typescript && tsc && cd ..",
     "buildpy": "python -m build",
-    "publishpy": "twine upload dist/*",
+    "publishpy": "twine upload dist/* --verbose",
     "publishts": "npm publish"
   }
 }

@@ -14,3 +14,7 @@
 - [X] (Minor) Modularized compiler.
 - [X] (Minor) Published `pip` and `npm` packages.
 - [X] (Patch) Improved entry points.
+#### *Mathsys* 0.2.4 `0-0-3`
+- [X] (Patch) Completed [#5](https://github.com/abscissa-math/mathsys/issues/5)
+- [X] (Patch) Completed [#6](https://github.com/abscissa-math/mathsys/issues/6)
+- [X] (Patch) Completed [#7](https://github.com/abscissa-math/mathsys/issues/7)

@@ -6,21 +6,25 @@
 import sys
 
 # HEAD -> COMPILER
-from main.tokenizer import Tokenizer
-from main.parser import Parser
+from .main.tokenizer import Tokenizer
+from .main.parser import Parser
 
 # HEAD -> DATACLASSES
-from main.parser import Program
+from .main.parser import Program
 
 
 #
 #   MAIN
 #
 
-# MAIN -> FUNCTION
-def target(filename: str, strict: bool) -> Program:
+# MAIN -> TARGET
+def target(filename: str) -> Program:
     with open(filename, "r") as file:
-        return Parser(Tokenizer(file.read()).run(), strict).parse()
+        return Parser(Tokenizer(file.read()).run(), filename.endswith(".calc")).parse()
+
+# MAIN -> CONTENT
+def compile(content: str, strict: bool) -> Program:
+    return Parser(Tokenizer(content).run(), strict).parse()
 
 # MAIN -> ENTRY POINT
 if __name__ == "__main__":

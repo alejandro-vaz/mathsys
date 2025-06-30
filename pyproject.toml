@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mathsys"
-version = "0.2.1"
+version = "0.2.4"
 description = "The Domain Specific Language for math."
 readme = "README.md"
 license = {text = "MIT"}
@@ -24,4 +24,4 @@ package-dir = {"" = "python"}
 packages = ["mathsys"]
 
 [tool.setuptools.package-data]
-mathsys = ["py.typed"]
+mathsys = ["py.typed", "main/", "main/*py"]
