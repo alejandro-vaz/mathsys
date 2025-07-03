@@ -26,3 +26,5 @@
 - [X] (Patch) Modularized the parser so multiple syntaxes are allowed in the future.
 #### *Mathsys* 0.3.1 `0-0-1`
 - [X] (Patch) Made entry point fixed imports to `main/` dynamic.
+#### *Mathsys* 0.3.2 `0-0-1`
+- [X] (Patch) Added the `syntax/` directory with its files to package-shipped files.
