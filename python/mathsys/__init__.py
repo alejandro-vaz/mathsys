@@ -6,11 +6,11 @@
 import sys
 
 # HEAD -> COMPILER
-from main.parser import Parser
-from main.ir import Generator
+from .main.parser import Parser
+from .main.ir import Generator
 
 # HEAD -> SYNTAX
-from syntax.strict import syntax
+from .syntax.strict import syntax
 
 
 #

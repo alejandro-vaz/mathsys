@@ -24,3 +24,5 @@
 - [X] (Minor) Switched to *Lark* parser.
 - [X] (Patch) Defined a simple *IR* instruction set.
 - [X] (Patch) Modularized the parser so multiple syntaxes are allowed in the future.
+#### *Mathsys* 0.3.1 `0-0-1`
+- [X] (Patch) Made entry point fixed imports to `main/` dynamic.
