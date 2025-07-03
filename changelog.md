@@ -18,3 +18,9 @@
 - [X] (Patch) Completed [#5](https://github.com/abscissa-math/mathsys/issues/5)
 - [X] (Patch) Completed [#6](https://github.com/abscissa-math/mathsys/issues/6)
 - [X] (Patch) Completed [#7](https://github.com/abscissa-math/mathsys/issues/7)
+### *Mathsys* 0.3.0 `0-2-3`
+- [X] (Patch) Removed *TypeScript* compiler temporarily.
+- [X] (Minor) Built *IR* generator.
+- [X] (Minor) Switched to *Lark* parser.
+- [X] (Patch) Defined a simple *IR* instruction set.
+- [X] (Patch) Modularized the parser so multiple syntaxes are allowed in the future.

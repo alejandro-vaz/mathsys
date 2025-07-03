@@ -5,42 +5,74 @@
 # HEAD -> MODULES
 from __future__ import annotations
 from dataclasses import dataclass
-import sys
-
-# HEAD -> DATACLASSES
-from .tokenizer import Token
+from lark import Lark, Transformer, Token
 
 
 #
-#   DATACLASSES
+#   1ºLEVEL
 #
 
-# DATACLASSES -> NAMESPACE
-class ASTNode: pass
+# 1ºLEVEL -> NAMESPACE
+class Level1: pass
 
-# DATACLASSES -> VALUE
+# 1ºLEVEL -> SHEET
 @dataclass
-class Value(ASTNode):
-    signs: str | None
-    datatype: str
-    value: str | Expression
+class Sheet(Level1):
+    statements: list[Level2]
 
-# DATACLASSES -> EXPRESSION
-@dataclass
-class Expression(ASTNode):
-    values: list[Value]
 
-# DATACLASSES -> DECLARATION
+#
+#   2ºLEVEL
+#
+
+# 2ºLEVEL -> NAMESPACE
+class Level2: pass
+
+# 2ºLEVEL -> DECLARATION
 @dataclass
-class Declaration(ASTNode):
-    keyword: str | None
+class Declaration(Level2):
+    keyword: str
     identifier: str
-    value: Expression
+    expression: Expression
 
-# DATACLASSES -> PROGRAM
+
+#
+#   3ºLEVEL
+#
+
+# 3ºLEVEL -> NAMESPACE
+class Level3: pass
+
+# 3ºLEVEL -> EXPRESSION
 @dataclass
-class Program(ASTNode):
-    statements: list[Declaration]
+class Expression(Level3):
+    terms: list[Term | Brackets | Variable]
+
+
+#
+#   4ºLEVEL
+#
+
+# 4ºLEVEL -> NAMESPACE
+class Level4: pass
+
+# 4ºLEVEL -> TERM
+@dataclass
+class Term(Level4):
+    signs: str
+    number: str
+
+# 4ºLEVEL -> VARIABLE
+@dataclass
+class Variable(Level4):
+    signs: str
+    identifier: str
+
+# 4ºLEVEL -> BRACKETS
+@dataclass
+class Brackets(Level4):
+    signs: str
+    expression: Expression
 
 
 #
@@ -48,70 +80,43 @@ class Program(ASTNode):
 #
 
 # PARSER -> CLASS
-class Parser:
-    # CLASS -> VARIABLES
-    tokens: list[Token]
-    strict: bool
-    position: int
+class Parser(Transformer):
+    syntax: str
     # CLASS -> INIT
-    def __init__(self: object, tokens: list, strict: bool) -> None:
-        self.tokens = tokens
-        self.strict = strict
-        self.position = 0
-    # CLASS -> GET CURRENT TOKEN
-    def thisToken(self: object) -> Token | None:
-        return self.tokens[self.position] if self.position < len(self.tokens) else None
-    # CLASS -> CONSUME TOKEN
-    def consume(self: object, *expectedTypes: str) -> Token:
-        token = self.thisToken()
-        if token is None:
-            sys.exit(f"[AST ISSUE] Unexpected end of input, expected {expectedTypes}")
-        elif token.datatype not in expectedTypes:
-            raise sys.exit(f"[AST ISSUE] Expected token {expectedTypes} but got {token.datatype} at line {token.position[0]}, col {token.position[1]}")
-        else: 
-            self.position += 1
-            return token
-    # CLASS -> PARSE
-    def parse(self: object) -> Program:
-        statements: list[Declaration] = []
-        while self.thisToken() is not None:
-            if self.thisToken().datatype == "NEWLINE":
-                self.consume("NEWLINE")
-            else:
-                statements.append(self.declaration())
-        return Program(statements)
-    # CLASS -> DECLARATION PARSING
-    def declaration(self: object) -> Declaration:
-        data: list[str | Expression | None] = []
-        if self.strict or self.thisToken().datatype == "KEYWORD":
-            data.append(self.consume("KEYWORD").value)
-        else:
-            data.append(None)
-        data.append(self.consume("IDENTIFIER").value)
-        self.consume("EQUALITY")
-        data.append(self.expression())
-        return Declaration(*data)
-    # CLASS -> EXPRESSION PARSING
-    def expression(self: object) -> Expression:
-        data: list[list[Value]] = []
-        data.append([])
-        data[0].append(self.value())
-        while self.thisToken().datatype in ["SIGNS", "NUMBER", "IDENTIFIER", "LPAREN"]:
-            data[0].append(self.value())
-        return Expression(data[0])
-    # CLASS -> VALUE PARSING
-    def value(self: object) -> Value:
-        data: list[str | None | Expression] = []
-        if self.thisToken().datatype == "SIGNS":
-            data.append(self.consume("SIGNS").value)
-        else:
-            data.append(None)
-        token = self.consume("NUMBER", "IDENTIFIER", "LPAREN")
-        data.append(token.datatype)
-        match token.datatype:
-            case "LPAREN":
-                data.append(self.expression())
-                self.consume("RPAREN")
-            case _: 
-                data.append(token.value)
-        return Value(*data)
+    def __init__(self, syntax: str) -> None:
+        self.syntax = syntax
+        super()
+    # CLASS -> RUN
+    def run(self, content: str) -> Sheet:
+        return self.transform(Lark(self.syntax, parser="earley", start="sheet").parse(content))
+    # CLASS -> SHEET CONSTRUCT
+    def sheet(self, items: list[Level2]) -> Sheet: 
+        return Sheet(items)
+    # CLASS -> DECLARATION CONSTRUCT
+    def declaration(self, items: list[str | Expression]): 
+        items.pop(2)
+        return Declaration(*items)
+    # CLASS -> EXPRESSION CONSTRUCT
+    def expression(self, items: list[Term | Brackets | Variable]): 
+        return Expression(items)
+    # CLASS -> TERM CONSTRUCT
+    def term(self, items: list[str]):
+        return Term("", items[0]) if (len(items) == 1) else Term(*items)
+    # CLASS -> VARIABLE CONSTRUCT
+    def variable(self, items: list[str]):
+        return Variable("", items[0]) if (len(items) == 1) else Variable(*items)
+    # CLASS -> BRACKETS CONSTRUCT
+    def brackets(self, items: list[str | Expression]):
+        items.pop(len(items) - 3)
+        items.pop(len(items) - 1)
+        return Brackets(*items) if len(items) == 2 else Brackets("", *items)
+    # CLASS -> TOKENS
+    def KEYWORD(self, token: Token) -> str: return str(token)
+    def IDENTIFIER(self, token: Token) -> str: return str(token)
+    def NUMBER(self, token: Token) -> str: return str(token)
+    def NEWLINE(self, token: Token) -> str: return str(token)
+    def EQUALITY(self, token: Token) -> str: return str(token)
+    def SIGNS(self, token: Token) -> str: return str(token)
+    def OPEN(self, token: Token) -> str: return str(token)
+    def CLOSE(self, token: Token) -> str: return str(token)
+    def SPACE(self, token: Token) -> str: return str(token)

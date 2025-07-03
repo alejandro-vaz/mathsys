@@ -6,28 +6,32 @@
 import sys
 
 # HEAD -> COMPILER
-from .main.tokenizer import Tokenizer
-from .main.parser import Parser
+from main.parser import Parser
+from main.ir import Generator
 
-# HEAD -> DATACLASSES
-from .main.parser import Program
+# HEAD -> SYNTAX
+from syntax.strict import syntax
 
 
 #
 #   MAIN
 #
 
-# MAIN -> TARGET
-def target(filename: str) -> Program:
-    with open(filename, "r") as file:
-        return Parser(Tokenizer(file.read()).run(), filename.endswith(".calc")).parse()
+# MAIN -> COMPILE
+def compile(content: str) -> str:
+    return Generator().run(Parser(syntax).run(content))
 
-# MAIN -> CONTENT
-def compile(content: str, strict: bool) -> Program:
-    return Parser(Tokenizer(content).run(), strict).parse()
+# MAIN -> TARGET
+def target(filename: str) -> str: 
+    components = filename.split(".")
+    components[-1] = "ir"
+    with open(".".join(components), "w") as destination:
+        with open(filename, "r") as origin: 
+            destination.write(compile(origin.read()))
 
 # MAIN -> ENTRY POINT
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
+    if len(sys.argv) == 2:
+        target(sys.argv[1])
+    else:
         sys.exit("[ENTRY ISSUE] Usage: python compiler.py <filename>")
-    print(target(sys.argv[1], sys.argv[1].endswith(".calc")))
