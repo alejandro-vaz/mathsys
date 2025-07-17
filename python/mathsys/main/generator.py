@@ -11,7 +11,7 @@ from .parser import Sheet, Declaration, Expression, Term, Variable, Brackets
 #
 
 # GENERATOR -> CLASS
-class LaTeXGenerator:
+class LaTeX:
     # CLASS -> VARIABLES
     latex: list[str]
     counter: int
@@ -21,16 +21,16 @@ class LaTeXGenerator:
         self.latex = []
     # CLASS -> RUN
     def run(self, sheet: Sheet) -> str:
-        self.latex.append("$$\n")
+        self.latex.append("$$ ")
         for declaration in sheet.statements:
             self.declaration(declaration)
-        self.latex.append("$$")
+        self.latex.append(" $$")
         return "".join(self.latex)
     # CLASS -> DECLARATION GENERATION
     def declaration(self, declaration: Declaration) -> None:
         self.latex.append(f"{declaration.identifier}=")
         self.expression(declaration.expression)
-        self.latex.append("\n")
+        self.latex.append("\\\\")
     # CLASS -> EXPRESSION GENERATION
     def expression(self, expression: Expression) -> None:
         registers = []
