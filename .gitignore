@@ -3,3 +3,4 @@ python/mathsys.egg-info/
 dist/
 python/mathsys/main/__pycache__/
 python/mathsys/syntax/__pycache__
+testing/
