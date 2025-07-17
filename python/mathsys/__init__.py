@@ -7,7 +7,7 @@ import sys
 
 # HEAD -> COMPILER
 from .main.parser import Parser
-from .main.ir import Generator
+from .main.ir import LaTeXGenerator
 
 # HEAD -> SYNTAX
 from .syntax.strict import syntax
@@ -19,12 +19,12 @@ from .syntax.strict import syntax
 
 # MAIN -> COMPILE
 def compile(content: str) -> str:
-    return Generator().run(Parser(syntax).run(content))
+    return LaTeXGenerator().run(Parser(syntax).run(content))
 
 # MAIN -> TARGET
 def target(filename: str) -> str: 
     components = filename.split(".")
-    components[-1] = "ir"
+    components[-1] = "ltx"
     with open(".".join(components), "w") as destination:
         with open(filename, "r") as origin: 
             destination.write(compile(origin.read()))

@@ -31,7 +31,6 @@ class Level2: pass
 # 2ºLEVEL -> DECLARATION
 @dataclass
 class Declaration(Level2):
-    keyword: str
     identifier: str
     expression: Expression
 
@@ -91,10 +90,10 @@ class Parser(Transformer):
         return self.transform(Lark(self.syntax, parser="earley", start="sheet").parse(content))
     # CLASS -> SHEET CONSTRUCT
     def sheet(self, items: list[Level2]) -> Sheet: 
-        return Sheet(items)
+        return Sheet([item for item in items if isinstance(item, Level2)])
     # CLASS -> DECLARATION CONSTRUCT
     def declaration(self, items: list[str | Expression]): 
-        items.pop(2)
+        items.pop(1)
         return Declaration(*items)
     # CLASS -> EXPRESSION CONSTRUCT
     def expression(self, items: list[Term | Brackets | Variable]): 
@@ -111,12 +110,11 @@ class Parser(Transformer):
         items.pop(len(items) - 1)
         return Brackets(*items) if len(items) == 2 else Brackets("", *items)
     # CLASS -> TOKENS
-    def KEYWORD(self, token: Token) -> str: return str(token)
-    def IDENTIFIER(self, token: Token) -> str: return str(token)
-    def NUMBER(self, token: Token) -> str: return str(token)
-    def NEWLINE(self, token: Token) -> str: return str(token)
-    def EQUALITY(self, token: Token) -> str: return str(token)
-    def SIGNS(self, token: Token) -> str: return str(token)
-    def OPEN(self, token: Token) -> str: return str(token)
-    def CLOSE(self, token: Token) -> str: return str(token)
-    def SPACE(self, token: Token) -> str: return str(token)
+    def IDENTIFIER(self, token: Token) -> str: return str(token).replace(" ", "")
+    def NUMBER(self, token: Token) -> str: return str(token).replace(" ", "")
+    def NEWLINE(self, token: Token) -> str: return str(token).replace(" ", "")
+    def EQUALITY(self, token: Token) -> str: return str(token).replace(" ", "")
+    def SIGNS(self, token: Token) -> str: return str(token).replace(" ", "")
+    def OPEN(self, token: Token) -> str: return str(token).replace(" ", "")
+    def CLOSE(self, token: Token) -> str: return str(token).replace(" ", "")
+    def SPACE(self, token: Token) -> str: return str(token).replace(" ", "")
