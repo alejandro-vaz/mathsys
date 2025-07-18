@@ -3,7 +3,7 @@
 #
 
 # HEAD -> DATACLASSES
-from .parser import Sheet, Declaration, Expression, Term
+from .parser import Sheet, Declaration, Expression, Term, Factor
 
 
 #
@@ -45,17 +45,23 @@ class LaTeX:
         for index in range(len(expression.terms)): 
             self.term(expression.terms[index], index == 0)
     # CLASS -> TERM GENERATION
-    def term(self, term: Term, first: bool) -> None:
-        match term.type:
-            case ["unsigned", "number"]: self.latex.append(f"{'' if first else '+'}{term.value}")
-            case ["unsigned", "identifier"]: self.latex.append(f"{'' if first else '+'}{term.value}")
+    def term(self, term: Term, noTermSign: bool) -> None:
+        for index in range(len(term.factors)):
+            self.factor(term.factors[index], noTermSign or index != 0)
+            self.latex.append(r"\cdot ")
+        self.latex.pop()
+    # CLASS -> FACTOR GENERATION
+    def factor(self, factor: Factor, noSign: bool) -> None:
+        match factor.type:
+            case ["unsigned", "number"]: self.latex.append(f"{'' if noSign else '+'}{factor.value}")
+            case ["unsigned", "identifier"]: self.latex.append(f"{'' if noSign else '+'}{factor.value}")
             case ["unsigned", "expression"]: 
-                self.latex.append(fr"{'' if first else '+'}\left( ")
-                self.expression(term.value)
+                self.latex.append(fr"{'' if noSign else '+'}\left( ")
+                self.expression(factor.value)
                 self.latex.append(r"\right) ")
-            case ["signed", "number"]: self.latex.append(f"{term.signs}{term.value}")
-            case ["signed", "identifier"]: self.latex.append(f"{term.signs}{term.value}")
+            case ["signed", "number"]: self.latex.append(fr"{factor.signs}{factor.value}")
+            case ["signed", "identifier"]: self.latex.append(fr"{factor.signs}{factor.value}")
             case ["signed", "expression"]: 
-                self.latex.append(fr"{term.signs}\left( ")
-                self.expression(term.value)
+                self.latex.append(fr"{factor.signs}\left( ")
+                self.expression(factor.value)
                 self.latex.append(r"\right) ")

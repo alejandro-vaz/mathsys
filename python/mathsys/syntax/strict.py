@@ -10,13 +10,16 @@ declaration: IDENTIFIER EQUALITY expression
 
 expression: term*
 
-term: SIGNS? (NUMBER | IDENTIFIER | (OPEN expression CLOSE))
+term: factor (OPERATOR factor)*
+
+factor: SIGNS? (NUMBER | IDENTIFIER | (OPEN expression CLOSE))
 
 
 IDENTIFIER: /[A-Za-z]+/
 NUMBER: /[0-9]+(\.[0-9]+)?/
 NEWLINE: /\n+/
 EQUALITY: /=/
+OPERATOR: /\*/
 SIGNS: /[+-]+(\s*[+-]+)*/
 OPEN: /\(/
 CLOSE: /\)/

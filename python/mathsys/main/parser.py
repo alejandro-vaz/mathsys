@@ -49,6 +49,16 @@ class Expression:
 # 4ºLEVEL -> TERM
 @dataclass
 class Term:
+    factors: list[Factor]
+
+
+#
+#   5ºLEVEL
+#
+
+# 5ºLEVEL -> FACTOR
+@dataclass
+class Factor:
     type: [
         "unsigned" | "signed", 
         "number" | "identifier" | "expression"
@@ -85,15 +95,18 @@ class Parser(Transformer):
     def expression(self, items: list[Term]) -> Expression: 
         return Expression(items)
     # CLASS -> TERM CONSTRUCT
-    def term(self, items: list[Token]) -> Term:
-        type = self._term(items)
+    def term(self, items: list[Factor | Token]) -> Term:
+        return Term([factor for factor in items if isinstance(factor, Factor)])
+    # CLASS -> FACTOR CONSTRUCT
+    def factor(self, items: list[Token | Expression]) -> Factor:
+        type = self._factor(items)
         match type:
-            case ["unsigned", "number"]: return Term(type, "", ñ(items[0]))
-            case ["unsigned", "identifier"]: return Term(type, "", ñ(items[0]))
-            case ["unsigned", "expression"]: return Term(type, "", items[1])
-            case ["signed", "number"]: return Term(type, ñ(items[0]), ñ(items[1]))
-            case ["signed", "identifier"]: return Term(type, ñ(items[0]), ñ(items[1]))
-            case ["signed", "expression"]: return Term(type, ñ(items[0]), items[2])
+            case ["unsigned", "number"]: return Factor(type, "", ñ(items[0]))
+            case ["unsigned", "identifier"]: return Factor(type, "", ñ(items[0]))
+            case ["unsigned", "expression"]: return Factor(type, "", items[1])
+            case ["signed", "number"]: return Factor(type, ñ(items[0]), ñ(items[1]))
+            case ["signed", "identifier"]: return Factor(type, ñ(items[0]), ñ(items[1]))
+            case ["signed", "expression"]: return Factor(type, ñ(items[0]), items[2])
     # CLASS -> SHEET TYPE
     def _sheet(self, items: list[Token | Declaration]) -> list[str]:
         match len([declaration for declaration in items if isinstance(declaration, Declaration)]):
@@ -101,9 +114,9 @@ class Parser(Transformer):
             case 1: return ["inline"]
             case _: return ["normal"]
     # CLASS -> TERM TYPE
-    def _term(self, items: list[Token]) -> list[str]:
+    def _factor(self, items: list[Token]) -> list[str]:
         match items[0].type:
-            case "SIGNS": return ["signed", self._term(items[1:])[1]]
+            case "SIGNS": return ["signed", self._factor(items[1:])[1]]
             case "NUMBER": return ["unsigned", "number"]
             case "IDENTIFIER": return ["unsigned", "identifier"]
             case "OPEN": return ["unsigned", "expression"]
