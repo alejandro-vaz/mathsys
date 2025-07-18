@@ -3,7 +3,7 @@
 #
 
 # HEAD -> DATACLASSES
-from .parser import Sheet, Declaration, Expression, Term, Variable, Brackets
+from .parser import Sheet, Declaration, Expression, Term
 
 
 #
@@ -14,42 +14,48 @@ from .parser import Sheet, Declaration, Expression, Term, Variable, Brackets
 class LaTeX:
     # CLASS -> VARIABLES
     latex: list[str]
-    counter: int
-    memory: list[str]
     # CLASS -> INIT
     def __init__(self) -> None:
         self.latex = []
     # CLASS -> RUN
     def run(self, sheet: Sheet) -> str:
-        self.latex.append("$$ ")
-        for declaration in sheet.statements:
-            self.declaration(declaration)
-        self.latex.append(" $$")
-        return "".join(self.latex)
+        self.sheet(sheet)
+        return ''.join(self.latex)
+    # CLASS -> SHEET GENERATION
+    def sheet(self, sheet: Sheet) -> None:
+        match sheet.type:
+            case ["empty"]: pass
+            case ["inline"]:
+                self.latex.append("$")
+                self.declaration(sheet.statements[0])
+                self.latex.append("$")
+            case ["normal"]:
+                self.latex.append("$$")
+                for declaration in sheet.statements:
+                    self.declaration(declaration)
+                    self.latex.append(r"\\")
+                self.latex.pop()
+                self.latex.append("$$")
     # CLASS -> DECLARATION GENERATION
     def declaration(self, declaration: Declaration) -> None:
         self.latex.append(f"{declaration.identifier}=")
         self.expression(declaration.expression)
-        self.latex.append("\\\\")
     # CLASS -> EXPRESSION GENERATION
     def expression(self, expression: Expression) -> None:
-        registers = []
-        for value in expression.terms:
-            match value:
-                case Term():
-                    self.term(value)
-                case Variable():
-                    self.variable(value)
-                case Brackets():
-                    self.brackets(value)
+        for index in range(len(expression.terms)): 
+            self.term(expression.terms[index], index == 0)
     # CLASS -> TERM GENERATION
-    def term(self, value: Term) -> None:
-        self.latex.append(f"{value.signs}{value.number}")
-    # CLASS -> VARIABLE GENERATION
-    def variable(self, value: Variable) -> None:
-        self.latex.append(f"{value.signs}{value.identifier}")
-    # CLASS -> BRACKETS GENERATION
-    def brackets(self, value: Brackets) -> None:
-        self.latex.append(fr"{value.signs}\left( ")
-        self.expression(value.expression)
-        self.latex.append(r"\right) ")
+    def term(self, term: Term, first: bool) -> None:
+        match term.type:
+            case ["unsigned", "number"]: self.latex.append(f"{'' if first else '+'}{term.value}")
+            case ["unsigned", "identifier"]: self.latex.append(f"{'' if first else '+'}{term.value}")
+            case ["unsigned", "expression"]: 
+                self.latex.append(fr"{'' if first else '+'}\left( ")
+                self.expression(term.value)
+                self.latex.append(r"\right) ")
+            case ["signed", "number"]: self.latex.append(f"{term.signs}{term.value}")
+            case ["signed", "identifier"]: self.latex.append(f"{term.signs}{term.value}")
+            case ["signed", "expression"]: 
+                self.latex.append(fr"{term.signs}\left( ")
+                self.expression(term.value)
+                self.latex.append(r"\right) ")

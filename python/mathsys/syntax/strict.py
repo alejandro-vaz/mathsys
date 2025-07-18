@@ -4,15 +4,13 @@
 
 # SYNTAX -> VARIABLE
 syntax = r"""
-sheet: (declaration (NEWLINE declaration)*)?
+sheet: NEWLINE* (declaration (NEWLINE+ declaration)*)? NEWLINE*
 
 declaration: IDENTIFIER EQUALITY expression
 
-expression: (term | brackets | variable)*
+expression: term*
 
-term: SIGNS? NUMBER
-variable: SIGNS? IDENTIFIER
-brackets: SIGNS? OPEN expression CLOSE
+term: SIGNS? (NUMBER | IDENTIFIER | (OPEN expression CLOSE))
 
 
 IDENTIFIER: /[A-Za-z]+/

@@ -20,8 +20,10 @@ requires-python = ">=3.11"
 dependencies = []
 
 [tool.setuptools]
-package-dir = {"" = "python"}
-packages = ["mathsys"]
+package-dir = { "" = "python" }
+
+[tool.setuptools.packages.find]
+where = ["python"]
 
 [tool.setuptools.package-data]
-mathsys = ["py.typed", "main/", "main/*py", "syntax/", "syntax/*py"]
+mathsys = ["**"]

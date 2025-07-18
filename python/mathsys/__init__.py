@@ -6,11 +6,11 @@
 import sys
 
 # HEAD -> COMPILER
-from main.parser import Parser
-from main.generator import LaTeX
+from .main.parser import Parser
+from .main.generator import LaTeX
 
 # HEAD -> SYNTAX
-from syntax.strict import syntax
+from .syntax.strict import syntax
 
 
 #
