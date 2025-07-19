@@ -49,7 +49,7 @@ class LaTeX:
         for index in range(len(term.factors)):
             self.factor(term.factors[index], noTermSign or index != 0)
             self.latex.append(r"\cdot ")
-        self.latex.pop()
+        if len(term.factors) != 0: self.latex.pop()
     # CLASS -> FACTOR GENERATION
     def factor(self, factor: Factor, noSign: bool) -> None:
         match factor.type:

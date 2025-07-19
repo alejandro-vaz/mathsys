@@ -7,7 +7,7 @@ name = "mathsys"
 version = "0.6.1"
 description = "The Domain Specific Language for math."
 readme = "README.md"
-license = {text = "MIT"}
+license = {text = "CC-BY-NC-ND-4.0 with additional clauses and exceptions"}
 authors = [{ name = "Alejandro Vaz", email = "notyetimplemented@abscissa.eu" }]
 keywords = ["dsl", "math", "mathsys", "compiler", "language"]
 classifiers = [
