@@ -4,36 +4,23 @@
 
 # SYNTAX -> VARIABLE
 syntax = r"""
-#
-#   CONSTRUCTS
-#
+sheet: NEWLINE* (declaration (NEWLINE+ declaration)*)? NEWLINE*
 
-# CONSTRUCTS -> 1ºLEVEL
-sheet: declaration*
+declaration: IDENTIFIER EQUALITY expression
 
-# CONSTRUCTS -> 2ºLEVEL
-declaration: KEYWORD IDENTIFIER EQUALITY expression
+expression: term*
 
-# CONSTRUCTS -> 3ºLEVEL
-expression: (term | brackets | variable)*
+term: factor (OPERATOR factor)*
 
-# CONSTRUCTS -> 4ºLEVEL
-term: SIGNS? NUMBER
-variable: SIGNS? IDENTIFIER
-brackets: SIGNS? OPEN expression CLOSE
+factor: SIGNS? (NUMBER | IDENTIFIER | (OPEN expression CLOSE))
 
 
-#
-#   TOKENS
-#
-
-# TOKENS -> ORDERED DEFINITIONS
-KEYWORD: /Num(&[a-z]+)?/
 IDENTIFIER: /[A-Za-z]+/
 NUMBER: /[0-9]+(\.[0-9]+)?/
 NEWLINE: /\n+/
 EQUALITY: /=/
-SIGNS: /[+-]+(\s*[+-]*)*/
+OPERATOR: /\*/
+SIGNS: /[+-]+(\s*[+-]+)*/
 OPEN: /\(/
 CLOSE: /\)/
 SPACE: / +/

@@ -1,5 +1,15 @@
+#
+#   IGNORE
+#
+
+# IGNORE -> BUILD
 *.js
-python/mathsys.egg-info/
 dist/
-python/mathsys/main/__pycache__/
+python/mathsys.egg-info
+python/mathsys/mathsys.egg-info
+
+# IGNORE -> PYCACHE
+python/mathsys/__pycache__
+python/mathsys/main/__pycache__
 python/mathsys/syntax/__pycache__
+python/testing/__pycache__

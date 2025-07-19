@@ -28,3 +28,11 @@
 - [X] (Patch) Made entry point fixed imports to `main/` dynamic.
 #### *Mathsys* 0.3.2 `0-0-1`
 - [X] (Patch) Added the `syntax/` directory with its files to package-shipped files.
+### *Mathsys* 0.6.1 `2-2-3`
+- [X] (Patch) Improved `.gitignore` structure.
+- [X] (Patch) Create `node` project again with commands.
+- [X] (Patch) Improved `pip` package structure.
+- [X] (Major) Replaced *IR* generator for *LaTeX* generator.
+- [X] (Major) Added support for multiplication.
+- [X] (Minor) Redesigned internal syntax and removed comments in it.
+- [X] (Minor) Added tests.

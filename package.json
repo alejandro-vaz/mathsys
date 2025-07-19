@@ -1,0 +1,29 @@
+{
+  "name": "mathsys",
+  "version": "0.6.1",
+  "description": "The Domain Specific Language for math.",
+  "main": "index.js",
+  "scripts": {
+    "buildpy": "python3 -m build",
+    "installpy": "pip install -e . --break-system-packages",
+    "testpy": "python3 -m unittest python.testing",
+    "uploadpy": "twine upload dist/*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/abscissa-math/mathsys.git"
+  },
+  "keywords": [
+    "dsl",
+    "math",
+    "mathsys",
+    "compiler",
+    "language"
+  ],
+  "author": "alejandro-vaz",
+  "license": "CC-BY-NC-ND-4.0 with additional clauses and exceptions",
+  "bugs": {
+    "url": "https://github.com/abscissa-math/mathsys/issues"
+  },
+  "homepage": "https://github.com/abscissa-math/mathsys#readme"
+}
