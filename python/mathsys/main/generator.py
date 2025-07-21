@@ -3,7 +3,7 @@
 #
 
 # HEAD -> DATACLASSES
-from .parser import Sheet, Declaration, Expression, Term, Factor
+from .parser import Sheet, Declaration, Expression, Term, Factor, Vector
 
 
 #
@@ -33,7 +33,7 @@ class LaTeX:
                 self.latex.append("$$")
                 for declaration in sheet.statements:
                     self.declaration(declaration)
-                    self.latex.append(r"\\")
+                    self.latex.append(r"\\ ")
                 self.latex.pop()
                 self.latex.append("$$")
     # CLASS -> DECLARATION GENERATION
@@ -89,6 +89,10 @@ class LaTeX:
                 self.latex.append(r"\left( ")
                 self.expression(factor.value)
                 self.latex.append(r"\right) ")
+            case ["unsigned", "vector"]:
+                self.latex.append('' if noSign else "+")
+                self.latex.append(r'\frac{' if createFraction else '')
+                self.vector(factor.value)
             case ["signed", "number"]: 
                 self.latex.append(factor.signs)
                 self.latex.append(r"\frac{" if createFraction else '')
@@ -103,3 +107,17 @@ class LaTeX:
                 self.latex.append(r"\left( ")
                 self.expression(factor.value)
                 self.latex.append(r"\right) ")
+            case ["signed", "vector"]:
+                self.latex.append(factor.signs)
+                self.latex.append(r"\frac{" if createFraction else '')
+                self.vector(factor.value)
+    def vector(self, vector: Vector) -> None:
+        self.latex.append(r"\begin{bmatrix}")
+        if vector.expressions:
+            for expression in vector.expressions:
+                self.expression(expression)
+                self.latex.append(r"\\ ")
+            self.latex.pop()
+        else:
+            self.latex.append(r"\; ")
+        self.latex.append(r"\end{bmatrix}")

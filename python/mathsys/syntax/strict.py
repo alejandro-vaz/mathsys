@@ -8,11 +8,13 @@ sheet: NEWLINE* (declaration (NEWLINE+ declaration)*)? NEWLINE*
 
 declaration: IDENTIFIER EQUALITY expression
 
-expression: term*
+expression: term+
 
 term: factor (OPERATOR factor)*
 
-factor: SIGNS? (NUMBER | IDENTIFIER | (OPEN expression CLOSE))
+factor: SIGNS? (NUMBER | IDENTIFIER | (OPEN expression CLOSE) | vector)
+
+vector: ENTER (expression (COMMA expression)*)? EXIT
 
 
 IDENTIFIER: /[A-Za-z]+/
@@ -23,6 +25,9 @@ OPERATOR: /[\*\/]/
 SIGNS: /[+-]+(\s*[+-]+)*/
 OPEN: /\(/
 CLOSE: /\)/
+ENTER: /\[/
+COMMA: /,/
+EXIT: /\]/
 SPACE: / +/
 
 %ignore SPACE
