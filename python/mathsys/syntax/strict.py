@@ -19,7 +19,7 @@ IDENTIFIER: /[A-Za-z]+/
 NUMBER: /[0-9]+(\.[0-9]+)?/
 NEWLINE: /\n+/
 EQUALITY: /=/
-OPERATOR: /\*/
+OPERATOR: /[\*\/]/
 SIGNS: /[+-]+(\s*[+-]+)*/
 OPEN: /\(/
 CLOSE: /\)/

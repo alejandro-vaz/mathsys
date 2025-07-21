@@ -50,6 +50,7 @@ class Expression:
 @dataclass
 class Term:
     factors: list[Factor]
+    operators: list[str]
 
 
 #
@@ -96,7 +97,10 @@ class Parser(Transformer):
         return Expression(items)
     # CLASS -> TERM CONSTRUCT
     def term(self, items: list[Factor | Token]) -> Term:
-        return Term([factor for factor in items if isinstance(factor, Factor)])
+        return Term(
+            [factor for factor in items if isinstance(factor, Factor)],
+            [ñ(operator) for operator in items if isinstance(operator, Token)]
+        )
     # CLASS -> FACTOR CONSTRUCT
     def factor(self, items: list[Token | Expression]) -> Factor:
         type = self._factor(items)
