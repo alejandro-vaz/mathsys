@@ -4,9 +4,12 @@
 
 # SYNTAX -> VARIABLE
 syntax = r"""
-sheet: NEWLINE* (declaration (NEWLINE+ declaration)*)? NEWLINE*
+sheet: NEWLINE* (level2 (NEWLINE+ level2)*)? NEWLINE*
 
 declaration: IDENTIFIER EQUALITY expression
+node: expression
+equation: expression EQUALITY expression
+comment: QUOTE
 
 expression: term+
 
@@ -16,12 +19,20 @@ factor: SIGNS? (NUMBER | IDENTIFIER | (OPEN expression CLOSE) | vector)
 
 vector: ENTER (expression (COMMA expression)*)? EXIT
 
+level1: sheet
+level2: (declaration | node | equation | comment)
+level3: expression
+level4: term
+level5: factor
+level6: vector
 
+
+QUOTE: /\#[^\n]*/
 IDENTIFIER: /[A-Za-z]+/
 NUMBER: /[0-9]+(\.[0-9]+)?/
 NEWLINE: /\n+/
 EQUALITY: /=/
-OPERATOR: /[\*\/]/
+OPERATOR: /[·\*\/]/
 SIGNS: /[+-]+(\s*[+-]+)*/
 OPEN: /\(/
 CLOSE: /\)/
@@ -31,5 +42,4 @@ EXIT: /\]/
 SPACE: / +/
 
 %ignore SPACE
-%ignore NEWLINE
 """
