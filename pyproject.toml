@@ -4,10 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mathsys"
-version = "0.6.1"
+version = "0.8.0"
 description = "The Domain Specific Language for math."
 readme = "README.md"
-license = {text = "CC-BY-NC-ND-4.0 with additional clauses and exceptions"}
+license = {text = "SEE LICENSE IN LICENSE.md"}
 authors = [{ name = "Alejandro Vaz", email = "notyetimplemented@abscissa.eu" }]
 keywords = ["dsl", "math", "mathsys", "compiler", "language"]
 classifiers = [

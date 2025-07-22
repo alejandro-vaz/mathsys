@@ -1,6 +1,6 @@
 {
   "name": "mathsys",
-  "version": "0.6.1",
+  "version": "0.8.0",
   "description": "The Domain Specific Language for math.",
   "main": "index.js",
   "scripts": {
@@ -21,7 +21,7 @@
     "language"
   ],
   "author": "alejandro-vaz",
-  "license": "CC-BY-NC-ND-4.0 with additional clauses and exceptions",
+  "license": "SEE LICENSE IN LICENSE.md",
   "bugs": {
     "url": "https://github.com/abscissa-math/mathsys/issues"
   },
