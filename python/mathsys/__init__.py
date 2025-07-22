@@ -34,4 +34,4 @@ if __name__ == "__main__":
     if len(sys.argv) == 2:
         target(sys.argv[1])
     else:
-        sys.exit("[ENTRY ISSUE] Usage: python compiler.py <filename>")
+        sys.exit("[ENTRY ISSUE] Usage: python -m mathsys <filename>")

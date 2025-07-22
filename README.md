@@ -1,3 +1,9 @@
+## How to install
+Currently we only ship the latest packages over `pip`, although soon a web *API* will be designed. To install, just run:
+```sh
+pip install mathsys
+```
+
 ## *Mathsys*
 *Mathsys* is a *DSL* (Domain-Specific Language) aimed to make math writing easier on computers, and something machines can actually understand.
 
@@ -7,15 +13,9 @@ The project is currently on its early stages, and future improvements will be ma
 
 A new version is released every few weeks on an irregular schedule. Regular releases happen every one to three weeks, whilst patches and bug fixes are released soon after detection.
 
-You will be able to check it out live on the [Abscissa playground](https://abscissa.eu/playground).
+Check it out live on [Abscissa](https://abscissa.eu/playground).
 
 I say *we* but I'm indeed a solo developer for now, so if you want to get involved learn
-
-## How to install
-Currently we only ship the latest packages over `pip`, although soon a web *API* will be designed. To install, just run:
-```sh
-pip install mathsys
-```
 
 ## How to contribute
 1. **Check out our wiki:** [here](https://github.com/abscissa-math/mathsys/wiki).
@@ -32,4 +32,4 @@ Currently only a *Python* transpiler to *LaTeX* is available. Here is how it wor
 2. A small *LaTeX* generator runs over the *AST* and prints out *LaTeX* character by character.
 
 ## License
-This project is licensed under the [*Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International*](https://creativecommons.org/licenses/by-nc-nd/4.0/) license subject to additional clauses and exceptions. See `LICENSE` for more details.
+All rights reserved.

@@ -36,3 +36,13 @@
 - [X] (Major) Added support for multiplication.
 - [X] (Minor) Redesigned internal syntax and removed comments in it.
 - [X] (Minor) Added tests.
+### *Mathsys* 0.8.0 `2-4-3`
+- [X] (Patch) Added `lark` dependency to *Python* package.
+- [X] (Minor) Added multiple-levels syntax hierarchy system.
+- [X] (Major) Added division.
+- [X] (Minor) Added comments.
+- [X] (Minor) Added bare expressions and equations.
+- [X] (Patch) Added `·` as a character for multiplication.
+- [X] (Major) Added vectors.
+- [X] (Minor) Improved and cleaned syntax.
+- [X] (Patch) Added more test cases.
