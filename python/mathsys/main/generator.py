@@ -41,13 +41,14 @@ class LaTeX:
         self.latex = []
     # CLASS -> RUN
     def run(self, sheet: Level1) -> str:
+        self.latex = []
         self.sheet(sheet)
         return ''.join(self.latex)
     # CLASS -> 1 SHEET GENERATION
     def sheet(self, sheet: Sheet) -> None:
-        match sheet.type:
-            case ["empty"]: return
-            case ["inline"]:
+        match len(sheet.statements):
+            case 0: pass
+            case 1:
                 self.latex.append("$")
                 match sheet.statements[0]:
                     case Declaration(): self.declaration(sheet.statements[0])
@@ -55,7 +56,7 @@ class LaTeX:
                     case Equation(): self.equation(sheet.statements[0])
                     case Comment(): self.comment(sheet.statements[0])
                 self.latex.append("$")
-            case ["normal"]:
+            case _:
                 self.latex.append("$$")
                 for statement in sheet.statements:
                     match statement:
@@ -68,7 +69,8 @@ class LaTeX:
                 self.latex.append("$$")
     # CLASS -> 2 DECLARATION GENERATION
     def declaration(self, declaration: Declaration) -> None:
-        self.latex.append(f"{declaration.identifier}=")
+        self.latex.append(declaration.identifier)
+        self.latex.append("=")
         self.expression(declaration.expression)
     # CLASS -> 2 NODE GENERATION
     def node(self, node: Node) -> None:
@@ -81,7 +83,7 @@ class LaTeX:
     # CLASS -> 2 COMMENT GENERATION
     def comment(self, comment: Comment) -> None:
         self.latex.append(r"\text{")
-        self.latex.append(comment.text)
+        self.latex.append(comment.text.upper())
         self.latex.append(r"}")
     # CLASS -> 3 EXPRESSION GENERATION
     def expression(self, expression: Expression) -> None:
@@ -117,43 +119,37 @@ class LaTeX:
             self.latex.pop()
     # CLASS -> 5 FACTOR GENERATION
     def factor(self, factor: Factor, noSign: bool, createFraction: bool = False) -> None:
-        match factor.type:
-            case ["unsigned", "number"]:
-                self.latex.append('' if noSign else "+")
-                self.latex.append(r'\frac{' if createFraction else '')
+        match [factor.type[2]]:
+            case ["number"]:
+                self.latex.append(factor.signs if factor.signs is not None else ("" if noSign else "+"))
+                self.latex.append(r"\frac{" if createFraction else '')
                 self.latex.append(factor.value)
-            case ["unsigned", "identifier"]: 
-                self.latex.append('' if noSign else "+")
-                self.latex.append(r'\frac{' if createFraction else '')
+                self.latex.append(r"^{" if factor.exponent is not None else '')
+                if factor.exponent is not None: self.expression(factor.exponent)
+                self.latex.append(r"}" if factor.exponent is not None else '')
+            case ["identifier"]:
+                self.latex.append(factor.signs if factor.signs is not None else ("" if noSign else "+"))
+                self.latex.append(r"\frac{" if createFraction else '')
                 self.latex.append(factor.value)
-            case ["unsigned", "expression"]: 
-                self.latex.append('' if noSign else "+")
-                self.latex.append(r'\frac{' if createFraction else '')
+                self.latex.append(r"^{" if factor.exponent is not None else '')
+                if factor.exponent is not None: self.expression(factor.exponent)
+                self.latex.append(r"}" if factor.exponent is not None else '')
+            case ["expression"]:
+                self.latex.append(factor.signs if factor.signs is not None else ("" if noSign else "+"))
+                self.latex.append(r"\frac{" if createFraction else '')
                 self.latex.append(r"\left( ")
                 self.expression(factor.value)
                 self.latex.append(r"\right) ")
-            case ["unsigned", "vector"]:
-                self.latex.append('' if noSign else "+")
-                self.latex.append(r'\frac{' if createFraction else '')
-                self.vector(factor.value)
-            case ["signed", "number"]: 
-                self.latex.append(factor.signs)
-                self.latex.append(r"\frac{" if createFraction else '')
-                self.latex.append(factor.value)
-            case ["signed", "identifier"]:
-                self.latex.append(factor.signs)
-                self.latex.append(r"\frac{" if createFraction else '')
-                self.latex.append(factor.value)
-            case ["signed", "expression"]: 
-                self.latex.append(factor.signs)
-                self.latex.append(r'\frac{' if createFraction else '')
-                self.latex.append(r"\left( ")
-                self.expression(factor.value)
-                self.latex.append(r"\right) ")
-            case ["signed", "vector"]:
-                self.latex.append(factor.signs)
+                self.latex.append(r"^{" if factor.exponent is not None else '')
+                if factor.exponent is not None: self.expression(factor.exponent)
+                self.latex.append(r"}" if factor.exponent is not None else '')
+            case ["vector"]:
+                self.latex.append(factor.signs if factor.signs is not None else ("" if noSign else "+"))
                 self.latex.append(r"\frac{" if createFraction else '')
                 self.vector(factor.value)
+                self.latex.append(r"^{" if factor.exponent is not None else '')
+                if factor.exponent is not None: self.expression(factor.exponent)
+                self.latex.append(r"}" if factor.exponent is not None else '')
     # CLASS -> 6 VECTOR GENERATION
     def vector(self, vector: Vector) -> None:
         self.latex.append(r"\begin{bmatrix}")

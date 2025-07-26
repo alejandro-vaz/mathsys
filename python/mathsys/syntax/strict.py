@@ -15,7 +15,7 @@ expression: term+
 
 term: factor (OPERATOR factor)*
 
-factor: SIGNS? (NUMBER | IDENTIFIER | (OPEN expression CLOSE) | vector)
+factor: SIGNS? (NUMBER | IDENTIFIER | (OPEN expression CLOSE) | vector) (EXPONENT expression EXPONENT)?
 
 vector: ENTER (expression (COMMA expression)*)? EXIT
 
@@ -29,6 +29,7 @@ level6: vector
 
 QUOTE: /\#[^\n]*/
 IDENTIFIER: /[A-Za-z]+/
+EXPONENT: /\^/
 NUMBER: /[0-9]+(\.[0-9]+)?/
 NEWLINE: /\n+/
 EQUALITY: /=/

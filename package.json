@@ -1,6 +1,6 @@
 {
   "name": "mathsys",
-  "version": "0.8.0",
+  "version": "0.10.2",
   "description": "The Domain Specific Language for math.",
   "main": "index.js",
   "scripts": {
