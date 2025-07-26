@@ -46,3 +46,9 @@
 - [X] (Major) Added vectors.
 - [X] (Minor) Improved and cleaned syntax.
 - [X] (Patch) Added more test cases.
+### *Mathsys* 0.10.2 `1-0-4`
+- [X] (Major) Added exponentiation.
+- [X] (Patch) Removed `sheet` types.
+- [X] (Patch) Made comments always uppercase.
+- [X] (Patch) Refactored `Factor` *LaTeX* generation.
+- [X] (Patch) Added `º()` function on parser which accesses a list safely.
