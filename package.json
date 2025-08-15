@@ -2,12 +2,16 @@
   "name": "mathsys",
   "version": "0.10.2",
   "description": "The Domain Specific Language for math.",
-  "main": "index.js",
+  "main": "typescript/index.js",
   "scripts": {
-    "buildpy": "python3 -m build",
-    "installpy": "pip install -e . --break-system-packages",
-    "testpy": "python3 -m unittest python.testing",
-    "uploadpy": "twine upload dist/*"
+    "build/py": "python3 -m build",
+    "build/ts": "babel typescript/ --extensions \".ts\" --watch --out-dir typescript/ --out-file-extension .js",
+    "install/py": "pip install -e . --break-system-packages",
+    "test/py": "python3 -m unittest python.testing",
+    "upload/py": "twine upload dist/*",
+    "upload/ts": "npm publish",
+    "compile/unix/x86/64": "find python/mathsys/bin/unix/x86/64 -name '*.asm' | entr -c sh -c 'for f in python/mathsys/bin/unix/x86/64/*.asm; do nasm -f elf64 \"$f\" -o \"${f%.asm}.o\"; done'",
+    "compile/web": "find python/mathsys/bin/web -name '*.wat' | entr -c sh -c 'for f in python/mathsys/bin/web/*.wat; do wat2wasm \"$f\" -r -o \"${f%.wat}.wasm\"; wasm-ld -flavor wasm -r \"${f%.wat}.wasm\" -o \"${f%.wat}.o\"; rm \"${f%.wat}.wasm\"; done'"
   },
   "repository": {
     "type": "git",
@@ -25,5 +29,13 @@
   "bugs": {
     "url": "https://github.com/abscissa-math/mathsys/issues"
   },
-  "homepage": "https://github.com/abscissa-math/mathsys#readme"
+  "homepage": "https://github.com/abscissa-math/mathsys#readme",
+  "devDependencies": {
+    "@babel/cli": "^7.27.2",
+    "@babel/core": "^7.27.4",
+    "@babel/plugin-transform-class-properties": "^7.27.1",
+    "@babel/preset-env": "^7.27.2",
+    "@babel/preset-react": "^7.27.1",
+    "@babel/preset-typescript": "^7.27.1"
+  }
 }
