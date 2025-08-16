@@ -16,14 +16,14 @@ import tempfile
 class Builder:
     # CLASS -> VARIABLES
     filename: str
-    data: list[str]
+    data: bytes
     target: str
     debug: bool
     modules: list[str]
     location: str
     # CLASS -> INIT
-    def __init__(self, data: list[str], target: str) -> None:
-        self.modules = ["exit", "number", "write"]
+    def __init__(self, data: bytes, target: str) -> None:
+        self.modules = ["all"]
         self.debug = False
         self.data = data
         self.target = target
@@ -31,7 +31,7 @@ class Builder:
     # CLASS -> RUN
     def run(self) -> bytes:
         descriptor, ir = tempfile.mkstemp(dir = "/tmp", suffix = ".ir")
-        with os.fdopen(descriptor, "w") as file: file.write("\n".join(self.data))
+        with os.fdopen(descriptor, "bw") as file: file.write(self.data)
         descriptor, self.filename = tempfile.mkstemp(dir = "/tmp")
         os.close(descriptor)
         environment = os.environ.copy()
@@ -55,9 +55,7 @@ class Builder:
             "web": "wasm32-unknown-unknown"
         }
         collection = [
-            "exit",
-            "number",
-            "write"
+            "all"
         ]
         sysroot = subprocess.check_output(
             ["rustc", "+nightly", "--print", "sysroot"],

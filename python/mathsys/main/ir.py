@@ -46,9 +46,9 @@ class Sequence: pass
 @dataclass
 class IRSheet(Sequence):
     code = b"\x00"
-    adr: bytes[1]
-    statementCount: bytes[1]
-    statements: bytes[statementCount]
+    adr: bytes
+    statementCount: bytes
+    statements: bytes
     def __bytes__(self) -> bytes:
         return self.code + self.adr + self.statementCount + self.statements
 
@@ -61,10 +61,10 @@ class IRSheet(Sequence):
 @dataclass
 class IRDeclaration(Sequence):
     code = b"\x01"
-    adr: bytes[1]
-    charAmount: bytes[1]
-    chars: bytes[charAmount]
-    pointer: bytes[1]
+    adr: bytes
+    charAmount: bytes
+    chars: bytes
+    pointer: bytes
     def __bytes__(self) -> bytes:
         return self.code + self.adr + self.charAmount + self.chars + self.pointer
 
@@ -72,8 +72,8 @@ class IRDeclaration(Sequence):
 @dataclass
 class IRNode(Sequence):
     code = b"\x02"
-    adr: bytes[1]
-    pointer: bytes[1]
+    adr: bytes
+    pointer: bytes
     def __bytes__(self) -> bytes:
         return self.code + self.adr + self.pointer
 
@@ -81,9 +81,9 @@ class IRNode(Sequence):
 @dataclass
 class IREquation(Sequence):
     code = b"\x03"
-    adr: bytes[1]
-    left: bytes[1]
-    right: bytes[1]
+    adr: bytes
+    left: bytes
+    right: bytes
     def __bytes__(self) -> bytes:
         return self.code + self.adr + self.left + self.right
 
@@ -91,11 +91,11 @@ class IREquation(Sequence):
 @dataclass
 class IRComment(Sequence):
     code = b"\x04"
-    adr: bytes[1]
-    amount: bytes[1]
-    chars: bytes[amount]
+    adr: bytes
+    amount: bytes
+    chars: bytes
     def __bytes__(self) -> bytes:
-        return self.code + self.adr + self.left + self.right
+        return self.code + self.adr + self.amount + self.chars
 
 
 #
@@ -106,9 +106,9 @@ class IRComment(Sequence):
 @dataclass
 class IRExpression(Sequence):
     code = b"\x05"
-    adr: bytes[1]
-    amount: bytes[1]
-    terms: bytes[amount]
+    adr: bytes
+    amount: bytes
+    terms: bytes
     def __bytes__(self) -> bytes:
         return self.code + self.adr + self.amount + self.terms
 
@@ -121,10 +121,10 @@ class IRExpression(Sequence):
 @dataclass
 class IRTerm(Sequence):
     code = b"\x06"
-    adr: bytes[1]
-    amount: bytes[1]
-    factors: bytes[amount]
-    operators: bytes[amount - 1]
+    adr: bytes
+    amount: bytes
+    factors: bytes
+    operators: bytes
     def __bytes__(self) -> bytes:
         return self.code + self.adr + self.amount + self.factors + self.operators
 
@@ -137,12 +137,12 @@ class IRTerm(Sequence):
 @dataclass
 class IRVariable(Sequence):
     code = b"\x07"
-    adr: bytes[1]
-    signs: bytes[1]
-    varLength: bytes[1]
-    varChars: bytes[varLength]
-    exponent: b"\x00" | b"\x01"
-    exponentAdr: bytes[exponent]
+    adr: bytes
+    signs: bytes
+    varLength: bytes
+    varChars: bytes
+    exponent: bytes
+    exponentAdr: bytes
     def __bytes__(self) -> bytes:
         return self.code + self.adr + self.signs + self.varLength + self.varChars + self.exponent + self.exponentAdr
 
@@ -150,11 +150,11 @@ class IRVariable(Sequence):
 @dataclass
 class IRNest(Sequence):
     code = b"\x08"
-    adr: bytes[1]
-    signs: bytes[1]
-    pointer: bytes[1]
-    exponent: b"\x00" | b"\x01"
-    exponentAdr: bytes[exponent]
+    adr: bytes
+    signs: bytes
+    pointer: bytes
+    exponent: bytes
+    exponentAdr: bytes
     def __bytes__(self) -> bytes:
         return self.code + self.adr + self.signs + self.pointer + self.exponent + self.exponentAdr
 
@@ -162,12 +162,12 @@ class IRNest(Sequence):
 @dataclass
 class IRVector(Sequence):
     code = b"\x09"
-    adr: bytes[1]
-    signs: bytes[1]
-    variableAmount: bytes[1]
-    variablesAdr: bytes[variableAmount]
-    exponent: b"\x00" | b"\x01"
-    exponentAdr: bytes[exponent]
+    adr: bytes
+    signs: bytes
+    variableAmount: bytes
+    variablesAdr: bytes
+    exponent: bytes 
+    exponentAdr: bytes
     def __bytes__(self) -> bytes:
         return self.code + self.adr + self.signs + self.variableAmount + self.variablesAdr + self.exponent + self.exponentAdr
 
@@ -175,12 +175,12 @@ class IRVector(Sequence):
 @dataclass
 class IRNumber(Sequence):
     code = b"\x0A"
-    adr: bytes[1]
-    signs: bytes[1]
-    length: bytes[1]
-    value: bytes[length]
-    exponent: b"\x00" | b"\x01"
-    exponentAdr: bytes[exponent]
+    adr: bytes
+    signs: bytes
+    length: bytes
+    value: bytes
+    exponent: bytes
+    exponentAdr: bytes
     def __bytes__(self) -> bytes:
         return self.code + self.adr + self.signs + self.length + self.value + self.exponent + self.exponentAdr
 
@@ -204,16 +204,19 @@ class IR:
         self.ir = []
         self.counter = 0
         self.sheet(sheet)
-        return sum([bytes(node) for node in self.ir])
+        representation = b""
+        for node in [bytes(node) for node in self.ir]:
+            representation += node
+        return representation
     # IR -> 1 SHEET GENERATION
     def sheet(self, sheet: Sheet) -> bytes:
         variables = b""
         for statement in sheet.statements:
             match statement:
-                case Declaration(): variables.append(self.declaration(statement))
-                case Node(): variables.append(self.node(statement))
-                case Equation(): variables.append(self.equation(statement))
-                case Comment(): variables.append(self.comment(statement))
+                case Declaration(): variables += self.declaration(statement)
+                case Node(): variables += self.node(statement)
+                case Equation(): variables += self.equation(statement)
+                case Comment(): variables += self.comment(statement)
         register = self.new()
         self.ir.append(IRSheet(
             register,
@@ -243,8 +246,8 @@ class IR:
         return register
     # GENERATOR -> 2 EQUATION GENERATION
     def equation(self, equation: Equation) -> bytes:
-        left = self.expression(equation.leftSide)
-        right = self.expression(equation.rightSide)
+        left = self.expression(equation.left)
+        right = self.expression(equation.right)
         register = self.new()
         self.ir.append(IREquation(
             register,
@@ -265,7 +268,7 @@ class IR:
     def expression(self, expression: Expression) -> bytes:
         variables = b""
         for term in expression.terms:
-            variables.append(self.term(term))
+            variables += self.term(term)
         register = self.new()
         self.ir.append(IRExpression(
             register,
@@ -278,11 +281,15 @@ class IR:
         variables = b""
         operators = b""
         for factor in term.factors:
-            variables.append(self.factor(factor))
+            match factor:
+                case Variable(): variables += self.variable(factor)
+                case Nest(): variables += self.nest(factor)
+                case Vector(): variables += self.vector(factor)
+                case Number(): variables += self.number(factor)
         for operator in term.operators:
             match operator:
-                case "·" | "*": operators.append(b"\x00")
-                case "/": operators.append(b"\x01")
+                case "·" | "*": operators += b"\x00"
+                case "/": operators += b"\x01"
         register = self.new()
         self.ir.append(IRTerm(
             register,
@@ -291,37 +298,54 @@ class IR:
             operators
         ))
         return register
-    # GENERATOR -> 5 FACTOR GENERATION
-    def factor(self, factor: Factor) -> str:
-        match factor.value:
-            case str(): variable = factor.value
-            case Expression(): variable = self.expression(factor.value)
-            case Vector(): variable = self.vector(factor.value)
-        exponent = [self.expression(factor.exponent)] if factor.exponent is not None else []
+    # GENERATOR -> 5 VARIABLE GENERATION
+    def variable(self, variable: Variable) -> bytes:
         register = self.new()
-        self.ir.append(IRNode(
-            "factor",
-            [
-                register,
-                *factor.type,
-                *([factor.signs] if factor.signs is not None else []),
-                variable,
-                *(exponent)
-            ]
+        self.ir.append(IRVariable(
+            register,
+            bytes([(variable.signs.count("-") if variable.signs is not None else 0x00) & 0xFF]),
+            bytes([len(variable.representation) & 0xFF]),
+            variable.representation.encode(),
+            b"\x01" if variable.exponent is not None else b"\x00",
+            self.expression(variable.exponent) if variable.exponent is not None else b""
         ))
         return register
-    # GENERATOR -> 6 VECTOR GENERATION
-    def vector(self, vector: Vector) -> str:
-        variables = []
-        for expression in vector.expressions:
-            variables.append(self.expression(expression))
+    # GENERATOR -> 5 NEST GENERATION
+    def nest(self, nest: Nest) -> bytes:
         register = self.new()
-        self.ir.append(IRNode(
-            "vector",
-            [
-                register,
-                *variables
-            ]
+        self.ir.append(IRNest(
+            register,
+            bytes([(nest.signs.count("-") if nest.signs is not None else 0x00) & 0xFF]),
+            self.expression(nest.expression),
+            b"\x01" if nest.exponent is not None else b"\x00",
+            self.expression(nest.exponent) if nest.exponent is not None else b""
+        ))
+        return register
+    # GENERATOR -> 5 VECTOR GENERATION
+    def vector(self, vector: Vector) -> bytes:
+        variables = b""
+        for expression in vector.values:
+            variables += self.expression(expression)
+        register = self.new()
+        self.ir.append(IRVector(
+            register,
+            bytes([(vector.signs.count("-") if vector.signs is not None else 0x00) & 0xFF]),
+            bytes(len(vector.values) & 0xFF),
+            variables,
+            b"\x01" if vector.exponent is not None else b"\x00",
+            self.expression(vector.exponent) if vector.exponent is not None else b""
+        ))
+        return register
+    # GENERATOR -> 5 NUMBER GENERATION
+    def number(self, number: Number) -> bytes:
+        register = self.new()
+        self.ir.append(IRNumber(
+            register,
+            bytes([(number.signs.count("-") if number.signs is not None else 0x00) & 0xFF]),
+            bytes([len(number.representation) & 0xFF]),
+            number.representation.encode(),
+            b"\x01" if number.exponent is not None else b"\x00",
+            self.expression(number.exponent) if number.exponent is not None else b""
         ))
         return register
     # GENERATOR -> VARIABLE GENERATOR

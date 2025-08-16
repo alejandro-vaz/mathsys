@@ -42,8 +42,8 @@ class Node(Level2):
 # 2ºLEVEL -> EQUATION
 @dataclass
 class Equation(Level2):
-    leftSide: Expression
-    rightSide: Expression
+    left: Expression
+    right: Expression
 
 # 2ºLEVEL -> COMMENT
 @dataclass
@@ -89,28 +89,28 @@ class Level5: pass
 @dataclass
 class Variable(Level5):
     signs: str | None
-    value: str
+    representation: str
     exponent: Expression | None
 
 # 5ºLEVEL -> NEST
 @dataclass
 class Nest(Level5):
     signs: str | None
-    value: Expression
+    expression: Expression
     exponent: Expression | None
 
 # 5ºLEVEL -> VECTOR
 @dataclass
 class Vector(Level5):
     signs: str | None
-    value: list[Expression]
+    values: list[Expression]
     exponent: Expression | None
 
 # 5ºLEVEL -> NUMBER
 @dataclass
 class Number(Level5):
     signs: str | None
-    value: str
+    representation: str
     exponent: Expression | None
 
 

@@ -7,7 +7,8 @@ import sys
 
 # HEAD -> COMPILER
 from .main.parser import Parser
-from .main.generator import LaTeX, IR
+from .main.latex import LaTeX
+from .main.ir import IR
 from .main.builder import Builder
 
 # HEAD -> SYNTAX

@@ -3,36 +3,28 @@
 ;
 
 ; HEAD -> GLOBALS
-global write
+global systemWrite
 
 ; HEAD -> MARK
 section .text
 
 
 ;
-;   FUNCTIONS
+;   SYSTEM
 ;
 
-; FUNCTIONS -> WRITE
-write:
+; SYSTEM -> WRITE
+systemWrite:
     mov rsi, rdi
     xor rcx, rcx
-    find:
+    .find:
         cmp byte [rsi + rcx], 0
-        je found
+        je .found
         inc rcx
-        jmp find
-    found:
+        jmp .find
+    .found:
         mov rax, 1
         mov rdi, 1
         mov rdx, rcx
         syscall
         ret
-
-
-;
-;   BOTTOM
-;
-
-; BOTTOM -> LINUX NOTICE
-section .note.GNU-no-entry

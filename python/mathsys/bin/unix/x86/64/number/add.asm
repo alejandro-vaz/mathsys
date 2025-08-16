@@ -10,18 +10,10 @@ section .text
 
 
 ;
-;   FUNCTIONS
+;   NUMBER
 ;
 
-; FUNCTIONS -> NUMBERADD
+; NUMBER -> ADD
 numberAdd:
     lea rax, [rdi + rsi]
     ret
-
-
-;
-;   BOTTOM
-;
-
-; BOTTOM -> LINUX NOTICE
-section .note.GNU-no-entry

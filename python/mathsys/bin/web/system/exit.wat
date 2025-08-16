@@ -11,27 +11,11 @@
 
 
 ;;
-;;  FUNCTIONS
+;;  SYSTEM
 ;;
 
-;; FUNCTIONS -> EXIT
-(func $exit
+;; SYSTEM -> EXIT
+(func $systemExit
     i32.const 0
     call $call60
-)
-
-
-;;
-;;  EXPORTS
-;;
-
-;; EXPORTS -> EXIT
-(export "exit" (func $exit))
-
-
-;;
-;;  BOTTOM
-;;
-
-;; BOTTOM -> MARK
-)
+)(export "systemExit" (func $systemExit)))

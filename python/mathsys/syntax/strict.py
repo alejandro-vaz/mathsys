@@ -13,7 +13,7 @@ comment: QUOTE
 
 expression: term+
 
-term: factor (OPERATOR factor)*
+term: level5 (OPERATOR level5)*
 
 variable: SIGNS? IDENTIFIER (EXPONENTIATION expression EXPONENTIATION)?
 nest: SIGNS? OPEN expression CLOSE (EXPONENTIATION expression EXPONENTIATION)?
@@ -28,7 +28,7 @@ level4: term
 level5: (variable | nest | vector | number)
 
 
-QUOTE: /\# [^\n]*/
+QUOTE: /\#( [^\n]*)?/
 IDENTIFIER: /[A-Za-z]+/
 EXPONENTIATION: /\^/
 NUMBER: /[0-9]+/

@@ -79,9 +79,9 @@ class LaTeX:
         self.expression(node.expression)
     # GENERATOR -> 2 EQUATION GENERATION
     def equation(self, equation: Equation) -> None:
-        self.expression(equation.leftSide)
+        self.expression(equation.left)
         self.latex.append("=")
-        self.expression(equation.rightSide)
+        self.expression(equation.right)
     # GENERATOR -> 2 COMMENT GENERATION
     def comment(self, comment: Comment) -> None:
         self.latex.append(r"\text{")
@@ -136,7 +136,7 @@ class LaTeX:
             self.latex.append(variable.signs if variable.signs is not None else "+")
         if createFraction: 
             self.latex.append(r"\frac")
-        self.latex.append(variable.value)
+        self.latex.append(variable.representation)
         if variable.exponent is not None:
             self.latex.append(r"^{")
             self.expression(variable.exponent)
@@ -150,7 +150,7 @@ class LaTeX:
         if createFraction:
             self.latex.append(r"\frac")
         self.latex.append(r"\left( ")
-        self.expression(nest.value)
+        self.expression(nest.expression)
         self.latex.append(r"\right) ")
         if nest.exponent is not None:
             self.latex.append(r"^{")
@@ -165,8 +165,8 @@ class LaTeX:
         if createFraction:
             self.latex.append(r"\frac{")
         self.latex.append(r"\begin{bmatrix}")
-        if vector.value:
-            for expression in vector.value:
+        if vector.values:
+            for expression in vector.values:
                 self.expression(expression)
                 self.latex.append(r"\\ ")
             self.latex.pop()
@@ -185,7 +185,7 @@ class LaTeX:
             self.latex.append(number.signs if number.signs is not None else "+")
         if createFraction:
             self.latex.append(r"\frac{")
-        self.latex.append(number.value)
+        self.latex.append(number.representation)
         if number.exponent is not None:
             self.latex.append(r"^{")
             self.expression(number.exponent)

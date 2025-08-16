@@ -10,8 +10,8 @@
     "test/py": "python3 -m unittest python.testing",
     "upload/py": "twine upload dist/*",
     "upload/ts": "npm publish",
-    "compile/unix/x86/64": "find python/mathsys/bin/unix/x86/64 -name '*.asm' | entr -c sh -c 'for f in python/mathsys/bin/unix/x86/64/*.asm; do nasm -f elf64 \"$f\" -o \"${f%.asm}.o\"; done'",
-    "compile/web": "find python/mathsys/bin/web -name '*.wat' | entr -c sh -c 'for f in python/mathsys/bin/web/*.wat; do wat2wasm \"$f\" -r -o \"${f%.wat}.wasm\"; wasm-ld -flavor wasm -r \"${f%.wat}.wasm\" -o \"${f%.wat}.o\"; rm \"${f%.wat}.wasm\"; done'"
+    "compile/unix/x86/64": "cd python/mathsys/bin/unix/x86/64 && nasm -f elf64 all.asm -o all.o",
+    "compile/web": "cd python/mathsys/bin/web && wat2wasm --enable-annotations all.wat -r -o all.wasm && wasm-ld -flavor wasm -r all.wasm -o all.o && rm all.wasm"
   },
   "repository": {
     "type": "git",

@@ -11,15 +11,25 @@
 // HEAD -> SYSTEM CRATES
 extern crate alloc;
 
-// HEAD -> CUSTOM CRATES
-pub mod exec;
-pub mod object;
+// HEAD -> DATA
+mod data {
+    pub mod number;
+    pub mod placeholder;
+}
+
+// HEAD -> LIB
 mod lib {
     pub mod allocator;
     pub mod memory;
     pub mod rustc;
     pub mod stdout;
     pub mod string;
+}
+
+// HEAD -> STACK
+pub mod stack {
+    pub mod number;
+    pub mod system;
 }
 
 
@@ -30,9 +40,12 @@ mod lib {
 // PULLS -> LIB
 use lib::*;
 
+// PULLS -> DATA
+use data::number::Number;
+use data::placeholder::Placeholder;
+
 // PULLS -> ALLOC
 use alloc::vec::Vec;
-use alloc::boxed::Box;
 use alloc::string::String;
 use alloc::alloc::Layout;
 
@@ -41,10 +54,7 @@ use core::cell::UnsafeCell;
 use core::alloc::GlobalAlloc;
 use core::panic::PanicInfo;
 use core::ptr::null_mut;
-
-// PULLS -> OBJECT
-use object::Node;
-use object::{Factor, Placeholder};
+use core::str::from_utf8;
 
 
 //
@@ -53,7 +63,7 @@ use object::{Factor, Placeholder};
 
 // GLOBALS -> SETTINGS STRUCT
 struct Settings {
-    ir: &'static str,
+    ir: &'static [u8],
     version: &'static str,
     bcalls: bool,
     ncalls: bool,
@@ -63,12 +73,12 @@ struct Settings {
 
 // GLOBALS -> SETTINGS
 static SETTINGS: Settings = Settings {
-    ir: include_str!(env!("IR")),
+    ir: include_bytes!(env!("IR")),
     version: "0.10.2",
     bcalls: true,
     ncalls: true,
     memsize: 4194304,
-    precision: 2,
+    precision: if usize::BITS == 32 {2} else {3}
 };
 
 // GLOBALS -> ALLOCATOR
@@ -90,7 +100,30 @@ static mut HEAP: [u8; SETTINGS.memsize] = [0; SETTINGS.memsize];
 pub unsafe extern "C" fn _start() -> ! {
     allocator::init();
     stdout::login();
-    runtime(string::split(SETTINGS.ir, "\n"));
+    stdout::trace(&string::join(&[
+        "Allocated memory size is ",
+        &alloc::format!("{}", SETTINGS.memsize),
+        " bytes."
+    ]));
+    stdout::trace(&string::join(&[
+        "Intermediate Representation loaded with a length of ",
+        &alloc::format!("{}", SETTINGS.ir.len()),
+        "."
+    ]));
+    stdout::debug(&string::join(&[
+        "B calls are ",
+        if SETTINGS.bcalls {"enabled."} else {"disabled."}
+    ]));
+    stdout::debug(&string::join(&[
+        "N calls are ",
+        if SETTINGS.ncalls {"enabled."} else {"disabled."}
+    ]));
+    stdout::debug(&string::join(&[
+        "Calculation precision is set to ",
+        &alloc::format!("{}", SETTINGS.precision),
+        "."
+    ]));
+    runtime();
     stdout::crash();
 }
 
@@ -98,6 +131,12 @@ pub unsafe extern "C" fn _start() -> ! {
 //
 //  RUNTIME
 //
+
+// RUNTIME -> NODE
+pub enum Node {
+    Number(Number),
+    Placeholder(Placeholder)
+}
 
 // RUNTIME -> MEMORY
 struct Memory {
@@ -109,43 +148,46 @@ impl Memory {
             memory: Vec::new()
         }
     }
-    fn set(&mut self, index: usize, value: Node) -> () {
-        while self.memory.len() <= index {
-            self.memory.push(Node::Placeholder(Placeholder {}));
+    unsafe fn set(&mut self, index: usize, value: Node) -> () {
+        while self.memory.len() < index {
+            self.memory.push(Node::Placeholder(Placeholder::new()));
         }
-        self.memory[index] = value;
+        if self.memory.len() == index {
+            self.memory.push(value);
+        } else {
+            self.memory[index] = value;
+        }
     }
     fn get(&mut self, index: usize) -> Option<&Node> {
         return self.memory.get(index);
     }
 }
 
-// RUNTIME -> LOCATION
-fn location(representation: &str) -> usize {
-    return string::split(representation, "$")[1].parse().unwrap();
-}
-
 // RUNTIME -> FUNCTION
-unsafe fn runtime(instructions: Vec<String>) -> () {
+unsafe fn runtime() -> () {
     stdout::space("Processing intermediate representation...");
     let mut memory = Memory::new();
-    for instruction in &instructions {
-        stdout::debug(instruction);
-        let elements = string::split(&instruction, " ");
-        match &elements[0] as &str {
-            "factor" => memory.set(location(&elements[1]), Node::Factor(factor(&elements[1..]))),
+    stdout::trace("Program memory initialized.");
+    let mut index = 0;
+    while index < SETTINGS.ir.len() - 1 {
+        match SETTINGS.ir[index] {
+            0x0A => {
+                index += 1;
+                let adr = SETTINGS.ir[index];
+                index += 1;
+                let signs = SETTINGS.ir[index];
+                index += 1;
+                let length = SETTINGS.ir[index];
+                index += 1;
+                let value = &SETTINGS.ir[index..index+(length as usize)];
+                index += length as usize;
+                let exponent = SETTINGS.ir[index];
+                index += if exponent == 0x01 {1} else {0};
+                let exponent_adr: Option<u8> = if exponent == 0x01 {Some(SETTINGS.ir[index])} else {None};
+                memory.set(adr as usize, Node::Number(Number::new()));
+            },
             _ => {}
-        }
+        };
+        index += 1;
     }
-}
-
-// RUNTIME -> FACTOR
-unsafe fn factor(arguments: &[String]) -> Factor {
-    let node = Factor {
-        sign: ALLOCATOR.alloc(Layout::new::<u8>()),
-        precision: ALLOCATOR.alloc(Layout::new::<u8>()),
-        value: ALLOCATOR.alloc(Layout::new::<u8>())
-    };
-    *node.sign = 0x01;
-    return node;
 }

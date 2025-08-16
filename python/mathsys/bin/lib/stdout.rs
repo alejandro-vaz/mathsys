@@ -10,7 +10,7 @@ unsafe fn print(string: &str, append: &[u8]) -> () {
     bytes.extend_from_slice(&[0x1B, 0x5B, 0x30, 0x6D]);
     bytes.push(0x0A);
     bytes.push(0x00);
-    crate::exec::write(bytes.as_ptr());
+    crate::stack::system::write(bytes.as_ptr());
 }
 
 
@@ -25,7 +25,9 @@ pub unsafe fn login() -> () {
             "LOGIN: ", 
             "Running Mathsys v", 
             crate::SETTINGS.version,
-            "."
+            ". Consuming ",
+            &crate::alloc::format!("{}", crate::SETTINGS.ir.len()),
+            " tokens."
         ]), 
         &[0x1B, 0x5B, 0x31, 0x3B, 0x39, 0x32, 0x3B, 0x34, 0x39, 0x6D]
     );
@@ -41,7 +43,7 @@ pub unsafe fn crash() -> ! {
         ]),
         &[0x1B, 0x5B, 0x31, 0x3B, 0x39, 0x31, 0x3B, 0x34, 0x39, 0x6D]
     );
-    crate::exec::exit();
+    crate::stack::system::exit();
 }
 
 
