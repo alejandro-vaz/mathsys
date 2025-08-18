@@ -52,3 +52,11 @@
 - [X] (Patch) Made comments always uppercase.
 - [X] (Patch) Refactored `Factor` *LaTeX* generation.
 - [X] (Patch) Added `º()` function on parser which accesses a list safely.
+## *Mathsys* 1.0.0 `4-1-2`
+- [X] (Major) Added *Rust* runtime.
+- [X] (Major) Added *IR* generator.
+- [X] (Major) Added executable builder.
+- [X] (Major) Added streamlined workflows for developing on assembly and assembly support.
+- [X] (Patch) Updated `README.md`.
+- [X] (Patch) Improved entry point.
+- [X] (Minor) Updated syntax to make parsing possible.

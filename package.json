@@ -1,6 +1,6 @@
 {
   "name": "mathsys",
-  "version": "0.10.2",
+  "version": "1.0.0",
   "description": "The Domain Specific Language for math.",
   "scripts": {
     "build/py": "python3 -m build",

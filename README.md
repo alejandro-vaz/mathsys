@@ -20,6 +20,9 @@ python -m mathsys <filename> <target>
 
 You will need `rustc` installed with the target you are compiling to. If that feels too cumbersome (it really is), try it out first on [Abscissa.](https://abscissa.eu/playground)
 
+> [!NOTE]
+> Compiling via command line will also output a `.ltx` file with the *LaTeX.*
+
 ## Project Status
 Mathsys is actively developed with regular releases every 1-3 weeks. This project is still in its early stages, so expect major shifts and changes. Most features aren't close to being developed yet.
 

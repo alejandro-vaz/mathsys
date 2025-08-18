@@ -68,7 +68,7 @@ struct Settings {
 // GLOBALS -> SETTINGS
 static SETTINGS: Settings = Settings {
     ir: include_bytes!(env!("IR")),
-    version: [0, 10, 2],
+    version: [1, 0, 0],
     bcalls: true,
     ncalls: true,
     memsize: 33554432,
