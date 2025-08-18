@@ -2,8 +2,12 @@
 #   IGNORE
 #
 
+# IGNORE -> NODE
+node_modules/
+
 # IGNORE -> BUILD
 *.js
+*.o
 dist/
 python/mathsys.egg-info
 python/mathsys/mathsys.egg-info

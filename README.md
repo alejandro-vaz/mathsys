@@ -1,35 +1,48 @@
-## How to install
-Currently we only ship the latest packages over `pip`, although soon a web *API* will be designed. To install, just run:
+# Mathsys
+*Mathsys* is a *DSL* (*Domain-Specific Language*) aimed to make math writing easier on computers, and something machines 
+can actually understand.
+
+*Mathsys* bridges the gap between traditional mathematical notation and programming languages. It provides a hybrid syntax that maintains mathematical readability while adding programming language features like multi-character variables and structured expressions.
+
+## Installation
+Install the latest version via pip:
+
 ```sh
 pip install mathsys
 ```
 
-## *Mathsys*
-*Mathsys* is a *DSL* (Domain-Specific Language) aimed to make math writing easier on computers, and something machines can actually understand.
+### CLI
+Compile a Mathsys file to different targets with:
 
-To do so, we are building a hybrid syntax between what math currently is right now, but adding features from programming languages (like multicharacter variables).
+```sh
+python -m mathsys <filename> <target>
+```
 
-The project is currently on its early stages, and future improvements will be made over time. Most features Mathsys aims to cover aren't close to being developed yet.
+You will need `rustc` installed with the target you are compiling to. If that feels too cumbersome (it really is), try it out first on [Abscissa.](https://abscissa.eu/playground)
 
-A new version is released every few weeks on an irregular schedule. Regular releases happen every one to three weeks, whilst patches and bug fixes are released soon after detection.
+> [!NOTE]
+> Compiling via command line will also output a `.ltx` file with the *LaTeX.*
 
-Check it out live on [Abscissa](https://abscissa.eu/playground).
+## Project Status
+Mathsys is actively developed with regular releases every 1-3 weeks. This project is still in its early stages, so expect major shifts and changes. Most features aren't close to being developed yet.
 
 I say *we* but I'm indeed a solo developer for now, so if you want to get involved learn
 
 ## How to contribute
-1. **Check out our wiki:** [here](https://github.com/abscissa-math/mathsys/wiki).
-2. **Join the team:** Contact us to become a member of the organisation and get write role.
-3. **Work on a branch:** Create a new branch and add your changes. The branch `main` is protected against direct commits to keep the codebase clean, every commit there is a version deployed into the website.
-4. **Submit the pull request:** Create a pull request. Don't forget to update the `changelog.md` and the version numbers accordingly. We will give you feedback.
+1. **Check our docs:** [documentation.](https://github.com/abscissa-math/mathsys/wiki)
+2. **Join the team:** Contact us to become a member and get write access.
+3. **Work on a branch:** Create a new branch for your changes (`main` is protected).
+4. **Submit PR:** Create a pull request with updated changelog and version numbers.
 
 > [!NOTE]
-> If there is already a branch that is developing the next version, branch out instead from that branch instead of branching out from `main`.
+> If there's already a branch developing the next version, branch from that instead of branching from `main`.
 
-## Technical background
-Currently only a *Python* transpiler to *LaTeX* is available. Here is how it works:
-1. Tokenization and *AST* building are handled completely by the [lark parser](https://github.com/lark-parser/lark) at once.
-2. A small *LaTeX* generator runs over the *AST* and prints out *LaTeX* character by character.
+## Technical Background
+- **Parser:** A [lark parser](https://github.com/lark-parser/lark) based on *Earley* that tokenizes the source and builds the *AST.*
+- **LaTeX:** Our custom *LaTeX* generator that transverses the *AST* and outputs easy-to-read *LaTeX.*
+- **IR:** A fully binary *Intermediate Representation.*
+- **Runtime:** *Rust* based `no_std` runtime which interprets the *IR* embedded into it and implements control-flow for low-level operations.
+- **Assembly:** For low-level operations which require speed and don't need memory safety.
 
 ## License
-All rights reserved.
+All rights reserved. See [LICENSE.md](LICENSE.md) for details.

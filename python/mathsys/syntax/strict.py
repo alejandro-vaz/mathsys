@@ -13,23 +13,24 @@ comment: QUOTE
 
 expression: term+
 
-term: factor (OPERATOR factor)*
+term: level5 (OPERATOR level5)*
 
-factor: SIGNS? (NUMBER | IDENTIFIER | (OPEN expression CLOSE) | vector) (EXPONENT expression EXPONENT)?
+variable: SIGNS? IDENTIFIER (EXPONENTIATION expression EXPONENTIATION)?
+nest: SIGNS? OPEN expression CLOSE (EXPONENTIATION expression EXPONENTIATION)?
+vector: SIGNS? ENTER (expression (COMMA expression)*)? EXIT (EXPONENTIATION expression EXPONENTIATION)?
+number: SIGNS? NUMBER (EXPONENTIATION expression EXPONENTIATION)?
 
-vector: ENTER (expression (COMMA expression)*)? EXIT
 
 level1: sheet
 level2: (declaration | node | equation | comment)
 level3: expression
 level4: term
-level5: factor
-level6: vector
+level5: (variable | nest | vector | number)
 
 
-QUOTE: /\#[^\n]*/
+QUOTE: /\#( [^\n]*)?/
 IDENTIFIER: /[A-Za-z]+/
-EXPONENT: /\^/
+EXPONENTIATION: /\^/
 NUMBER: /[0-9]+(\.[0-9]+)?/
 NEWLINE: /\n+/
 EQUALITY: /=/

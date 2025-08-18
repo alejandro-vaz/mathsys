@@ -42,8 +42,8 @@ class Node(Level2):
 # 2ºLEVEL -> EQUATION
 @dataclass
 class Equation(Level2):
-    leftSide: Expression
-    rightSide: Expression
+    left: Expression
+    right: Expression
 
 # 2ºLEVEL -> COMMENT
 @dataclass
@@ -74,7 +74,7 @@ class Level4: pass
 # 4ºLEVEL -> TERM
 @dataclass
 class Term(Level4):
-    factors: list[Factor]
+    factors: list[Level5]
     operators: list[str]
 
 
@@ -85,30 +85,33 @@ class Term(Level4):
 # 5ºLEVEL -> NAMESPACE
 class Level5: pass
 
-# 5ºLEVEL -> FACTOR
+# 5ºLEVEL -> VARIABLE
 @dataclass
-class Factor(Level5):
-    type: [
-        "unsigned" | "signed", 
-        "bare" | "exponentiated",
-        "number" | "identifier" | "expression" | "vector"
-    ]
+class Variable(Level5):
     signs: str | None
-    value: str | Expression | Vector
+    representation: str
     exponent: Expression | None
 
-
-#
-#   6ºLEVEL
-#
-
-# 6ºLEVEL -> NAMESPACE
-class Level6: pass
-
-# 6ºLEVEL -> VECTOR
+# 5ºLEVEL -> NEST
 @dataclass
-class Vector(Level6):
-    expressions: list[Expression]
+class Nest(Level5):
+    signs: str | None
+    expression: Expression
+    exponent: Expression | None
+
+# 5ºLEVEL -> VECTOR
+@dataclass
+class Vector(Level5):
+    signs: str | None
+    values: list[Expression]
+    exponent: Expression | None
+
+# 5ºLEVEL -> NUMBER
+@dataclass
+class Number(Level5):
+    signs: str | None
+    representation: str
+    exponent: Expression | None
 
 
 #
@@ -125,6 +128,7 @@ def º(array: list, number: int) -> any:
 
 # PARSER -> CLASS
 class Parser(Transformer):
+    # CLASS -> VARIABLES
     syntax: str
     # CLASS -> INIT
     def __init__(self, syntax: str) -> None:
@@ -148,9 +152,6 @@ class Parser(Transformer):
     # CLASS -> LEVEL 5
     def level5(self, items: list[Level5]) -> Level5:
         return items[0]
-    # CLASS -> LEVEL 6
-    def level6(self, items: list[Level6]) -> Level6:
-        return items[0]
     # CLASS -> 1 SHEET CONSTRUCT
     def sheet(self, items: list[Token | Level2]) -> Sheet: 
         return Sheet([item for item in items if isinstance(item, Level2)])
@@ -170,56 +171,40 @@ class Parser(Transformer):
     def expression(self, items: list[Term]) -> Expression: 
         return Expression(items)
     # CLASS -> 4 TERM CONSTRUCT
-    def term(self, items: list[Factor | Token]) -> Term:
+    def term(self, items: list[Level5 | Token]) -> Term:
         return Term(
-            [factor for factor in items if isinstance(factor, Factor)],
+            [factor for factor in items if isinstance(factor, Level5)],
             [ñ(operator) for operator in items if isinstance(operator, Token)]
         )
-    # CLASS -> 5 FACTOR CONSTRUCT
-    def factor(self, items: list[Token | Expression | Vector]) -> Factor:
-        type = self._factor(items)
-        match type:
-            case ["unsigned", "bare", "number"]: return Factor(type, None, ñ(items[0]), None)
-            case ["unsigned", "bare", "identifier"]: return Factor(type, None, ñ(items[0]), None)
-            case ["unsigned", "bare", "expression"]: return Factor(type, None, items[1], None)
-            case ["unsigned", "bare", "vector"]: return Factor(type, None, items[0], None)
-            case ["signed", "bare", "number"]: return Factor(type, ñ(items[0]), ñ(items[1]), None)
-            case ["signed", "bare", "identifier"]: return Factor(type, ñ(items[0]), ñ(items[1]), None)
-            case ["signed", "bare", "expression"]: return Factor(type, ñ(items[0]), items[2], None)
-            case ["signed", "bare", "vector"]: return Factor(type, ñ(items[0]), items[1], None)
-            case ["unsigned", "exponentiated", "number"]: return Factor(type, None, ñ(items[0]), items[2])
-            case ["unsigned", "exponentiated", "identifier"]: return Factor(type, None, ñ(items[0]), items[2])
-            case ["unsigned", "exponentiated", "expression"]: return Factor(type, None, items[1], items[4])
-            case ["unsigned", "exponentiated", "vector"]: return Factor(type, None, items[0], items[2])
-            case ["signed", "exponentiated", "number"]: return Factor(type, ñ(items[0]), ñ(items[1]), items[3])
-            case ["signed", "exponentiated", "identifier"]: return Factor(type, ñ(items[0]), ñ(items[1]), items[3])
-            case ["signed", "exponentiated", "expression"]: return Factor(type, ñ(items[0]), items[2], items[5])
-            case ["signed", "exponentiated", "vector"]: return Factor(type, ñ(items[0]), items[1], items[3])
-    # CLASS -> 6 VECTOR CONSTRUCT
+    # CLASS -> 5 VARIABLE CONSTRUCT
+    def variable(self, items: list[Token | Expression]) -> Variable:
+        return Variable(
+            ñ(items[0]) if items[0].type == "SIGNS" else None,
+            ñ(items[1]) if items[0].type == "SIGNS" else ñ(items[0]),
+            items[-2] if items[-1].type == "EXPONENTIATION" else None
+        )
+    # CLASS -> 5 NEST CONSTRUCT
+    def nest(self, items: list[Token | Expression]) -> Nest:
+        return Nest(
+            ñ(items[0]) if items[0].type == "SIGNS" else None,
+            items[2] if items[0].type == "SIGNS" else items[1],
+            items[-2] if items[-1].type == "EXPONENTIATION" else None
+        )
+    # CLASS -> 5 VECTOR CONSTRUCT
     def vector(self, items: list[Token | Expression]) -> Vector:
-        return Vector([expression for expression in items if isinstance(expression, Expression)])
-    # CLASS -> 4 TERM TYPE
-    def _factor(self, items: list[Token | Expression | Vector]) -> list[str]:
-        match items[0]:
-            case item if getattr(item, "type", None) == "SIGNS": 
-                return ["signed", self._factor(items[1:])[1], self._factor(items[1:])[2]]
-            case item if getattr(item, "type", None) == "NUMBER": 
-                if getattr(º(items, 1), "type", None) == "EXPONENT": 
-                    return ["unsigned", "exponentiated", "number"]
-                else:
-                    return ["unsigned", "bare", "number"]
-            case item if getattr(item, "type", None) == "IDENTIFIER": 
-                if getattr(º(items, 1), "type", None) == "EXPONENT":
-                    return ["unsigned", "exponentiated", "identifier"]
-                else:
-                    return ["unsigned", "bare", "identifier"]
-            case item if getattr(item, "type", None) == "OPEN": 
-                if getattr(º(items, 3), "type", None) == "EXPONENT":
-                    return ["unsigned", "exponentiated", "expression"]
-                else:
-                    return ["unsigned", "bare", "expression"]
-            case item if isinstance(item, Vector): 
-                if getattr(º(items, 1), "type", None) == "EXPONENT":
-                    return ["unsigned", "exponentiated", "vector"]
-                else:
-                    return ["unsigned", "bare", "vector"]
+        return Vector(
+            ñ(items[0]) if items[0].type == "SIGNS" else None,
+            [
+                expression for expression in items[:-2] if isinstance(expression, Expression)
+            ] if items[-1].type == "EXPONENTIATION" else [
+                expression for expression in items if isinstance(expression, Expression)
+            ],
+            items[-2] if items[-1].type == "EXPONENTIATION" else None
+        )
+    # CLASS -> 5 NUMBER CONSTRUCT
+    def number(self, items: list[Token | Expression]) -> Number:
+        return Number(
+            ñ(items[0]) if items[0].type == "SIGNS" else None,
+            ñ(items[1]) if items[0].type == "SIGNS" else ñ(items[0]),
+            items[-2] if items[-1].type == "EXPONENTIATION" else None
+        )
