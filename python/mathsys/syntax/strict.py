@@ -31,7 +31,7 @@ level5: (variable | nest | vector | number)
 QUOTE: /\#( [^\n]*)?/
 IDENTIFIER: /[A-Za-z]+/
 EXPONENTIATION: /\^/
-NUMBER: /[0-9]+/
+NUMBER: /[0-9]+(\.[0-9]+)?/
 NEWLINE: /\n+/
 EQUALITY: /=/
 OPERATOR: /[·\*\/]/

@@ -1,19 +1,3 @@
-;;
-;;  HEAD
-;;
-
-;; HEAD -> MODULE
-(module
-
-;; HEAD -> IMPORTS
-(import "env" "memory" (memory 81))
-(import "sys" "call1" (func $call1 (param i32 i32)))
-
-
-;;
-;;  SYSTEM
-;;
-
 ;; SYSTEM -> WRITE
 (func $systemWrite (param $pointer i32)
     (local $length i32)
@@ -40,4 +24,4 @@
     local.get $pointer
     local.get $length
     call $call1
-)(export "systemWrite" (func $systemWrite)))
+)(export "systemWrite" (func $systemWrite))

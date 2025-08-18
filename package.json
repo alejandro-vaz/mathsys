@@ -2,7 +2,6 @@
   "name": "mathsys",
   "version": "0.10.2",
   "description": "The Domain Specific Language for math.",
-  "main": "typescript/index.js",
   "scripts": {
     "build/py": "python3 -m build",
     "build/ts": "babel typescript/ --extensions \".ts\" --watch --out-dir typescript/ --out-file-extension .js",
@@ -10,8 +9,8 @@
     "test/py": "python3 -m unittest python.testing",
     "upload/py": "twine upload dist/*",
     "upload/ts": "npm publish",
-    "compile/unix/x86/64": "cd python/mathsys/bin/unix/x86/64 && nasm -f elf64 all.asm -o all.o",
-    "compile/web": "cd python/mathsys/bin/web && wat2wasm --enable-annotations all.wat -r -o all.wasm && wasm-ld -flavor wasm -r all.wasm -o all.o && rm all.wasm"
+    "compile/unix/x86/64": "bash python/mathsys/bin/unix/x86/64/compile.sh",
+    "compile/web": "bash python/mathsys/bin/web/compile.sh"
   },
   "repository": {
     "type": "git",

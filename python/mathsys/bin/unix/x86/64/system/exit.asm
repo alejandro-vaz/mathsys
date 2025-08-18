@@ -16,5 +16,4 @@ section .text
 ; SYSTEM -> EXIT
 systemExit:
     mov rax, 60
-    xor rdi, rdi
     syscall

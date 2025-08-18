@@ -1,21 +1,5 @@
-;;
-;;  HEAD
-;;
-
-;; HEAD -> MODULE
-(module
-
-;; HEAD -> IMPORTS
-(import "env" "memory" (memory 81))
-(import "sys" "call60" (func $call60 (param i32)))
-
-
-;;
-;;  SYSTEM
-;;
-
 ;; SYSTEM -> EXIT
-(func $systemExit
-    i32.const 0
+(func $systemExit (param $code i32)
+    local.get $code
     call $call60
-)(export "systemExit" (func $systemExit)))
+)(export "systemExit" (func $systemExit))

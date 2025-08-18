@@ -12,10 +12,7 @@
 extern crate alloc;
 
 // HEAD -> DATA
-mod data {
-    pub mod number;
-    pub mod placeholder;
-}
+mod data {}
 
 // HEAD -> LIB
 mod lib {
@@ -28,7 +25,6 @@ mod lib {
 
 // HEAD -> STACK
 pub mod stack {
-    pub mod number;
     pub mod system;
 }
 
@@ -41,11 +37,10 @@ pub mod stack {
 use lib::*;
 
 // PULLS -> DATA
-use data::number::Number;
-use data::placeholder::Placeholder;
 
 // PULLS -> ALLOC
 use alloc::vec::Vec;
+use alloc::format;
 use alloc::string::String;
 use alloc::alloc::Layout;
 
@@ -53,8 +48,6 @@ use alloc::alloc::Layout;
 use core::cell::UnsafeCell;
 use core::alloc::GlobalAlloc;
 use core::panic::PanicInfo;
-use core::ptr::null_mut;
-use core::str::from_utf8;
 
 
 //
@@ -64,21 +57,23 @@ use core::str::from_utf8;
 // GLOBALS -> SETTINGS STRUCT
 struct Settings {
     ir: &'static [u8],
-    version: &'static str,
+    version: [usize; 3],
     bcalls: bool,
     ncalls: bool,
     memsize: usize,
     precision: u8,
+    width: u8
 }
 
 // GLOBALS -> SETTINGS
 static SETTINGS: Settings = Settings {
     ir: include_bytes!(env!("IR")),
-    version: "0.10.2",
+    version: [0, 10, 2],
     bcalls: true,
     ncalls: true,
-    memsize: 4194304,
-    precision: if usize::BITS == 32 {2} else {3}
+    memsize: 33554432,
+    precision: if usize::BITS == 64 {3} else {2},
+    width: 80
 };
 
 // GLOBALS -> ALLOCATOR
@@ -100,31 +95,24 @@ static mut HEAP: [u8; SETTINGS.memsize] = [0; SETTINGS.memsize];
 pub unsafe extern "C" fn _start() -> ! {
     allocator::init();
     stdout::login();
-    stdout::trace(&string::join(&[
-        "Allocated memory size is ",
-        &alloc::format!("{}", SETTINGS.memsize),
-        " bytes."
-    ]));
-    stdout::trace(&string::join(&[
-        "Intermediate Representation loaded with a length of ",
-        &alloc::format!("{}", SETTINGS.ir.len()),
-        "."
-    ]));
-    stdout::debug(&string::join(&[
-        "B calls are ",
-        if SETTINGS.bcalls {"enabled."} else {"disabled."}
-    ]));
-    stdout::debug(&string::join(&[
-        "N calls are ",
-        if SETTINGS.ncalls {"enabled."} else {"disabled."}
-    ]));
-    stdout::debug(&string::join(&[
-        "Calculation precision is set to ",
-        &alloc::format!("{}", SETTINGS.precision),
-        "."
-    ]));
+    stdout::trace(&format!(
+        "Allocated memory size is {} bytes",
+        SETTINGS.memsize
+    ));
+    stdout::debug(&format!(
+        "B calls are {}",
+        if SETTINGS.bcalls {"enabled"} else {"disabled"}
+    ));
+    stdout::debug(&format!(
+        "N calls are {}",
+        if SETTINGS.ncalls {"enabled"} else {"disabled"}
+    ));
+    stdout::debug(&format!(
+        "Precision is set to {}",
+        SETTINGS.precision
+    ));
     runtime();
-    stdout::crash();
+    stdout::crash(0);
 }
 
 
@@ -132,62 +120,8 @@ pub unsafe extern "C" fn _start() -> ! {
 //  RUNTIME
 //
 
-// RUNTIME -> NODE
-pub enum Node {
-    Number(Number),
-    Placeholder(Placeholder)
-}
-
-// RUNTIME -> MEMORY
-struct Memory {
-    memory: Vec<Node>
-}
-impl Memory {
-    fn new() -> Self {
-        return Memory {
-            memory: Vec::new()
-        }
-    }
-    unsafe fn set(&mut self, index: usize, value: Node) -> () {
-        while self.memory.len() < index {
-            self.memory.push(Node::Placeholder(Placeholder::new()));
-        }
-        if self.memory.len() == index {
-            self.memory.push(value);
-        } else {
-            self.memory[index] = value;
-        }
-    }
-    fn get(&mut self, index: usize) -> Option<&Node> {
-        return self.memory.get(index);
-    }
-}
 
 // RUNTIME -> FUNCTION
 unsafe fn runtime() -> () {
-    stdout::space("Processing intermediate representation...");
-    let mut memory = Memory::new();
-    stdout::trace("Program memory initialized.");
-    let mut index = 0;
-    while index < SETTINGS.ir.len() - 1 {
-        match SETTINGS.ir[index] {
-            0x0A => {
-                index += 1;
-                let adr = SETTINGS.ir[index];
-                index += 1;
-                let signs = SETTINGS.ir[index];
-                index += 1;
-                let length = SETTINGS.ir[index];
-                index += 1;
-                let value = &SETTINGS.ir[index..index+(length as usize)];
-                index += length as usize;
-                let exponent = SETTINGS.ir[index];
-                index += if exponent == 0x01 {1} else {0};
-                let exponent_adr: Option<u8> = if exponent == 0x01 {Some(SETTINGS.ir[index])} else {None};
-                memory.set(adr as usize, Node::Number(Number::new()));
-            },
-            _ => {}
-        };
-        index += 1;
-    }
+    stdout::space("Here is as far as the current version goes, not IR yet");
 }

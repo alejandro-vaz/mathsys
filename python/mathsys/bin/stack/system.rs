@@ -5,7 +5,7 @@
 // IMPORTS -> BLOCK
 unsafe extern "C" {
     fn systemWrite(pointer: *const u8) -> ();
-    fn systemExit() -> !;
+    fn systemExit(code: u8) -> !;
 }
 
 
@@ -17,4 +17,4 @@ unsafe extern "C" {
 pub unsafe fn write(pointer: *const u8) -> () {systemWrite(pointer)}
 
 // WRAPPERS -> SYSTEMEXIT
-pub unsafe fn exit() -> ! {systemExit()}
+pub unsafe fn exit(code: u8) -> ! {systemExit(code)}

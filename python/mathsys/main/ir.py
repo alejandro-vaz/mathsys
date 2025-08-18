@@ -3,7 +3,6 @@
 #
 
 # HEAD -> DATACLASSES
-from atexit import register
 from dataclasses import dataclass
 from .parser import (
     # DATACLASSES -> 1ºLEVEL
@@ -34,8 +33,35 @@ from .parser import (
 #   NODES
 #
 
+# NODES -> U8
+def u8(value: int = None) -> bytes:
+    if not 0 < value <= 2**8 - 1: raise Exception()
+    return bytes([value])
+
+# NODES -> U32
+def u32(value: int) -> bytes:
+    if not 0 < value <= 2**32 - 1: raise Exception()
+    return bytes([
+        value & 0xFF,
+        (value >> 8) & 0xFF,
+        (value >> 16) & 0xFF,
+        (value >> 24) & 0xFF
+    ])
+
 # NODES -> NAMESPACE
-class Sequence: pass
+class Sequence:
+    code: u8
+
+# NODES -> JOIN
+def join(binary: list[bytes]) -> bytes:
+    result = b""
+    for data in binary:
+        result += data
+    return result
+
+# NODES -> NULL BYTE
+null8 = b"\x00"
+null32 = b"\x00\x00\x00\x00"
 
 
 #
@@ -45,12 +71,11 @@ class Sequence: pass
 # 1ºLEVEL -> SHEET
 @dataclass
 class IRSheet(Sequence):
-    code = b"\x00"
-    adr: bytes
-    statementCount: bytes
-    statements: bytes
+    code = u8(0x01)
+    location: u32
+    statements: list[u32]
     def __bytes__(self) -> bytes:
-        return self.code + self.adr + self.statementCount + self.statements
+        return self.code + self.location + (join(self.statements) + null32)
 
 
 #
@@ -60,42 +85,40 @@ class IRSheet(Sequence):
 # 2ºLEVEL -> DECLARATION
 @dataclass
 class IRDeclaration(Sequence):
-    code = b"\x01"
-    adr: bytes
-    charAmount: bytes
-    chars: bytes
-    pointer: bytes
+    code = u8(0x02)
+    location: u32
+    pointer: u32
+    characters: list[u8]
     def __bytes__(self) -> bytes:
-        return self.code + self.adr + self.charAmount + self.chars + self.pointer
+        return self.code + self.location + self.pointer + (join(self.characters) + null8)
 
 # 2ºLEVEL -> NODE
 @dataclass
 class IRNode(Sequence):
-    code = b"\x02"
-    adr: bytes
-    pointer: bytes
+    code = u8(0x03)
+    location: u32
+    pointer: u32
     def __bytes__(self) -> bytes:
-        return self.code + self.adr + self.pointer
+        return self.code + self.location + self.pointer
 
 # 2ºLEVEL -> EQUATION
 @dataclass
 class IREquation(Sequence):
-    code = b"\x03"
-    adr: bytes
-    left: bytes
-    right: bytes
+    code = u8(0x04)
+    location: u32
+    left: u32
+    right: u32
     def __bytes__(self) -> bytes:
-        return self.code + self.adr + self.left + self.right
+        return self.code + self.location + self.left + self.right
 
 # 2ºLEVEL -> COMMENT
 @dataclass
 class IRComment(Sequence):
-    code = b"\x04"
-    adr: bytes
-    amount: bytes
-    chars: bytes
+    code = u8(0x05)
+    location: u32
+    characters: list[u8]
     def __bytes__(self) -> bytes:
-        return self.code + self.adr + self.amount + self.chars
+        return self.code + self.location + (join(self.characters) + null8)
 
 
 #
@@ -105,12 +128,11 @@ class IRComment(Sequence):
 # 3ºLEVEL -> EXPRESSION
 @dataclass
 class IRExpression(Sequence):
-    code = b"\x05"
-    adr: bytes
-    amount: bytes
-    terms: bytes
+    code = u8(0x06)
+    location: u32
+    terms: list[u32]
     def __bytes__(self) -> bytes:
-        return self.code + self.adr + self.amount + self.terms
+        return self.code + self.location + (join(self.terms) + null32)
 
 
 #
@@ -120,13 +142,12 @@ class IRExpression(Sequence):
 # 4ºLEVEL -> TERM
 @dataclass
 class IRTerm(Sequence):
-    code = b"\x06"
-    adr: bytes
-    amount: bytes
-    factors: bytes
-    operators: bytes
+    code = u8(0x07)
+    location: u32
+    numerator: list[u32]
+    denominator: list[u32]
     def __bytes__(self) -> bytes:
-        return self.code + self.adr + self.amount + self.factors + self.operators
+        return self.code + self.location + (join(self.numerator) + null32) + (join(self.denominator) + null32)
 
 
 #
@@ -136,53 +157,47 @@ class IRTerm(Sequence):
 # 5ºLEVEL -> VARIABLE
 @dataclass
 class IRVariable(Sequence):
-    code = b"\x07"
-    adr: bytes
-    signs: bytes
-    varLength: bytes
-    varChars: bytes
-    exponent: bytes
-    exponentAdr: bytes
+    code = u8(0x08)
+    location: u32
+    sign: u8
+    exponent: u32 or null32
+    characters: list[u8]
     def __bytes__(self) -> bytes:
-        return self.code + self.adr + self.signs + self.varLength + self.varChars + self.exponent + self.exponentAdr
+        return self.code + self.location + self.sign + self.exponent + (join(self.characters) + null8)
 
 # 5ºLEVEL -> NEST
 @dataclass
 class IRNest(Sequence):
-    code = b"\x08"
-    adr: bytes
-    signs: bytes
-    pointer: bytes
-    exponent: bytes
-    exponentAdr: bytes
+    code = u8(0x09)
+    location: u32
+    sign: u8
+    exponent: u32 or null32
+    pointer: u32
     def __bytes__(self) -> bytes:
-        return self.code + self.adr + self.signs + self.pointer + self.exponent + self.exponentAdr
+        return self.code + self.location + self.sign + self.exponent + self.pointer
 
 # 5ºLEVEL -> VECTOR
 @dataclass
 class IRVector(Sequence):
-    code = b"\x09"
-    adr: bytes
-    signs: bytes
-    variableAmount: bytes
-    variablesAdr: bytes
-    exponent: bytes 
-    exponentAdr: bytes
+    code = u8(0x0A)
+    location: u32
+    sign: u8
+    exponent: u32 or null32
+    pointers: list[u32]
     def __bytes__(self) -> bytes:
-        return self.code + self.adr + self.signs + self.variableAmount + self.variablesAdr + self.exponent + self.exponentAdr
+        return self.code + self.location + self.sign + self.exponent + (join(self.pointers) + null32)
 
 # 5ºLEVEL -> NUMBER
 @dataclass
 class IRNumber(Sequence):
-    code = b"\x0A"
-    adr: bytes
-    signs: bytes
-    length: bytes
-    value: bytes
-    exponent: bytes
-    exponentAdr: bytes
+    code = u8(0x0B)
+    location: u32
+    sign: u8
+    exponent: u32 or null32
+    value: u32 or null32
+    decimal: u32 or null32
     def __bytes__(self) -> bytes:
-        return self.code + self.adr + self.signs + self.length + self.value + self.exponent + self.exponentAdr
+        return self.code + self.location + self.sign + self.exponent + self.value + self.decimal
 
 
 
@@ -204,44 +219,39 @@ class IR:
         self.ir = []
         self.counter = 0
         self.sheet(sheet)
-        representation = b""
-        for node in [bytes(node) for node in self.ir]:
-            representation += node
-        return representation
+        return join([bytes(sequence) for sequence in self.ir])
     # IR -> 1 SHEET GENERATION
     def sheet(self, sheet: Sheet) -> bytes:
-        variables = b""
+        statements = []
         for statement in sheet.statements:
             match statement:
-                case Declaration(): variables += self.declaration(statement)
-                case Node(): variables += self.node(statement)
-                case Equation(): variables += self.equation(statement)
-                case Comment(): variables += self.comment(statement)
+                case Declaration(): statements.append(self.declaration(statement))
+                case Node(): statements.append(self.node(statement))
+                case Equation(): statements.append(self.equation(statement))
+                case Comment(): statements.append(self.comment(statement))
         register = self.new()
         self.ir.append(IRSheet(
             register,
-            bytes([len(variables) & 0xFF]),
-            variables
+            statements    
         ))
         return register
     # GENERATOR -> 2 DECLARATION GENERATION
     def declaration(self, declaration: Declaration) -> bytes:
-        variable = self.expression(declaration.expression)
+        pointer = self.expression(declaration.expression)
         register = self.new()
         self.ir.append(IRDeclaration(
             register,
-            bytes([len(declaration.identifier) & 0xFF]),
-            declaration.identifier.encode(),
-            variable
+            pointer,
+            [declaration.identifier.encode()]
         ))
         return register
     # GENERATOR -> 2 NODE GENERATION
     def node(self, node: Node) -> bytes:
-        variable = self.expression(node.expression)
+        pointer = self.expression(node.expression)
         register = self.new()
         self.ir.append(IRNode(
             register,
-            variable
+            pointer
         ))
         return register
     # GENERATOR -> 2 EQUATION GENERATION
@@ -260,96 +270,93 @@ class IR:
         register = self.new()
         self.ir.append(IRComment(
             register,
-            bytes([len(comment.text) & 0xFF]),
-            comment.text.encode()
+            [comment.text.encode()]
         ))
         return register
     # GENERATOR -> 3 EXPRESSION GENERATION
     def expression(self, expression: Expression) -> bytes:
-        variables = b""
+        terms = []
         for term in expression.terms:
-            variables += self.term(term)
+            terms.append(self.term(term))
         register = self.new()
         self.ir.append(IRExpression(
             register,
-            bytes([len(variables) & 0xFF]),
-            variables
+            terms
         ))
         return register
     # GENERATOR -> 4 TERM GENERATION
     def term(self, term: Term) -> bytes:
-        variables = b""
-        operators = b""
-        for factor in term.factors:
-            match factor:
-                case Variable(): variables += self.variable(factor)
-                case Nest(): variables += self.nest(factor)
-                case Vector(): variables += self.vector(factor)
-                case Number(): variables += self.number(factor)
-        for operator in term.operators:
-            match operator:
-                case "·" | "*": operators += b"\x00"
-                case "/": operators += b"\x01"
+        numerator = []
+        denominator = []
+        for index in range(len(term.factors)):
+            if index == 0: 
+                dump = numerator
+            else:
+                match term.operators[index - 1]:
+                    case "*" | "·": dump = numerator
+                    case "/": dump = denominator
+            match term.factors[index]:
+                case Variable(): dump.append(self.variable(term.factors[index]))
+                case Nest(): dump.append(self.nest(term.factors[index]))
+                case Vector(): dump.append(self.vector(term.factors[index]))
+                case Number(): dump.append(self.number(term.factors[index]))
         register = self.new()
         self.ir.append(IRTerm(
             register,
-            bytes([len(variables) & 0xFF]),
-            variables,
-            operators
+            numerator,
+            denominator
         ))
         return register
     # GENERATOR -> 5 VARIABLE GENERATION
     def variable(self, variable: Variable) -> bytes:
+        exponent = self.expression(variable.exponent) if variable.exponent is not None else null32
         register = self.new()
         self.ir.append(IRVariable(
             register,
-            bytes([(variable.signs.count("-") if variable.signs is not None else 0x00) & 0xFF]),
-            bytes([len(variable.representation) & 0xFF]),
-            variable.representation.encode(),
-            b"\x01" if variable.exponent is not None else b"\x00",
-            self.expression(variable.exponent) if variable.exponent is not None else b""
+            u8(variable.signs.count("-")) if variable.signs is not None and variable.signs.count("-") != 0 else null8,
+            exponent,
+            [variable.representation.encode()]
         ))
         return register
     # GENERATOR -> 5 NEST GENERATION
     def nest(self, nest: Nest) -> bytes:
+        exponent = self.expression(nest.exponent) if nest.exponent is not None else null32
+        pointer = self.expression(nest.expression)
         register = self.new()
         self.ir.append(IRNest(
             register,
-            bytes([(nest.signs.count("-") if nest.signs is not None else 0x00) & 0xFF]),
-            self.expression(nest.expression),
-            b"\x01" if nest.exponent is not None else b"\x00",
-            self.expression(nest.exponent) if nest.exponent is not None else b""
+            u8(nest.signs.count("-")) if nest.signs is not None and nest.signs.count("-") != 0 else null8,
+            exponent,
+            pointer
         ))
         return register
     # GENERATOR -> 5 VECTOR GENERATION
     def vector(self, vector: Vector) -> bytes:
-        variables = b""
-        for expression in vector.values:
-            variables += self.expression(expression)
+        exponent = self.expression(vector.exponent) if vector.exponent is not None else null32
+        pointers = []
+        for value in vector.values:
+            pointers.append(self.expression(value))
         register = self.new()
         self.ir.append(IRVector(
             register,
-            bytes([(vector.signs.count("-") if vector.signs is not None else 0x00) & 0xFF]),
-            bytes(len(vector.values) & 0xFF),
-            variables,
-            b"\x01" if vector.exponent is not None else b"\x00",
-            self.expression(vector.exponent) if vector.exponent is not None else b""
+            u8(vector.signs.count("-")) if vector.signs is not None and vector.signs.count("-") != 0 else null8,
+            exponent,
+            pointers
         ))
         return register
     # GENERATOR -> 5 NUMBER GENERATION
     def number(self, number: Number) -> bytes:
+        exponent = self.expression(number.exponent) if number.exponent is not None else null32
         register = self.new()
         self.ir.append(IRNumber(
             register,
-            bytes([(number.signs.count("-") if number.signs is not None else 0x00) & 0xFF]),
-            bytes([len(number.representation) & 0xFF]),
-            number.representation.encode(),
-            b"\x01" if number.exponent is not None else b"\x00",
-            self.expression(number.exponent) if number.exponent is not None else b""
+            u8(number.signs.count("-")) if number.signs is not None and number.signs.count("-") != 0 else null8,
+            exponent,
+            u32(int(number.representation.split(".")[0]) if "." in number.representation else int(number.representation)) if float(number.representation) != 0 else null32,
+            u32(int(number.representation.split(".")[1])) if "." in number.representation else null32
         ))
         return register
     # GENERATOR -> VARIABLE GENERATOR
-    def new(self) -> bytes:
-        address = bytes([self.counter & 0xFF])
+    def new(self) -> u32:
         self.counter += 1
-        return address
+        return u32(self.counter)

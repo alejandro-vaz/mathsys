@@ -5,12 +5,50 @@
 // FORMATTING -> FUNCTION
 unsafe fn print(string: &str, append: &[u8]) -> () {
     let mut bytes = crate::Vec::new();
+    let signature = signature();
     bytes.extend_from_slice(append);
-    bytes.extend_from_slice(string.as_bytes());
+    let available_space = (crate::SETTINGS.width as usize) - signature.len();
+    let mut padded_string = crate::String::with_capacity(crate::SETTINGS.width as usize);
+    let string_chars: crate::Vec<char> = string.chars().collect();
+    if string_chars.len() >= available_space {
+        for i in 0..available_space {
+            padded_string.push(string_chars[i]);
+        }
+    } else {
+        padded_string.push_str(string);
+        for _ in string_chars.len()..available_space {
+            padded_string.push(' ');
+        }
+    }
+    padded_string.push_str(&signature);
+    bytes.extend_from_slice(padded_string.as_bytes());
     bytes.extend_from_slice(&[0x1B, 0x5B, 0x30, 0x6D]);
     bytes.push(0x0A);
     bytes.push(0x00);
     crate::stack::system::write(bytes.as_ptr());
+}
+
+// FORMATTING -> MEMORY SIGNATURE
+unsafe fn signature() -> crate::String {
+    let number = *(crate::ALLOCATOR).next.get() - crate::ALLOCATOR.start;
+    return crate::format!(
+        "    {}",
+        if number < 1000 {
+            crate::format!("{:>6}", number)
+        } else if number < 1000*1000 {
+            crate::format!(
+                "{:>3}.{}k",
+                number / 1000,
+                number % 1000 / 100
+            )
+        } else {
+            crate::format!(
+                "{:>3}.{}m",
+                number / (1000*1000),
+                number % (1000*1000) / (100*1000)
+            )
+        }
+    );
 }
 
 
@@ -21,29 +59,32 @@ unsafe fn print(string: &str, append: &[u8]) -> () {
 // BB CALLS -> LOGIN
 pub unsafe fn login() -> () {
     print(
-        &crate::string::join(&[
-            "LOGIN: ", 
-            "Running Mathsys v", 
-            crate::SETTINGS.version,
-            ". Consuming ",
-            &crate::alloc::format!("{}", crate::SETTINGS.ir.len()),
-            " tokens."
-        ]), 
+        &crate::format!(
+            "LOGIN: Running Mathsys v{}.{}.{}, consuming {} tokens.",
+            crate::SETTINGS.version[0],
+            crate::SETTINGS.version[1],
+            crate::SETTINGS.version[2],
+            &crate::SETTINGS.ir.len()
+        ), 
         &[0x1B, 0x5B, 0x31, 0x3B, 0x39, 0x32, 0x3B, 0x34, 0x39, 0x6D]
     );
 }
 
 // BB CALLS -> CRASH
-pub unsafe fn crash() -> ! {
+pub unsafe fn crash(code: u8) -> ! {
     print(
-        &crate::string::join(&[
-            "\n",
-            "CRASH: ",
-            "Process finished."
-        ]),
-        &[0x1B, 0x5B, 0x31, 0x3B, 0x39, 0x31, 0x3B, 0x34, 0x39, 0x6D]
+        &crate::format!(
+            "CRASH: {}.",
+            match code {
+                0 => "Run finished successfully",
+                1 => "Out of memory",
+                255 => panic!(),
+                _ => "Unknown reason"
+            }
+        ),
+        &[0x0A, 0x1B, 0x5B, 0x31, 0x3B, 0x39, 0x31, 0x3B, 0x34, 0x39, 0x6D]
     );
-    crate::stack::system::exit();
+    crate::stack::system::exit(code);
 }
 
 
@@ -55,12 +96,11 @@ pub unsafe fn crash() -> ! {
 pub unsafe fn space(message: &str) -> () {
     if crate::SETTINGS.bcalls {
         print(
-            &crate::string::join(&[
-                "\n",
-                "SPACE: ", 
+            &crate::format!(
+                "SPACE: {}.",
                 message
-            ]), 
-            &[0x1B, 0x5B, 0x30, 0x3B, 0x33, 0x33, 0x3B, 0x34, 0x39, 0x6D]
+            ),
+            &[0x0A, 0x1B, 0x5B, 0x30, 0x3B, 0x33, 0x33, 0x3B, 0x34, 0x39, 0x6D]
         )
     }
 }
@@ -69,12 +109,11 @@ pub unsafe fn space(message: &str) -> () {
 pub unsafe fn issue(message: &str) -> () {
     if crate::SETTINGS.bcalls {
         print(
-            &crate::string::join(&[
-                "\n",
-                "ISSUE: ", 
+            &crate::format!(
+                "ISSUE: {}.",
                 message
-            ]), 
-            &[0x1B, 0x5B, 0x30, 0x3B, 0x33, 0x31, 0x3B, 0x34, 0x39, 0x6D]
+            ),
+            &[0x0A, 0x1B, 0x5B, 0x30, 0x3B, 0x33, 0x31, 0x3B, 0x34, 0x39, 0x6D]
         )
     }
 }
@@ -88,11 +127,10 @@ pub unsafe fn issue(message: &str) -> () {
 pub unsafe fn debug(message: &str) -> () {
     if crate::SETTINGS.ncalls {
         print(
-            &crate::string::join(&[
-                "    ",
-                "DEBUG: ",
+            &crate::format!(
+                "    DEBUG: {}.",
                 message
-            ]),
+            ),
             &[0x1B, 0x5B, 0x32, 0x3B, 0x33, 0x35, 0x3B, 0x34, 0x39, 0x6D]
         )
     }
@@ -102,11 +140,10 @@ pub unsafe fn debug(message: &str) -> () {
 pub unsafe fn alert(message: &str) -> () {
     if crate::SETTINGS.ncalls {
         print(
-            &crate::string::join(&[
-                "    ",
-                "ALERT: ",
+            &crate::format!(
+                "    ALERT: {}.",
                 message
-            ]),
+            ),
             &[0x1B, 0x5B, 0x32, 0x3B, 0x33, 0x33, 0x3B, 0x34, 0x39, 0x6D]
         )
     }
@@ -116,11 +153,10 @@ pub unsafe fn alert(message: &str) -> () {
 pub unsafe fn trace(message: &str) -> () {
     if crate::SETTINGS.ncalls {
         print(
-            &crate::string::join(&[
-                "    ",
-                "TRACE: ",
+            &crate::format!(
+                "    TRACE: {}.",
                 message
-            ]),
+            ),
             &[0x1B, 0x5B, 0x32, 0x3B, 0x33, 0x36, 0x3B, 0x34, 0x39, 0x6D]
         )
     }

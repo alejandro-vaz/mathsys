@@ -17,12 +17,11 @@ unsafe impl crate::GlobalAlloc for Allocator {
     unsafe fn alloc(&self, layout: crate::Layout) -> *mut u8 {
         let from = (*self.next.get() + layout.align() - 1) & !(layout.align() - 1);
         let to = from.saturating_add(layout.size());
-        if to > self.end {
-            return crate::null_mut();
-        } else {
-            *self.next.get() = to;
-            return from as *mut u8;
+        *self.next.get() = to;
+        if crate::SETTINGS.memsize - (from - self.start) > 5000 && crate::SETTINGS.memsize - (to - self.start) <= 5000 {
+            crate::stdout::crash(1);
         }
+        return from as *mut u8;
     }
     unsafe fn dealloc(&self, pointer: *mut u8, layout: crate::Layout) {}
 }

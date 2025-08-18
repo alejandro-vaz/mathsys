@@ -16,16 +16,3 @@ pub fn split(string: &str, splitter: &str) -> crate::Vec<crate::String> {
     }
     return result;
 }
-
-// STRING -> JOIN
-pub fn join(items: &[&str]) -> crate::String {
-    let mut total_length = 0;
-    for item in items {
-        total_length += item.len();
-    }
-    let mut result = crate::String::with_capacity(total_length);
-    for item in items {
-        result.push_str(item);
-    }
-    return result;
-}
