@@ -1,14 +1,11 @@
 ;; SYSTEM -> WRITE
-(func $systemWrite (param $pointer i32)
+(func $systemWrite (param $pointer i32);;                                       systemWrite(pointer: i32)
     (local $length i32)
-    (local $cursor i32)
-    local.get $pointer
-    local.set $cursor
     i32.const 0
     local.set $length
     block $break
         loop $scan
-            local.get $cursor
+            local.get $pointer
             local.get $length
             i32.add
             i32.load8_u
@@ -25,3 +22,4 @@
     local.get $length
     call $call1
 )(export "systemWrite" (func $systemWrite))
+

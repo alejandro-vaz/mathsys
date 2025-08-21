@@ -3,7 +3,6 @@
 #
 
 # HEAD -> DATACLASSES
-from dataclasses import dataclass
 from .parser import (
     # DATACLASSES -> 1ºLEVEL
     Level1,
@@ -48,27 +47,19 @@ class LaTeX:
     # GENERATOR -> 1 SHEET GENERATION
     def sheet(self, sheet: Sheet) -> None:
         match len(sheet.statements):
-            case 0: 
-                pass
-            case 1:
-                self.latex.append("$")
-                match sheet.statements[0]:
-                    case Declaration(): self.declaration(sheet.statements[0])
-                    case Node(): self.node(sheet.statements[0])
-                    case Equation(): self.equation(sheet.statements[0])
-                    case Comment(): self.comment(sheet.statements[0])
-                self.latex.append("$")
-            case _:
-                self.latex.append("$$")
-                for statement in sheet.statements:
-                    match statement:
-                        case Declaration(): self.declaration(statement)
-                        case Node(): self.node(statement)
-                        case Equation(): self.equation(statement)
-                        case Comment(): self.comment(statement)
-                    self.latex.append(r"\\ ")
-                self.latex.pop()
-                self.latex.append("$$")
+            case 0: delimiter = ""
+            case 1: delimiter = "$"
+            case _: delimiter = "$$"
+        self.latex.append(delimiter)
+        for statement in sheet.statements:
+            match statement:
+                case Declaration(): self.declaration(statement)
+                case Node(): self.node(statement)
+                case Equation(): self.equation(statement)
+                case Comment(): self.comment(statement)
+            self.latex.append(r"\\ ")
+        if len(sheet.statements) >= 1: self.latex.pop()
+        self.latex.append(delimiter)
     # GENERATOR -> 2 DECLARATION GENERATION
     def declaration(self, declaration: Declaration) -> None:
         self.latex.append(declaration.identifier)
@@ -100,15 +91,15 @@ class LaTeX:
             match term.operators[index - 1]:
                 case "*" | "·": numerator.append(term.factors[index])
                 case "/": denominator.append(term.factors[index])
-        if denominator:
-            for index in range(len(numerator)):
-                match numerator[index]:
-                    case Variable(): self.variable(numerator[index], noTermSign or index != 0, index == 0)
-                    case Nest(): self.nest(numerator[index], noTermSign or index != 0, index == 0)
-                    case Vector(): self.vector(numerator[index], noTermSign or index != 0, index == 0)
-                    case Number(): self.number(numerator[index], noTermSign or index != 0, index == 0)
-                self.latex.append(r"\cdot ")
-            self.latex.pop()
+        for index in range(len(numerator)):
+            match numerator[index]:
+                case Variable(): self.variable(numerator[index], noTermSign or index != 0, index == 0 and denominator)
+                case Nest(): self.nest(numerator[index], noTermSign or index != 0, index == 0 and denominator)
+                case Vector(): self.vector(numerator[index], noTermSign or index != 0, index == 0 and denominator)
+                case Number(): self.number(numerator[index], noTermSign or index != 0, index == 0 and denominator)
+            self.latex.append(r"\cdot ")
+        self.latex.pop()
+        if denominator: 
             self.latex.append(r"}{")
             for index in range(len(denominator)):
                 match denominator[index]:
@@ -119,15 +110,6 @@ class LaTeX:
                 self.latex.append(r"\cdot ")
             self.latex.pop()
             self.latex.append(r"}")
-        else:
-            for index in range(len(numerator)):
-                match numerator[index]:
-                    case Variable(): self.variable(numerator[index], noTermSign or index != 0, False)
-                    case Nest(): self.nest(numerator[index], noTermSign or index != 0, False)
-                    case Vector(): self.vector(numerator[index], noTermSign or index != 0, False)
-                    case Number(): self.number(numerator[index], noTermSign or index != 0, False)
-                self.latex.append(r"\cdot ")
-            self.latex.pop()
     # GENERATOR -> 5 VARIABLE GENERATION
     def variable(self, variable: Variable, noSign: bool, createFraction: bool) -> None:
         if noSign: 

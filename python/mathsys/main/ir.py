@@ -30,23 +30,33 @@ from .parser import (
 
 
 #
-#   NODES
+#   TYPES
 #
 
-# NODES -> U8
-def u8(value: int = None) -> bytes:
-    if not 0 < value <= 2**8 - 1: raise Exception()
-    return bytes([value])
+# TYPES -> U8 CLASS
+class u8:
+    def __new__(self, value: int) -> bytes:
+        if not 1 <= value <= 2**8 - 1: raise ValueError(f"'{value}' is outside range for u8.")
+        return bytes([value])
 
-# NODES -> U32
-def u32(value: int) -> bytes:
-    if not 0 < value <= 2**32 - 1: raise Exception()
-    return bytes([
-        value & 0xFF,
-        (value >> 8) & 0xFF,
-        (value >> 16) & 0xFF,
-        (value >> 24) & 0xFF
-    ])
+# TYPES -> NULL8 CLASS
+class null8:
+    def __new__(self) -> bytes: return bytes([0])
+
+# TYPES -> U32 CLASS
+class u32:
+    def __new__(self, value: int) -> bytes:
+        if not 1 <= value <= 2**32 - 1: raise ValueError(f"'{value}' is outside range for u32.")
+        return bytes([
+            (value) & 0xFF,
+            (value >> 8) & 0xFF,
+            (value >> 16) & 0xFF,
+            (value >> 24) & 0xFF
+        ])
+
+# TYPES -> NULL32 CLASS
+class null32:
+    def __new__(cls) -> bytes: return bytes([0, 0, 0, 0])
 
 # NODES -> NAMESPACE
 class Sequence:
@@ -58,10 +68,6 @@ def join(binary: list[bytes]) -> bytes:
     for data in binary:
         result += data
     return result
-
-# NODES -> NULL BYTE
-null8 = b"\x00"
-null32 = b"\x00\x00\x00\x00"
 
 
 #
@@ -75,7 +81,7 @@ class IRSheet(Sequence):
     location: u32
     statements: list[u32]
     def __bytes__(self) -> bytes:
-        return self.code + self.location + (join(self.statements) + null32)
+        return self.code + self.location + (join(self.statements) + null32())
 
 
 #
@@ -90,7 +96,7 @@ class IRDeclaration(Sequence):
     pointer: u32
     characters: list[u8]
     def __bytes__(self) -> bytes:
-        return self.code + self.location + self.pointer + (join(self.characters) + null8)
+        return self.code + self.location + self.pointer + (join(self.characters) + null8())
 
 # 2ºLEVEL -> NODE
 @dataclass
@@ -118,7 +124,7 @@ class IRComment(Sequence):
     location: u32
     characters: list[u8]
     def __bytes__(self) -> bytes:
-        return self.code + self.location + (join(self.characters) + null8)
+        return self.code + self.location + (join(self.characters) + null8())
 
 
 #
@@ -132,7 +138,7 @@ class IRExpression(Sequence):
     location: u32
     terms: list[u32]
     def __bytes__(self) -> bytes:
-        return self.code + self.location + (join(self.terms) + null32)
+        return self.code + self.location + (join(self.terms) + null32())
 
 
 #
@@ -147,7 +153,7 @@ class IRTerm(Sequence):
     numerator: list[u32]
     denominator: list[u32]
     def __bytes__(self) -> bytes:
-        return self.code + self.location + (join(self.numerator) + null32) + (join(self.denominator) + null32)
+        return self.code + self.location + (join(self.numerator) + null32()) + (join(self.denominator) + null32())
 
 
 #
@@ -160,10 +166,10 @@ class IRVariable(Sequence):
     code = u8(0x08)
     location: u32
     sign: u8
-    exponent: u32 or null32
+    exponent: u32 | null32
     characters: list[u8]
     def __bytes__(self) -> bytes:
-        return self.code + self.location + self.sign + self.exponent + (join(self.characters) + null8)
+        return self.code + self.location + self.sign + self.exponent + (join(self.characters) + null8())
 
 # 5ºLEVEL -> NEST
 @dataclass
@@ -171,7 +177,7 @@ class IRNest(Sequence):
     code = u8(0x09)
     location: u32
     sign: u8
-    exponent: u32 or null32
+    exponent: u32 | null32
     pointer: u32
     def __bytes__(self) -> bytes:
         return self.code + self.location + self.sign + self.exponent + self.pointer
@@ -182,10 +188,10 @@ class IRVector(Sequence):
     code = u8(0x0A)
     location: u32
     sign: u8
-    exponent: u32 or null32
+    exponent: u32 | null32
     pointers: list[u32]
     def __bytes__(self) -> bytes:
-        return self.code + self.location + self.sign + self.exponent + (join(self.pointers) + null32)
+        return self.code + self.location + self.sign + self.exponent + (join(self.pointers) + null32())
 
 # 5ºLEVEL -> NUMBER
 @dataclass
@@ -193,9 +199,9 @@ class IRNumber(Sequence):
     code = u8(0x0B)
     location: u32
     sign: u8
-    exponent: u32 or null32
-    value: u32 or null32
-    decimal: u32 or null32
+    exponent: u32 | null32
+    value: u32 | null32
+    decimal: u32 | null32
     def __bytes__(self) -> bytes:
         return self.code + self.location + self.sign + self.exponent + self.value + self.decimal
 
@@ -276,8 +282,7 @@ class IR:
     # GENERATOR -> 3 EXPRESSION GENERATION
     def expression(self, expression: Expression) -> bytes:
         terms = []
-        for term in expression.terms:
-            terms.append(self.term(term))
+        for term in expression.terms: terms.append(self.term(term))
         register = self.new()
         self.ir.append(IRExpression(
             register,
@@ -309,51 +314,50 @@ class IR:
         return register
     # GENERATOR -> 5 VARIABLE GENERATION
     def variable(self, variable: Variable) -> bytes:
-        exponent = self.expression(variable.exponent) if variable.exponent is not None else null32
+        exponent = self.expression(variable.exponent) if variable.exponent is not None else null32()
         register = self.new()
         self.ir.append(IRVariable(
             register,
-            u8(variable.signs.count("-")) if variable.signs is not None and variable.signs.count("-") != 0 else null8,
+            u8(variable.signs.count("-")) if variable.signs is not None and variable.signs.count("-") != 0 else null8(),
             exponent,
             [variable.representation.encode()]
         ))
         return register
     # GENERATOR -> 5 NEST GENERATION
     def nest(self, nest: Nest) -> bytes:
-        exponent = self.expression(nest.exponent) if nest.exponent is not None else null32
+        exponent = self.expression(nest.exponent) if nest.exponent is not None else null32()
         pointer = self.expression(nest.expression)
         register = self.new()
         self.ir.append(IRNest(
             register,
-            u8(nest.signs.count("-")) if nest.signs is not None and nest.signs.count("-") != 0 else null8,
+            u8(nest.signs.count("-")) if nest.signs is not None and nest.signs.count("-") != 0 else null8(),
             exponent,
             pointer
         ))
         return register
     # GENERATOR -> 5 VECTOR GENERATION
     def vector(self, vector: Vector) -> bytes:
-        exponent = self.expression(vector.exponent) if vector.exponent is not None else null32
+        exponent = self.expression(vector.exponent) if vector.exponent is not None else null32()
         pointers = []
-        for value in vector.values:
-            pointers.append(self.expression(value))
+        for value in vector.values: pointers.append(self.expression(value))
         register = self.new()
         self.ir.append(IRVector(
             register,
-            u8(vector.signs.count("-")) if vector.signs is not None and vector.signs.count("-") != 0 else null8,
+            u8(vector.signs.count("-")) if vector.signs is not None and vector.signs.count("-") != 0 else null8(),
             exponent,
             pointers
         ))
         return register
     # GENERATOR -> 5 NUMBER GENERATION
     def number(self, number: Number) -> bytes:
-        exponent = self.expression(number.exponent) if number.exponent is not None else null32
+        exponent = self.expression(number.exponent) if number.exponent is not None else null32()
         register = self.new()
         self.ir.append(IRNumber(
             register,
-            u8(number.signs.count("-")) if number.signs is not None and number.signs.count("-") != 0 else null8,
+            u8(number.signs.count("-")) if number.signs is not None and number.signs.count("-") != 0 else null8(),
             exponent,
-            u32(int(number.representation.split(".")[0]) if "." in number.representation else int(number.representation)) if float(number.representation) != 0 else null32,
-            u32(int(number.representation.split(".")[1])) if "." in number.representation else null32
+            u32(int(number.representation.split(".")[0]) if "." in number.representation else int(number.representation)) if float(number.representation) != 0 else null32(),
+            u32(int(number.representation.split(".")[1][::-1])) if "." in number.representation else null32()
         ))
         return register
     # GENERATOR -> VARIABLE GENERATOR

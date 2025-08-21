@@ -12,38 +12,23 @@
 
 
 ;;
-;;  NUMBER
-;;
-
-;; NUMBER -> ADD
-(func $numberAdd (param $first i32) (param $second i32) (result i32)
-    local.get $first
-    local.get $second
-    i32.add
-)(export "numberAdd" (func $numberAdd))
-
-
-;;
 ;;  SYSTEM
 ;;
 
 ;; SYSTEM -> EXIT
-(func $systemExit (param $code i32)
+(func $systemExit (param $code i32);;                                           systemExit(code: i32)
     local.get $code
     call $call60
 )(export "systemExit" (func $systemExit))
 
 ;; SYSTEM -> WRITE
-(func $systemWrite (param $pointer i32)
+(func $systemWrite (param $pointer i32);;                                       systemWrite(pointer: i32)
     (local $length i32)
-    (local $cursor i32)
-    local.get $pointer
-    local.set $cursor
     i32.const 0
     local.set $length
     block $break
         loop $scan
-            local.get $cursor
+            local.get $pointer
             local.get $length
             i32.add
             i32.load8_u
@@ -59,4 +44,12 @@
     local.get $pointer
     local.get $length
     call $call1
-)(export "systemWrite" (func $systemWrite)))
+)(export "systemWrite" (func $systemWrite))
+
+
+;;
+;;  BOTTOM
+;;
+
+;; BOTTOM -> MARK
+)

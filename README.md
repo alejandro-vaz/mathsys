@@ -1,6 +1,8 @@
 # Mathsys
-*Mathsys* is a *DSL* (*Domain-Specific Language*) aimed to make math writing easier on computers, and something machines 
-can actually understand.
+
+[![PyPI Downloads](https://static.pepy.tech/badge/mathsys)](https://pepy.tech/projects/mathsys)
+
+*Mathsys* is a *DSL* (*Domain-Specific Language*) aimed to make math writing easier on computers, and something machines can actually understand.
 
 *Mathsys* bridges the gap between traditional mathematical notation and programming languages. It provides a hybrid syntax that maintains mathematical readability while adding programming language features like multi-character variables and structured expressions.
 
@@ -39,7 +41,7 @@ I say *we* but I'm indeed a solo developer for now, so if you want to get involv
 
 ## Technical Background
 - **Parser:** A [lark parser](https://github.com/lark-parser/lark) based on *Earley* that tokenizes the source and builds the *AST.*
-- **LaTeX:** Our custom *LaTeX* generator that transverses the *AST* and outputs easy-to-read *LaTeX.*
+- **LaTeX:** Our custom *LaTeX* generator that traverses the *AST* and outputs easy-to-read *LaTeX.*
 - **IR:** A fully binary *Intermediate Representation.*
 - **Runtime:** *Rust* based `no_std` runtime which interprets the *IR* embedded into it and implements control-flow for low-level operations.
 - **Assembly:** For low-level operations which require speed and don't need memory safety.

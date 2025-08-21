@@ -11,13 +11,6 @@
             }
         ],
         [
-            "@babel/preset-react",
-            {
-                "runtime": "automatic",
-                "importSource": "€react"
-            }
-        ],
-        [
             "@babel/preset-typescript"
         ]
     ],

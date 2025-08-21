@@ -14,6 +14,6 @@ section .text
 ;
 
 ; SYSTEM -> EXIT
-systemExit:
+systemExit:;                                                                    systemExit(rdi)
     mov rax, 60
     syscall
