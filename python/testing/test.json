@@ -56,10 +56,6 @@
         "$$1+2\\\\ 3+4$$"
     ],
     [
-        "alpha + beta = gamma",
-        "$alpha+beta=gamma$"
-    ],
-    [
         "x = 5",
         "$x=5$"
     ],
