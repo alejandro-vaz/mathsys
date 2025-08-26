@@ -9,6 +9,7 @@ from .parser import (
     Sheet, 
     # DATACLASSES -> 2ºLEVEL
     Level2,
+    Definition,
     Declaration,
     Node,
     Equation,
@@ -21,6 +22,8 @@ from .parser import (
     Term, 
     # DATACLASSES -> 5ºLEVEL
     Level5,
+    Infinite,
+    Limit,
     Variable,
     Nest,
     Vector,
@@ -36,6 +39,62 @@ from .parser import (
 class LaTeX:
     # GENERATOR -> VARIABLES
     latex: list[str]
+    MAPPINGS = {
+        "alpha": r"\alpha ",
+        "Alpha": r"A",
+        "beta": r"\beta ",
+        "Beta": r"B",
+        "gamma": r"\gamma ",
+        "Gamma": r"\Gamma ",
+        "delta": r"\delta ",
+        "Delta": r"\Delta ",
+        "epsilon": r"\epsilon ",
+        "Epsilon": r"E",
+        "zeta": r"\zeta ",
+        "Zeta": r"Z",
+        "eta": r"\eta ",
+        "Eta": r"H",
+        "theta": r"\theta ",
+        "Theta": r"\Theta ",
+        "iota": r"\iota ",
+        "Iota": r"I",
+        "kappa": r"\kappa ",
+        "Kappa": r"K",
+        "lambda": r"\lambda ",
+        "Lambda": r"\Lambda ",
+        "mu": r"\mu ",
+        "Mu": r"M",
+        "nu": r"\nu ",
+        "Nu": r"N",
+        "xi": r"\xi ",
+        "Xi": r"\Xi ",
+        "omicron": r"\omicron ",
+        "Omicron": r"O",
+        "pi": r"\pi ",
+        "Pi": r"\pi ",
+        "rho": r"\rho ",
+        "Rho": r"P",
+        "sigma": r"\sigma ",
+        "Sigma": r"\Sigma ",
+        "tau": r"\tau ",
+        "Tau": r"T",
+        "upsilon": r"\upsilon ",
+        "Upsilon": r"\Upsilon ",
+        "phi": r"\phi ",
+        "Phi": r"\Phi ",
+        "chi": r"\chi ",
+        "Chi": r"X",
+        "psi": r"\psi ",
+        "Psi": r"\Psi ",
+        "omega": r"\omega ",
+        "Omega": r"\Omega ",
+        "varepsilon": r"\varepsilon ",
+        "vartheta": r"\vartheta ",
+        "varpi": r"\varpi ",
+        "varrho": r"\varrho ",
+        "varsigma": r"\varsigma ",
+        "varphi": r"\varphi "
+    }
     # GENERATOR -> INIT
     def __init__(self) -> None:
         self.latex = []
@@ -53,6 +112,7 @@ class LaTeX:
         self.latex.append(delimiter)
         for statement in sheet.statements:
             match statement:
+                case Definition(): self.definition(statement)
                 case Declaration(): self.declaration(statement)
                 case Node(): self.node(statement)
                 case Equation(): self.equation(statement)
@@ -60,9 +120,14 @@ class LaTeX:
             self.latex.append(r"\\ ")
         if len(sheet.statements) >= 1: self.latex.pop()
         self.latex.append(delimiter)
+    # GENERATOR -> 2 DEFINITION GENERATION
+    def definition(self, definition: Definition) -> None:
+        self.latex.append(self.MAPPINGS[definition.identifier] if definition.identifier in self.MAPPINGS else definition.identifier)
+        self.latex.append(r"\equiv ")
+        self.expression(definition.expression)
     # GENERATOR -> 2 DECLARATION GENERATION
     def declaration(self, declaration: Declaration) -> None:
-        self.latex.append(declaration.identifier)
+        self.latex.append(self.MAPPINGS[declaration.identifier] if declaration.identifier in self.MAPPINGS else declaration.identifier)
         self.latex.append("=")
         self.expression(declaration.expression)
     # GENERATOR -> 2 NODE GENERATION
@@ -93,6 +158,8 @@ class LaTeX:
                 case "/": denominator.append(term.factors[index])
         for index in range(len(numerator)):
             match numerator[index]:
+                case Infinite(): self.infinite(numerator[index], noTermSign or index != 0, index == 0 and denominator)
+                case Limit(): self.limit(numerator[index], noTermSign or index != 0, index == 0 and denominator)
                 case Variable(): self.variable(numerator[index], noTermSign or index != 0, index == 0 and denominator)
                 case Nest(): self.nest(numerator[index], noTermSign or index != 0, index == 0 and denominator)
                 case Vector(): self.vector(numerator[index], noTermSign or index != 0, index == 0 and denominator)
@@ -103,6 +170,8 @@ class LaTeX:
             self.latex.append(r"}{")
             for index in range(len(denominator)):
                 match denominator[index]:
+                    case Infinite(): self.infinite(denominator[index], True, False)
+                    case Limit(): self.limit(denominator[index], True, False)
                     case Variable(): self.variable(denominator[index], True, False)
                     case Nest(): self.nest(denominator[index], True, False)
                     case Vector(): self.vector(denominator[index], True, False)
@@ -110,6 +179,35 @@ class LaTeX:
                 self.latex.append(r"\cdot ")
             self.latex.pop()
             self.latex.append(r"}")
+    # GENERATOR -> 5 INFINITE GENERATION
+    def infinite(self, infinite: Infinite, noSign: bool, createFraction: bool) -> None:
+        if noSign:
+            self.latex.append(infinite.signs)
+        else:
+            self.latex.append(infinite.signs if infinite.signs is not None else "+")
+        if createFraction:
+            self.latex.append(r"\frac{")
+        self.latex.append(r"\infty ")
+        if infinite.exponent is not None:
+            self.latex.append(r"^{")
+            self.expression(infinite.exponent)
+            self.latex.append(r"}")
+    # GENERATOR -> 5 LIMIT GENERATION
+    def limit(self, limit: Limit, noSign: bool, createFraction: bool) -> None:
+        if noSign:
+            self.latex.append(limit.signs)
+        else:
+            self.latex.append(limit.signs if limit.signs is not None else "+")
+        if createFraction:
+            self.latex.append(r"\frac{")
+        self.latex.append(r"\lim_{\substack{")
+        self.latex.append(self.MAPPINGS[limit.variable] if limit.variable in self.MAPPINGS else limit.variable)
+        self.latex.append(r"\to ")
+        self.expression(limit.to)
+        self.latex.append(r"}}\left( ")
+        self.expression(limit.at)
+        self.latex.append(r"\right) ")
+        # no level5, but expression
     # GENERATOR -> 5 VARIABLE GENERATION
     def variable(self, variable: Variable, noSign: bool, createFraction: bool) -> None:
         if noSign: 
@@ -118,7 +216,7 @@ class LaTeX:
             self.latex.append(variable.signs if variable.signs is not None else "+")
         if createFraction: 
             self.latex.append(r"\frac")
-        self.latex.append(variable.representation)
+        self.latex.append(self.MAPPINGS[variable.representation] if variable.representation in self.MAPPINGS else variable.representation)
         if variable.exponent is not None:
             self.latex.append(r"^{")
             self.expression(variable.exponent)

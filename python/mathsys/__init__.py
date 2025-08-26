@@ -38,13 +38,20 @@ def compile(content: str, target: str) -> bytes:
 # MAIN -> TARGET
 def wrapper(filename: str, target: str) -> None: 
     components = filename.split(".")
-    components[-1] = "ltx"
     with open(filename) as origin:
         content = origin.read()
-        with open(".".join(components), "w") as destination:
-            destination.write(view(content))
         match target:
-            case "unix/x86/64": components.pop()
-            case "web": components[-1] = "wasm"
-        with open(".".join(components), "wb") as destination:
-            destination.write(compile(content, target))
+            case "unix/x86/64": 
+                components.pop()
+                with open(".".join(components), "wb") as destination:
+                    destination.write(compile(content, "unix/x86/64"))
+            case "web": 
+                components[-1] = "wasm"
+                with open(".".join(components), "wb") as destination:
+                    destination.write(compile(content, "web"))
+            case "latex": 
+                components[-1] = "ltx"
+                with open(".".join(components), "w") as destination:
+                    destination.write(view(content))
+            case _:
+                sys.exit("[ENTRY ISSUE] Unknown target.")
