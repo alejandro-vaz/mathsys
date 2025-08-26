@@ -67,7 +67,7 @@ struct Settings {
 // GLOBALS -> SETTINGS
 static SETTINGS: Settings = Settings {
     ir: include_bytes!(env!("Mathsys")),
-    version: [1, 0, 0],
+    version: [1, 2, 7],
     bcalls: true,
     ncalls: true,
     memsize: 33554432,
