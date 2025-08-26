@@ -14,7 +14,7 @@ section .text
 ;
 
 ; SYSTEM -> WRITE
-systemWrite:
+systemWrite:;                                                                   systemWrite(rdi)
     mov rsi, rdi
     xor rcx, rcx
     .find:

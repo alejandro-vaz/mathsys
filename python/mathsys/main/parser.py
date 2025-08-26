@@ -28,6 +28,12 @@ class Sheet(Level1):
 # 2ºLEVEL -> NAMESPACE
 class Level2: pass
 
+# 2ºLEVEL -> DEFINITION
+@dataclass
+class Definition(Level2):
+    identifier: str
+    expression: Expression
+
 # 2ºLEVEL -> DECLARATION
 @dataclass
 class Declaration(Level2):
@@ -84,6 +90,20 @@ class Term(Level4):
 
 # 5ºLEVEL -> NAMESPACE
 class Level5: pass
+
+# 5ºLEVEL -> INFINITE
+@dataclass
+class Infinite(Level5):
+    signs: str | None
+    exponent: Expression | None
+
+# 5ºLEVEL -> LIMIT
+@dataclass
+class Limit(Level5):
+    signs: str | None
+    variable: str
+    to: Expression
+    at: Expression
 
 # 5ºLEVEL -> VARIABLE
 @dataclass
@@ -155,6 +175,9 @@ class Parser(Transformer):
     # CLASS -> 1 SHEET CONSTRUCT
     def sheet(self, items: list[Token | Level2]) -> Sheet: 
         return Sheet([item for item in items if isinstance(item, Level2)])
+    # CLASS -> 2 DEFINITION CONSTRUCT
+    def definition(self, items: list[Token | Expression]) -> Definition:
+        return Definition(ñ(items[0]), items[2])
     # CLASS -> 2 DECLARATION CONSTRUCT
     def declaration(self, items: list[Token | Expression]) -> Declaration: 
         return Declaration(ñ(items[0]), items[2])
@@ -175,6 +198,20 @@ class Parser(Transformer):
         return Term(
             [factor for factor in items if isinstance(factor, Level5)],
             [ñ(operator) for operator in items if isinstance(operator, Token)]
+        )
+    # CLASS -> 5 INFINITE CONSTRUCT
+    def infinite(self, items: list[Token | Expression]) -> Infinite:
+        return Infinite(
+            ñ(items[0]) if items[0].type == "SIGNS" else None,
+            items[-2] if items[-1].type == "EXPONENTIATION" else None
+        )
+    # CLASS -> 5 LIMIT CONSTRUCT
+    def limit(self, items: list[Token | Expression]) -> Limit:
+        return Limit(
+            ñ(items[0]) if items[0].type == "SIGNS" else None,
+            ñ(items[2]) if items[0].type == "SIGNS" else ñ(items[1]),
+            items[4] if items[0].type == "SIGNS" else items[3],
+            items[7] if items[0].type == "SIGNS" else items[6]
         )
     # CLASS -> 5 VARIABLE CONSTRUCT
     def variable(self, items: list[Token | Expression]) -> Variable:

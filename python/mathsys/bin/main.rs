@@ -20,7 +20,6 @@ mod lib {
     pub mod memory;
     pub mod rustc;
     pub mod stdout;
-    pub mod string;
 }
 
 // HEAD -> STACK
@@ -45,7 +44,7 @@ use alloc::string::String;
 use alloc::alloc::Layout;
 
 // PULLS -> CORE
-use core::cell::UnsafeCell;
+use core::sync::atomic::{AtomicUsize, Ordering};
 use core::alloc::GlobalAlloc;
 use core::panic::PanicInfo;
 
@@ -67,8 +66,8 @@ struct Settings {
 
 // GLOBALS -> SETTINGS
 static SETTINGS: Settings = Settings {
-    ir: include_bytes!(env!("IR")),
-    version: [1, 0, 0],
+    ir: include_bytes!(env!("Mathsys")),
+    version: [1, 2, 7],
     bcalls: true,
     ncalls: true,
     memsize: 33554432,
@@ -81,7 +80,7 @@ static SETTINGS: Settings = Settings {
 static mut ALLOCATOR: allocator::Allocator = allocator::Allocator {
     start: 0,
     end: 0,
-    next: UnsafeCell::new(0)
+    next: AtomicUsize::new(0)
 };
 static mut HEAP: [u8; SETTINGS.memsize] = [0; SETTINGS.memsize];
 
@@ -96,7 +95,7 @@ pub unsafe extern "C" fn _start() -> ! {
     allocator::init();
     stdout::login();
     stdout::trace(&format!(
-        "Allocated memory size is {} bytes",
+        "Available memory size is {} bytes",
         SETTINGS.memsize
     ));
     stdout::debug(&format!(

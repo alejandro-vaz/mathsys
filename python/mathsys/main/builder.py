@@ -17,15 +17,18 @@ class Builder:
     # CLASS -> VARIABLES
     filename: str
     data: bytes
+    targets = {
+        "unix/x86/64": "x86_64-unknown-linux-gnu",
+        "web": "wasm32-unknown-unknown"
+    }
     target: str
     debug: bool
-    modules: list[str]
     location: str
     # CLASS -> INIT
     def __init__(self, data: bytes, target: str) -> None:
-        self.modules = ["all"]
         self.debug = False
         self.data = data
+        if target not in self.targets: raise ValueError(f"'{target}' is not a supported target.")
         self.target = target
         self.location = os.path.dirname(os.path.abspath(__file__))
     # CLASS -> RUN
@@ -35,7 +38,7 @@ class Builder:
         descriptor, self.filename = tempfile.mkstemp(dir = "/tmp")
         os.close(descriptor)
         environment = os.environ.copy()
-        environment["IR"] = ir
+        environment["Mathsys"] = ir
         subprocess.run(
             self.command(),
             cwd = self.location,
@@ -50,13 +53,6 @@ class Builder:
         return binary
     # CLASS -> COMMAND CREATOR HELPER
     def command(self) -> list[str]:
-        targets = {
-            "unix/x86/64": "x86_64-unknown-linux-gnu",
-            "web": "wasm32-unknown-unknown"
-        }
-        collection = [
-            "all"
-        ]
         sysroot = subprocess.check_output(
             ["rustc", "+nightly", "--print", "sysroot"],
             text = True
@@ -65,12 +61,12 @@ class Builder:
             "rustc",
             "+nightly",
             "../bin/main.rs",
-            "--target", targets[self.target],
+            "--target", self.targets[self.target],
             "--sysroot", sysroot,
-            "-C", "opt-level=0" if self.debug else "opt-level=3",
+            "-C", f"opt-level={'0' if self.debug else '3'}",
             *(["-g"] if self.debug else []),
             "-C", "panic=abort",
             *(["-C", "link-arg=-nostartfiles"] if self.target == "unix/x86/64" else []),
             "-o", self.filename,
-            *(item for module in self.modules if module in collection for item in ["-C", f"link-arg=../bin/{self.target}/{module}.o"])
+            "-C", f"link-arg=../bin/{self.target}/all.o"
         ]

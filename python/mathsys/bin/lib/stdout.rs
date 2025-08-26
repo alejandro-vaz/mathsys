@@ -30,7 +30,7 @@ unsafe fn print(string: &str, append: &[u8]) -> () {
 
 // FORMATTING -> MEMORY SIGNATURE
 unsafe fn signature() -> crate::String {
-    let number = *(crate::ALLOCATOR).next.get() - crate::ALLOCATOR.start;
+    let number = crate::ALLOCATOR.next.load(crate::Ordering::Relaxed) - crate::ALLOCATOR.start;
     return crate::format!(
         "    {}",
         if number < 1000 {

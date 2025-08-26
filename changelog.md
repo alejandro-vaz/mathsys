@@ -60,3 +60,19 @@
 - [X] (Patch) Updated `README.md`.
 - [X] (Patch) Improved entry point.
 - [X] (Minor) Updated syntax to make parsing possible.
+### *Mathsys* 1.2.7 `2-2-11`
+- [X] (Patch) Added tags to `README.md`.
+- [X] (Patch) Trimmed down `babel.config.json`.
+- [X] (Patch) Improved public *API*.
+- [X] (Patch) Added thread safety to runtime allocator.
+- [X] (Patch) Optimized runtime `bcmp()` function.
+- [X] (Patch) Removed mod `lib::string`.
+- [X] (Patch) Added inlining for stack functions imported from assembly.
+- [X] (Patch) Improved compile commands with subshells and heredocs.
+- [X] (Patch) Renamed environment variable for the *IR* to `Mathsys`.
+- [X] (Patch) Streamlined compilation process with `all.o` binaries.
+- [X] (Minor) Added greek letter mapping.
+- [X] (Patch) Refactored complex functions in the compilation steps to keep cyclomatic complexity under 10.
+- [X] (Minor) Added `inf` keyword for infinity.
+- [X] (Major) Added limits.
+- [X] (Major) Added immutable definitions.
