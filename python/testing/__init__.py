@@ -2,13 +2,11 @@
 #   HEAD
 #
 
-# HEAD -> UNITTEST
+# HEAD -> MODULES
 import unittest
-
-# HEAD -> JSON
 import json
 
-# HEAD -> ENTRY POINT
+# HEAD -> TESTER
 import mathsys
 
 
@@ -18,8 +16,7 @@ import mathsys
 
 # TESTING -> CLASS
 class Test(unittest.TestCase):
-    def testView(self):
+    def testView(self) -> None:
         with open("python/testing/test.json", "r") as file: content = json.load(file)
         for index, (stdin, expected) in enumerate(content):
-            with self.subTest(i = index, inp = stdin):
-                self.assertEqual(mathsys.view(stdin), expected)
+            with self.subTest(i = index, inp = stdin): self.assertEqual(mathsys.view(stdin), expected)

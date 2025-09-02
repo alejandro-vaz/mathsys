@@ -15,8 +15,8 @@ unsafe extern "C" {
 
 // WRAPPERS -> WRITE
 #[inline(always)]
-pub unsafe fn write(pointer: *const u8) -> () {systemWrite(pointer)}
+pub fn write(pointer: *const u8) -> () {unsafe{systemWrite(pointer)}}
 
-// WRAPPERS -> SYSTEMEXIT
+// WRAPPERS -> EXIT
 #[inline(always)]
-pub unsafe fn exit(code: u8) -> ! {systemExit(code)}
+pub fn exit(code: u8) -> ! {unsafe{systemExit(code)}}
