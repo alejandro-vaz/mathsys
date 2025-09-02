@@ -2,7 +2,6 @@
 
 ![Pepy Total Downloads](https://img.shields.io/pepy/dt/mathsys?logo=pypi&label=Pypi%20downloads&link=https%3A%2F%2Fpypi.org%2Fproject%2Fmathsys%2F)
 ![NPM Downloads](https://img.shields.io/npm/dm/mathsys?logo=npm&label=NPM%20downloads&link=https%3A%2F%2Fwww.npmjs.com%2Fpackage%2Fmathsys)
-![GitHub Tag](https://img.shields.io/github/v/tag/alejandro-vaz/mathsys?include_prereleases&logo=github&label=Latest%20version&link=https%3A%2F%2Fgithub.com%2Falejandro-vaz%2Fmathsys%2Freleases%2Flatest)
 
 *Mathsys* is a *DSL* (*Domain-Specific Language*) aimed to make math writing easier on computers, and something machines can actually understand.
 

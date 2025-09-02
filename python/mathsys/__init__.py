@@ -3,8 +3,8 @@
 #
 
 # EXPORTS -> VERSION
-__version__ = "1.2.7"
-__version_info__ = (1, 2, 7)
+__version__ = "1.4.124"
+__version_info__ = (1, 4, 124)
 
 # EXPORTS -> LATEST
 from .dev import (
