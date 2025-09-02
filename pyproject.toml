@@ -7,11 +7,11 @@ name = "mathsys"
 version = "1.2.7"
 description = "The Domain Specific Language for math."
 readme = "README.md"
-license = {text = "SEE LICENSE IN LICENSE.md"}
+license = {text = "SEE LICENSE IN https://docs.abscissa.eu"}
 authors = [{ name = "Alejandro Vaz", email = "notyetimplemented@abscissa.eu" }]
 keywords = ["dsl", "math", "mathsys", "compiler", "language"]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent"
 ]

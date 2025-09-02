@@ -5,8 +5,8 @@
 
 # COMPILE -> COMMAND
 (
-    cd python/mathsys/bin/web
-    cat > all.wat << 'EOF'
+    cd python/mathsys/dev/source
+    cat > web.wat << 'EOF'
 ;;
 ;;  HEAD
 ;;
@@ -20,16 +20,16 @@
 (import "sys" "call60" (func $call60 (param i32)))
 
 EOF
-    cat >> all.wat << 'EOF'
+    cat >> web.wat << 'EOF'
 
 ;;
 ;;  SYSTEM
 ;;
 
 EOF
-    cat system/exit.wat >> all.wat
-    cat system/write.wat >> all.wat
-    cat >> all.wat << 'EOF'
+    cat system/exit/exit.wat >> web.wat
+    cat system/write/write.wat >> web.wat
+    cat >> web.wat << 'EOF'
 
 ;;
 ;;  BOTTOM
@@ -38,7 +38,8 @@ EOF
 ;; BOTTOM -> MARK
 )
 EOF
-    wat2wasm all.wat -r -o all.wasm
-    wasm-ld -flavor wasm -r all.wasm -o all.o
-    rm all.wasm
+    wat2wasm web.wat -r -o web.wasm
+    rm web.wat
+    wasm-ld -flavor wasm -r web.wasm -o all.o
+    rm web.wasm
 )

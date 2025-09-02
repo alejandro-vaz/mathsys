@@ -7,6 +7,7 @@
 #![no_main]
 #![allow(unused_variables)]
 #![allow(static_mut_refs)]
+#![allow(non_snake_case)]
 
 // HEAD -> SYSTEM CRATES
 extern crate alloc;
@@ -18,6 +19,7 @@ mod data {}
 mod lib {
     pub mod allocator;
     pub mod memory;
+    pub mod number;
     pub mod rustc;
     pub mod stdout;
 }
@@ -57,8 +59,8 @@ use core::panic::PanicInfo;
 struct Settings {
     ir: &'static [u8],
     version: [usize; 3],
-    bcalls: bool,
-    ncalls: bool,
+    detail: bool,
+    lookup: bool,
     memsize: usize,
     precision: u8,
     width: u8
@@ -68,8 +70,8 @@ struct Settings {
 static SETTINGS: Settings = Settings {
     ir: include_bytes!(env!("Mathsys")),
     version: [1, 2, 7],
-    bcalls: true,
-    ncalls: true,
+    detail: true,
+    lookup: true,
     memsize: 33554432,
     precision: if usize::BITS == 64 {3} else {2},
     width: 80
@@ -77,11 +79,7 @@ static SETTINGS: Settings = Settings {
 
 // GLOBALS -> ALLOCATOR
 #[global_allocator]
-static mut ALLOCATOR: allocator::Allocator = allocator::Allocator {
-    start: 0,
-    end: 0,
-    next: AtomicUsize::new(0)
-};
+static ALLOCATOR: allocator::Allocator = allocator::Allocator::new();
 static mut HEAP: [u8; SETTINGS.memsize] = [0; SETTINGS.memsize];
 
 
@@ -91,25 +89,27 @@ static mut HEAP: [u8; SETTINGS.memsize] = [0; SETTINGS.memsize];
 
 // ENTRY -> POINT
 #[no_mangle]
-pub unsafe extern "C" fn _start() -> ! {
-    allocator::init();
+pub extern "C" fn _start() -> ! {
+    ALLOCATOR.init();
     stdout::login();
-    stdout::trace(&format!(
-        "Available memory size is {} bytes",
-        SETTINGS.memsize
-    ));
-    stdout::debug(&format!(
-        "B calls are {}",
-        if SETTINGS.bcalls {"enabled"} else {"disabled"}
-    ));
-    stdout::debug(&format!(
-        "N calls are {}",
-        if SETTINGS.ncalls {"enabled"} else {"disabled"}
-    ));
-    stdout::debug(&format!(
-        "Precision is set to {}",
-        SETTINGS.precision
-    ));
+    ALLOCATOR.tempSpace(|| {
+        stdout::trace(&format!(
+            "Total heap size is {} bytes",
+            SETTINGS.memsize
+        ));
+        stdout::debug(&format!(
+            "Detail calls are {}",
+            if SETTINGS.detail {"enabled"} else {"disabled"}
+        ));
+        stdout::debug(&format!(
+            "Lookup calls are {}",
+            if SETTINGS.lookup {"enabled"} else {"disabled"}
+        ));
+        stdout::debug(&format!(
+            "Precision is set to {}",
+            SETTINGS.precision
+        ));
+    });
     runtime();
     stdout::crash(0);
 }
@@ -119,8 +119,7 @@ pub unsafe extern "C" fn _start() -> ! {
 //  RUNTIME
 //
 
-
 // RUNTIME -> FUNCTION
-unsafe fn runtime() -> () {
+fn runtime() -> () {
     stdout::space("Here is as far as the current version goes, not IR yet");
 }
