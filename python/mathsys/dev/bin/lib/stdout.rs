@@ -58,6 +58,7 @@ pub fn crash(code: u8) -> ! {
                 match code {
                     0 => "Run finished successfully",
                     1 => "Out of memory",
+                    2 => "Error parsing IR",
                     255 => panic!(),
                     _ => "Unknown reason"
                 }

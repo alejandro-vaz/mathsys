@@ -21,24 +21,27 @@ class Builder:
     }
     # CLASS -> RUN
     def run(self, data: bytes, target: str) -> bytes:
-        descriptor, ir = tempfile.mkstemp(dir = "/tmp", suffix = ".ir")
-        with os.fdopen(descriptor, "bw") as file: file.write(data)
-        descriptor, filename = tempfile.mkstemp(dir = "/tmp")
-        os.close(descriptor)
-        environment = os.environ.copy()
-        environment["Mathsys"] = ir
-        subprocess.run(
-            self.command(target, filename),
-            cwd = os.path.dirname(os.path.abspath(__file__)),
-            env = environment,
-            capture_output = False,
-            text = True,
-            check = True
-        )
-        with open(filename, "rb") as file: binary = file.read()
-        os.remove(filename)
-        os.remove(ir)
-        return binary
+        try:
+            self.checks()
+            descriptor, ir = tempfile.mkstemp(dir = "/tmp", suffix = ".ir")
+            with os.fdopen(descriptor, "wb") as file: file.write(data)
+            descriptor, filename = tempfile.mkstemp(dir = "/tmp")
+            os.close(descriptor)
+            environment = os.environ.copy()
+            environment["Mathsys"] = ir
+            subprocess.run(
+                self.command(target, filename),
+                cwd = os.path.dirname(os.path.abspath(__file__)),
+                env = environment,
+                capture_output = False,
+                text = True,
+                check = True
+            )
+            with open(filename, "rb") as file: binary = file.read()
+            os.remove(filename)
+            os.remove(ir)
+            return binary
+        except Exception: raise
     # CLASS -> COMMAND CREATOR HELPER
     def command(self, target: str, filename: str) -> list[str]:
         sysroot = subprocess.check_output(
@@ -57,3 +60,11 @@ class Builder:
             "-o", filename,
             "-C", f"link-arg=../source/{target}.o"
         ]
+    # CLASS -> CHECKS
+    def checks(self) -> None:
+        subprocess.run(
+            ["rustc", "--version"],
+            capture_output = False,
+            text = True,
+            check = True
+        )

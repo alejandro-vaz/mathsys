@@ -99,6 +99,15 @@ class Factor(Level4):
     value: Level5
     exponent: Expression | None
 
+# 4ºLEVEL -> LIMIT
+@dataclass
+class Limit(Level4):
+    variable: Variable
+    approach: Expression
+    direction: bool | None
+    of: Nest
+    exponent: Expression | None
+
 
 #
 #   5ºLEVEL
@@ -110,14 +119,6 @@ class Level5: pass
 # 5ºLEVEL -> INFINITE
 @dataclass
 class Infinite(Level5): pass
-
-# 5ºLEVEL -> LIMIT
-@dataclass 
-class Limit(Level5):
-    variable: Variable
-    approach: Expression
-    direction: bool | None
-    of: Nest
 
 # 5ºLEVEL -> VARIABLE
 @dataclass
@@ -137,8 +138,8 @@ class Vector(Level5):
 # 5ºLEVEL -> NUMBER
 @dataclass
 class Number(Level5):
-    whole: int
-    decimal: int | None
+    whole: str
+    decimal: str | None
 
 
 #
@@ -147,10 +148,6 @@ class Number(Level5):
 
 # PARSER -> TOKEN TRIMMER
 def ñ(token: Token) -> str: return token.value.replace(" ", "")
-
-# PARSER -> LIST ACCESS
-def º(array: list, number: int) -> any:
-    if number < len(array): return array[number]
 
 # PARSER -> CLASS
 class Parser(Transformer):
@@ -179,12 +176,12 @@ class Parser(Transformer):
     def debug(self, items: list) -> Debug: 
         return Debug()
     # CLASS -> 1 DECLARATION CONSTRUCT
-    def declaration(self, items: list[Token, Expression]) -> Declaration: 
+    def declaration(self, items: list[Variable, Expression]) -> Declaration: 
         return Declaration(
             *items
         )
     # CLASS -> 1 DEFINITION CONSTRUCT
-    def definition(self, items: list[Token, Expression]) -> Definition: 
+    def definition(self, items: list[Variable, Expression]) -> Definition: 
         return Definition(
             *items
         )
@@ -201,12 +198,12 @@ class Parser(Transformer):
     # CLASS -> 1 COMMENT CONSTRUCT
     def comment(self, items: list[Token]) -> Comment:
         return Comment(
-            ñ(*items)
+            items[0].value if items else ""
         )
     # CLASS -> 2 EXPRESSION CONSTRUCT
     def expression(self, items: list[Token | Level3]) -> Expression:
         return Expression(
-            [None] + [ñ(item) for item in items if isinstance(item, Token)],
+            ([] if isinstance(items[0], Token) else [None]) + [ñ(item) for item in items if isinstance(item, Token)],
             [item for item in items if isinstance(item, Level3)]
         )
     # CLASS -> 3 TERM CONSTRUCT
@@ -232,17 +229,18 @@ class Parser(Transformer):
             items[0],
             items[1] if len(items) == 2 else None
         )
-    # CLASS -> 5 INFINITE CONSTRUCT
-    def infinite(self, items: list) -> Infinite:
-        return Infinite()
-    # CLASS -> 5 LIMIT CONSTRUCT
-    def limit(self, items: list[Token | Expression | Nest]) -> Limit:
+    # CLASS -> 4 LIMIT CONSTRUCT
+    def limit(self, items: list[Variable | Expression | Token | Nest]) -> Limit:
         return Limit(
             items[0],
             items[1],
-            items[2] == "+" if isinstance(items[2], Token) else None,
-            items[-1]
+            ñ(items[2]) == "+" if isinstance(items[2], Token) else None,
+            items[-2] if isinstance(items[-2], Nest) else items[-1],
+            items[-1] if isinstance(items[-1], Expression) else None
         )
+    # CLASS -> 5 INFINITE CONSTRUCT
+    def infinite(self, items: list) -> Infinite:
+        return Infinite()
     # CLASS -> 5 VARIABLE CONSTRUCT
     def variable(self, items: list[Token]) -> Variable:
         return Variable(
@@ -261,6 +259,6 @@ class Parser(Transformer):
     # CLASS -> 5 NUMBER CONSTRUCT
     def number(self, items: list[Token]) -> Number:
         return Number(
-            int(ñ(items[0])),
-            int(ñ(items[-1])) if len(items) == 2 else None
+            ñ(items[0]),
+            ñ(items[-1]) if len(items) == 2 else None
         )

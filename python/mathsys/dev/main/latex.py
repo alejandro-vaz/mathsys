@@ -23,10 +23,10 @@ from .parser import (
     # DATACLASSES -> 4ºLEVEL
     Level4,
     Factor,
+    Limit,
     # DATACLASSES -> 5ºLEVEL
     Level5,
     Infinite,
-    Limit,
     Variable,
     Nest,
     Vector,
@@ -98,6 +98,12 @@ class LaTeX:
         "varsigma": r"\varsigma ",
         "varphi": r"\varphi "
     }
+    SPECIAL = {
+        '\\': r'\\',
+        '{': r'\{',
+        '}': r'\}',
+        '$': r'\$'
+    }
     # GENERATOR -> INIT
     def __init__(self) -> None:
         self.latex = []
@@ -109,15 +115,15 @@ class LaTeX:
     # GENERATOR -> START GENERATION
     def start(self, start: Start) -> None:
         match len(start.statements):
-            case 0: delimiter = ""
-            case 1: delimiter = "$"
-            case _: delimiter = "$$"
-        self.latex.append(delimiter)
+            case 0: delimiters = ["", ""]
+            case 1: delimiters = [r"\(", r"\)"]
+            case _: delimiters = [r"\[", r"\]"]
+        self.latex.append(delimiters[0])
         for statement in start.statements:
             self.level1(statement)
             self.latex.append(r"\\ ")
         if len(start.statements) >= 1: self.latex.pop()
-        self.latex.append(delimiter)
+        self.latex.append(delimiters[1])
     # GENERATOR -> 1 LEVEL GENERATION
     def level1(self, level1: Level1) -> None:
         match level1:
@@ -150,7 +156,7 @@ class LaTeX:
     # GENERATOR -> 1 COMMENT GENERATION
     def comment(self, comment: Comment) -> None:
         self.latex.append(r"\text{")
-        self.latex.append(comment.content)
+        self.latex.append("".join(self.SPECIAL.get(character, character) for character in comment.content))
         self.latex.append(r"}")
     # GENERATOR -> 2 LEVEL GENERATION
     def level2(self, level2: Level2) -> None:
@@ -186,6 +192,7 @@ class LaTeX:
     def level4(self, level4: Level4) -> None:
         match level4:
             case Factor(): self.factor(level4)
+            case Limit(): self.limit(level4)
     # GENERATOR -> 4 FACTOR GENERATION
     def factor(self, factor: Factor) -> None:
         self.level5(factor.value)
@@ -193,29 +200,32 @@ class LaTeX:
             self.latex.append(r"^{")
             self.expression(factor.exponent)
             self.latex.append(r"}")
+    # GENERATOR -> 4 LIMIT GENERATION
+    def limit(self, limit: Limit) -> None:
+        self.latex.append(r"\lim_{\substack{")
+        self.variable(limit.variable)
+        self.latex.append(r"\to ")
+        self.expression(limit.approach)
+        if limit.direction is not None:
+            self.latex.append(r"^{")
+            self.latex.append(r"+" if limit.direction else r"-")
+            self.latex.append(r"}")
+        self.latex.append(r"}}")
+        self.nest(limit.of)
+        if limit.exponent is not None:
+            self.latex.append(r"^{")
+            self.expression(limit.exponent)
+            self.latex.append(r"}")
     # GENERATOR -> 5 LEVEL GENERATION
     def level5(self, level5: Level5) -> None:
         match level5:
             case Infinite(): self.infinite(level5)
-            case Limit(): self.limit(level5)
             case Variable(): self.variable(level5)
             case Nest(): self.nest(level5)
             case Vector(): self.vector(level5)
             case Number(): self.number(level5)
     # GENERATOR -> 5 INFINITE GENERATION
     def infinite(self, infinite: Infinite) -> None: self.latex.append(r"\infty ")
-    # GENERATOR -> 5 LIMIT GENERATION
-    def limit(self, limit: Limit) -> None:
-        self.latex.append(r"\lim_{\substack{")
-        self.variable(limit.variable)
-        self.latex.append(r"\to ")
-        self.expression(limit.approach)
-        if limit.direction is not None: 
-            self.latex.append(r"^{")
-            self.latex.append(r"+" if limit.direction else r"-")
-            self.latex.append(r"}")
-        self.latex.append(r"}}")
-        self.nest(limit.of)
     # GENERATOR -> 5 VARIABLE GENERATION
     def variable(self, variable: Variable) -> None:
         self.latex.append(self.MAPPINGS.get(variable.representation, variable.representation))
@@ -237,7 +247,7 @@ class LaTeX:
         self.latex.append(r"\end{bmatrix}")
     # GENERATOR -> 5 NUMBER GENERATION
     def number(self, number: Number) -> None:
-        self.latex.append(str(number.whole))
+        self.latex.append(number.whole)
         if number.decimal is not None:
             self.latex.append(r".")
-            self.latex.append(str(number.decimal))
+            self.latex.append(number.decimal)

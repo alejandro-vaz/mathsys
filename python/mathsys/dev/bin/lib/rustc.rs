@@ -6,7 +6,7 @@
 #[no_mangle]
 pub fn rust_eh_personality() -> () {}
 
-// CORE -> UNWIND RESUME
+// RUSTC -> UNWIND RESUME
 #[no_mangle]
 pub extern "C" fn _Unwind_Resume() -> ! {
     loop {}
