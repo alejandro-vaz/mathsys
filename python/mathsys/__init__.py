@@ -3,11 +3,11 @@
 #
 
 # EXPORTS -> VERSION
-__version__ = "1.4.124"
-__version_info__ = (1, 4, 124)
+__version__ = "2.1.5"
+__version_info__ = (2, 1, 5)
 
 # EXPORTS -> LATEST
-from .dev import (
+from .v1 import (
     validate,
     latex,
     web,

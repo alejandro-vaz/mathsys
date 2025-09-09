@@ -13,3 +13,6 @@ dist/
 
 # IGNORE -> PYCACHE
 **/__pycache__
+
+# IGNORE -> PREVIOUS VERSIONS
+python/mathsys/v*
