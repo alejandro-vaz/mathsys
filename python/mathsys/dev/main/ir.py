@@ -24,10 +24,10 @@ from .parser import (
     # DATACLASSES -> 4ºLEVEL
     Level4,
     Factor,
+    Limit,
     # DATACLASSES -> 5ºLEVEL
     Level5,
     Infinite,
-    Limit,
     Variable,
     Nest,
     Vector,
@@ -196,6 +196,19 @@ class IRFactor(Sequence):
     def __bytes__(self) -> bytes:
         return self.code + self.location + self.pointer + self.expression
 
+# 4ºLEVEL -> LIMIT
+@dataclass
+class IRLimit(Sequence):
+    code = u8(0x0B)
+    location: u32
+    variable: u32
+    approach: u32
+    direction: u8 | null8
+    pointer: u32
+    exponent: u32 | null32
+    def __bytes__(self) -> bytes:
+        return self.code + self.location + self.variable + self.approach + self.direction + self.pointer + self.exponent
+
 
 #
 #   5ºLEVEL
@@ -204,22 +217,10 @@ class IRFactor(Sequence):
 # 5ºLEVEL -> INFINITE
 @dataclass
 class IRInfinite(Sequence):
-    code = u8(0x0B)
+    code = u8(0x0C)
     location: u32
     def __bytes__(self) -> bytes:
         return self.code + self.location
-
-# 5ºLEVEL -> LIMIT
-@dataclass
-class IRLimit(Sequence):
-    code = u8(0x0C)
-    location: u32
-    variable: u32
-    approach: u32
-    direction: u8 | null8
-    pointer: u32
-    def __bytes__(self) -> bytes:
-        return self.code + self.location + self.variable + self.approach + self.direction + self.pointer
 
 # 5ºLEVEL -> VARIABLE
 @dataclass
@@ -391,6 +392,7 @@ class IR:
     def level4(self, level4: Level4) -> u32:
         match level4:
             case Factor(): return self.factor(level4)
+            case Limit(): return self.limit(level4)
     # IR -> 4 FACTOR GENERATION
     def factor(self, factor: Factor) -> u32:
         expression = self.expression(factor.exponent) if factor.exponent is not None else null32()
@@ -402,11 +404,26 @@ class IR:
             expression
         ))
         return register
+    # IR -> 4 LIMIT GENERATION
+    def limit(self, limit: Limit) -> u32:
+        variable = self.variable(limit.variable)
+        approach = self.expression(limit.approach)
+        pointer = self.nest(limit.of)
+        exponent = self.expression(limit.exponent) if limit.exponent is not None else null32()
+        register = self.new()
+        self.ir.append(IRLimit(
+            register,
+            variable,
+            approach,
+            u8(int(limit.direction) + 1) if limit.direction is not None else null8(),
+            pointer,
+            exponent
+        ))
+        return register
     # IR -> 5 LEVEL GENERATION
     def level5(self, level5: Level5) -> u32:
         match level5:
             case Infinite(): return self.infinite(level5)
-            case Limit(): return self.limit(level5)
             case Variable(): return self.variable(level5)
             case Nest(): return self.nest(level5)
             case Vector(): return self.vector(level5)
@@ -414,22 +431,8 @@ class IR:
     # IR -> 5 INFINITE GENERATION
     def infinite(self, infinite: Infinite) -> u32:
         register = self.new()
-        IRInfinite(
+        self.ir.append(IRInfinite(
             register
-        )
-        return register
-    # IR -> 5 LIMIT GENERATION
-    def limit(self, limit: Limit) -> u32:
-        variable = self.variable(limit.variable)
-        approach = self.expression(limit.approach)
-        pointer = self.nest(limit.of)
-        register = self.new()
-        self.ir.append(IRLimit(
-            register,
-            variable,
-            approach,
-            null8() if limit.direction is None else u8(int(limit.direction) + 1),
-            pointer
         ))
         return register
     # IR -> 5 VARIABLE GENERATION
@@ -451,9 +454,7 @@ class IR:
         return register
     # IR -> 5 VECTOR GENERATION
     def vector(self, vector: Vector) -> u32:
-        values = []
-        for value in vector.values:
-            values.append(self.expression(value))
+        values = [self.expression(value) for value in vector.values]
         register = self.new()
         self.ir.append(IRVector(
             register,
@@ -465,7 +466,7 @@ class IR:
         register = self.new()
         self.ir.append(IRNumber(
             register,
-            u32(int(str(number.whole) + str(number.decimal if number.decimal is not None else "")) + 1),
-            u8(len(str(number.decimal))) if number.decimal is not None else null8()
+            u32(int(number.whole + (number.decimal if number.decimal is not None else "")) + 1),
+            u8(len(number.decimal)) if number.decimal is not None else null8()
         ))
         return register

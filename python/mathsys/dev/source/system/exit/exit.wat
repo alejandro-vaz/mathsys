@@ -3,4 +3,3 @@
     local.get $code
     call $call60
 )(export "systemExit" (func $systemExit))
-

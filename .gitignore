@@ -9,11 +9,10 @@ node_modules/
 *.js
 *.o
 dist/
-python/mathsys.egg-info
+**/**.egg-info
 
 # IGNORE -> PYCACHE
-python/mathsys/__pycache__
-python/mathsys/*/__pycache__
-python/mathsys/*/main/__pycache__
-python/mathsys/*/syntax/__pycache__
-python/testing/__pycache__
+**/__pycache__
+
+# IGNORE -> PREVIOUS VERSIONS
+python/mathsys/v*

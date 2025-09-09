@@ -20,12 +20,12 @@ To use the package, simply import it:
 import mathsys
 ```
 
-It is recommended that you import a version especifically, the only version available right now is `dev`:
+It is recommended that you import a version specifically, the only version available right now is `dev`:
 ```py
 import mathsys.dev as mathsys
 ```
 
-That later way ensures you always use that version, no matter the updates that the package receives.
+The latter way ensures you always use that version, no matter the updates that the package receives.
 
 ### CLI
 Compile a Mathsys file to different targets with:
@@ -37,16 +37,16 @@ python -m mathsys <target> <filename>.math
 You will need `rustc` installed with the target you are compiling to. If that feels too cumbersome (it really is), try it out first on [Abscissa.](https://app.abscissa.eu/playground)
 
 > [!NOTE]
-> Compiling via command line will also output a `.ltx` file with the *LaTeX.*
+> Targets available are: `watch`, `validate`, `latex`, `web` and `unix-x86-64`.
 
 ## Project Status
 Mathsys is actively developed with regular releases every 1-3 weeks. This project is still in its early stages, so expect major shifts and changes. Most features aren't close to being developed yet.
 
-I say *we* but I'm indeed a solo developer for now, so if you want to get involved learn
+If you want to get involved in the project, [learn how to contribute](https://docs.abscissa.eu).
 
 ## Technical Background
 - **Parser:** A [lark parser](https://github.com/lark-parser/lark) based on *Earley* that tokenizes the source and builds the *AST.*
 - **LaTeX:** Our custom *LaTeX* generator that traverses the *AST* and outputs easy-to-read *LaTeX.*
 - **IR:** A fully binary *Intermediate Representation.*
 - **Runtime:** *Rust* based `no_std` runtime which interprets the *IR* embedded into it and implements control-flow for low-level operations.
-- **Assembly:** For low-level operations which require speed and don't need memory safety.
+- **Assembly:** For low-level operations that require speed and don't need memory safety.

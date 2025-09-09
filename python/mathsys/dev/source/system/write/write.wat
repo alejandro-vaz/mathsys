@@ -22,4 +22,3 @@
     local.get $pointer
     call $call1
 )(export "systemWrite" (func $systemWrite))
-
