@@ -15,5 +15,5 @@ pub extern "C" fn _Unwind_Resume() -> ! {
 // RUSTC -> PANIC HANDLER
 #[panic_handler]
 fn panic(info: &crate::PanicInfo) -> ! {
-    crate::stack::system::exit(255);
+    crate::stack::exit(255);
 }

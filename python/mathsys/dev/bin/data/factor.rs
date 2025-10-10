@@ -9,13 +9,14 @@ pub struct Factor {
 }
 
 // FACTOR -> IMPLEMENTATION
-impl crate::Object for Factor {}
-impl Factor {
-    pub fn new(pointer: u32, expression: u32) -> Self {
-        crate::stdout::trace("Creating Factor");
-        return Factor {
-            pointer: pointer,
-            expression: expression
-        }
+impl crate::converter::Class for Factor {
+    fn name(&self) -> &'static str {"Factor"}
+    fn evaluate(&self, context: &mut crate::runtime::Context) -> crate::Box<dyn crate::runtime::Value> {
+        return crate::Box::new(crate::_Undefined {});
     }
+} impl Factor {
+    pub fn new(pointer: u32, expression: u32) -> Self {return Factor {
+        pointer: pointer,
+        expression: expression
+    }}
 }

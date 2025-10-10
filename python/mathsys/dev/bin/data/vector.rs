@@ -8,12 +8,13 @@ pub struct Vector {
 }
 
 // VECTOR -> IMPLEMENTATION
-impl crate::Object for Vector {}
-impl Vector {
-    pub fn new(values: &[u32]) -> Self {
-        crate::stdout::trace("Creating Vector");
-        return Vector {
-            values: values.into()
-        }
+impl crate::converter::Class for Vector {
+    fn name(&self) -> &'static str {"Vector"}
+    fn evaluate(&self, context: &mut crate::runtime::Context) -> crate::Box<dyn crate::runtime::Value> {
+        return crate::Box::new(crate::_Undefined {})
     }
+} impl Vector {
+    pub fn new(values: &[u32]) -> Self {return Vector {
+        values: values.into()
+    }}
 }

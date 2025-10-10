@@ -176,12 +176,12 @@ class Parser(Transformer):
     def debug(self, items: list) -> Debug: 
         return Debug()
     # CLASS -> 1 DECLARATION CONSTRUCT
-    def declaration(self, items: list[Variable, Expression]) -> Declaration: 
+    def declaration(self, items: list[Variable | Expression]) -> Declaration: 
         return Declaration(
             *items
         )
     # CLASS -> 1 DEFINITION CONSTRUCT
-    def definition(self, items: list[Variable, Expression]) -> Definition: 
+    def definition(self, items: list[Variable | Expression]) -> Definition: 
         return Definition(
             *items
         )

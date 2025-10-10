@@ -20,7 +20,7 @@ To use the package, simply import it:
 import mathsys
 ```
 
-It is recommended that you import a version specifically, the only version available right now is `dev`:
+It is recommended that you import a version specifically, versions available now are `v1` and `dev`:
 ```py
 import mathsys.dev as mathsys
 ```

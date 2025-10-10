@@ -28,3 +28,14 @@ pub fn bcmp(block1: *const u8, block2: *const u8, size: usize) -> usize {
     }}
     return 0;
 }
+
+// MEMORY -> MEMCMP
+#[no_mangle]
+pub fn memcmp(block1: *const u8, block2: *const u8, size: usize) -> usize {
+    for index in 0..size {unsafe {
+        let left = *block1.add(index);
+        let right = *block2.add(index);
+        if left != right {return left as usize - right as usize}
+    }}
+    return 0;
+}

@@ -9,13 +9,17 @@ pub struct Number {
 }
 
 // NUMBER -> IMPLEMENTATION
-impl crate::Object for Number {}
-impl Number {
-    pub fn new(value: u32, shift: u8) -> Self {
-        crate::stdout::trace("Creating Number");
-        return Number {
-            value: value,
-            shift: shift
-        }
+impl crate::converter::Class for Number {
+    fn name(&self) -> &'static str {"Number"}
+    fn evaluate(&self, context: &mut crate::runtime::Context) -> crate::Box<dyn crate::runtime::Value> {
+        return crate::Box::new(crate::_Number {
+            value: self.value,
+            shift: self.shift
+        });
     }
+} impl Number {
+    pub fn new(value: u32, shift: u8) -> Self {return Number {
+        value: value,
+        shift: shift
+    }}
 }

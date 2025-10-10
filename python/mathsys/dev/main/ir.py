@@ -67,7 +67,6 @@ class null32:
 # TYPES -> NAMESPACE
 class Sequence:
     code: u8
-    location: u32
 
 # TYPES -> JOIN
 def join(binary: list[bytes]) -> bytes:
@@ -85,10 +84,9 @@ def join(binary: list[bytes]) -> bytes:
 @dataclass
 class IRStart(Sequence):
     code = u8(0x01)
-    location: u32
     statements: list[u32]
     def __bytes__(self) -> bytes:
-        return self.code + self.location + (join(self.statements) + null32())
+        return self.code + (join(self.statements) + null32())
 
 
 #
@@ -99,57 +97,51 @@ class IRStart(Sequence):
 @dataclass
 class IRDebug(Sequence):
     code = u8(0x02)
-    location: u32
     def __bytes__(self) -> bytes:
-        return self.code + self.location
+        return self.code
 
 # 1ºLEVEL -> DECLARATION
 @dataclass
 class IRDeclaration(Sequence):
     code = u8(0x03)
-    location: u32
     variable: u32
     pointer: u32
     def __bytes__(self) -> bytes:
-        return self.code + self.location + self.variable + self.pointer
+        return self.code + self.variable + self.pointer
 
 # 1ºLEVEL -> DEFINITION
 @dataclass
 class IRDefinition(Sequence):
     code = u8(0x04)
-    location: u32
     variable: u32
     pointer: u32
     def __bytes__(self) -> bytes:
-        return self.code + self.location + self.variable + self.pointer
+        return self.code + self.variable + self.pointer
 
 # 1ºLEVEL -> NODE
 @dataclass
 class IRNode(Sequence):
     code = u8(0x05)
-    location: u32
     pointer: u32
     def __bytes__(self) -> bytes:
-        return self.code + self.location + self.pointer
+        return self.code + self.pointer
 
 # 1ºLEVEL -> EQUATION
 @dataclass
 class IREquation(Sequence):
     code = u8(0x06)
-    location: u32
     left: u32
     right: u32
     def __bytes__(self) -> bytes:
-        return self.code + self.location + self.left + self.right
+        return self.code + self.left + self.right
 
 # 1ºLEVEL -> COMMENT
 @dataclass
 class IRComment(Sequence):
     code = u8(0x07)
-    location: u32
     characters: list[u8]
     def __bytes__(self) -> bytes:
-        return self.code + self.location + (join(self.characters) + null8())
+        return self.code + (join(self.characters) + null8())
 
 
 #
@@ -160,11 +152,10 @@ class IRComment(Sequence):
 @dataclass
 class IRExpression(Sequence):
     code = u8(0x08)
-    location: u32
     terms: list[u32]
-    signs: list[u8 | null8]
+    signs: list[u8]
     def __bytes__(self) -> bytes:
-        return self.code + self.location + (join(self.terms) + null32()) + join(self.signs)
+        return self.code + (join(self.terms) + null32()) + (join(self.signs) + null8())
 
 
 #
@@ -175,11 +166,10 @@ class IRExpression(Sequence):
 @dataclass
 class IRTerm(Sequence):
     code = u8(0x09)
-    location: u32
     numerator: list[u32]
     denominator: list[u32]
     def __bytes__(self) -> bytes:
-        return self.code + self.location + (join(self.numerator) + null32()) + (join(self.denominator) + null32())
+        return self.code + (join(self.numerator) + null32()) + (join(self.denominator) + null32())
 
 
 #
@@ -190,24 +180,22 @@ class IRTerm(Sequence):
 @dataclass
 class IRFactor(Sequence):
     code = u8(0x0A)
-    location: u32
     pointer: u32
     expression: u32 | null32
     def __bytes__(self) -> bytes:
-        return self.code + self.location + self.pointer + self.expression
+        return self.code + self.pointer + self.expression
 
 # 4ºLEVEL -> LIMIT
 @dataclass
 class IRLimit(Sequence):
     code = u8(0x0B)
-    location: u32
     variable: u32
     approach: u32
     direction: u8 | null8
     pointer: u32
     exponent: u32 | null32
     def __bytes__(self) -> bytes:
-        return self.code + self.location + self.variable + self.approach + self.direction + self.pointer + self.exponent
+        return self.code + self.variable + self.approach + self.direction + self.pointer + self.exponent
 
 
 #
@@ -218,46 +206,41 @@ class IRLimit(Sequence):
 @dataclass
 class IRInfinite(Sequence):
     code = u8(0x0C)
-    location: u32
     def __bytes__(self) -> bytes:
-        return self.code + self.location
+        return self.code
 
 # 5ºLEVEL -> VARIABLE
 @dataclass
 class IRVariable(Sequence):
     code = u8(0x0D)
-    location: u32
     characters: list[u8]
     def __bytes__(self) -> bytes:
-        return self.code + self.location + (join(self.characters) + null8())
+        return self.code + (join(self.characters) + null8())
 
 # 5ºLEVEL -> NEST
 @dataclass
 class IRNest(Sequence):
     code = u8(0x0E)
-    location: u32
     pointer: u32
     def __bytes__(self) -> bytes:
-        return self.code + self.location + self.pointer
+        return self.code + self.pointer
 
 # 5ºLEVEL -> VECTOR
 @dataclass
 class IRVector(Sequence):
     code = u8(0x0F)
-    location: u32
     values: list[u32]
     def __bytes__(self) -> bytes:
-        return self.code + self.location + (join(self.values) + null32())
+        return self.code + (join(self.values) + null32())
 
 # 5ºLEVEL -> 
 @dataclass
 class IRNumber(Sequence):
     code = u8(0x10)
-    location: u32
-    value: u32
+    value: u32 | null32
     shift: u8 | null8
     def __bytes__(self) -> bytes:
-        return self.code + self.location + self.value + self.shift
+        return self.code + self.value + self.shift
 
 
 #
@@ -285,13 +268,10 @@ class IR:
         return join([bytes(sequence) for sequence in self.ir])
     # IR -> START GENERATION
     def start(self, start: Start) -> u32:
-        statements = [self.level1(statement) for statement in start.statements]
-        register = self.new()
         self.ir.append(IRStart(
-            register,
-            statements    
+            statements = [self.level1(statement) for statement in start.statements]
         ))
-        return register
+        return self.new()
     # IR -> 1 LEVEL GENERATION
     def level1(self, level1: Level1) -> u32:
         match level1:
@@ -303,91 +283,63 @@ class IR:
             case Comment(): return self.comment(level1)
     # IR -> 1 DEBUG GENERATION
     def debug(self, debug: Debug) -> u32:
-        register = self.new()
-        self.ir.append(IRDebug(
-            register
-        ))
-        return register
+        self.ir.append(IRDebug())
+        return self.new()
     # IR -> 1 DECLARATION GENERATION
     def declaration(self, declaration: Declaration) -> u32:
-        variable = self.variable(declaration.identifier)
-        pointer = self.expression(declaration.expression)
-        register = self.new()
         self.ir.append(IRDeclaration(
-            register,
-            variable,
-            pointer
+            variable = self.variable(declaration.identifier),
+            pointer = self.expression(declaration.expression)
         ))
-        return register
+        return self.new()
     # IR -> 1 DEFINITION GENERATION
     def definition(self, definition: Definition) -> u32:
-        variable = self.variable(definition.identifier)
-        pointer = self.expression(definition.expression)
-        register = self.new()
         self.ir.append(IRDefinition(
-            register,
-            variable,
-            pointer
+            variable = self.variable(definition.identifier),
+            pointer = self.expression(definition.expression)
         ))
-        return register
+        return self.new()
     # IR -> 1 NODE GENERATION
     def node(self, node: Node) -> u32:
-        pointer = self.expression(node.value)
-        register = self.new()
         self.ir.append(IRNode(
-            register,
-            pointer
+            pointer = self.expression(node.value)
         ))
-        return register
+        return self.new()
     # IR -> 1 EQUATION GENERATION
     def equation(self, equation: Equation) -> u32:
-        left = self.expression(equation.left)
-        right = self.expression(equation.right)
-        register = self.new()
         self.ir.append(IREquation(
-            register,
-            left,
-            right
+            left = self.expression(equation.left),
+            right = self.expression(equation.right)
         ))
-        return register
+        return self.new()
     # IR -> 1 COMMENT GENERATION
     def comment(self, comment: Comment) -> u32:
-        register = self.new()
         self.ir.append(IRComment(
-            register,
-            [comment.content.encode()]
+            characters = [comment.content.encode()]
         ))
-        return register
+        return self.new()
     # IR -> 2 LEVEL GENERATION
     def level2(self, level2: Level2) -> u32:
         match level2:
             case Expression(): return self.expression(level2)
     # IR -> 2 EXPRESSION GENERATION
     def expression(self, expression: Expression) -> u32:
-        terms = [self.level3(item) for item in expression.terms]
-        signs = [null8() if sign is None or sign.count("-") == 0 else u8(sign.count("-")) for sign in expression.signs]
-        register = self.new()
         self.ir.append(IRExpression(
-            register,
-            terms,
-            signs
+            terms = [self.level3(item) for item in expression.terms],
+            signs = [u8(1) if sign is None or sign.count("-") == 0 else u8(sign.count("-") + 1) for sign in expression.signs]
         ))
-        return register
+        return self.new()
     # IR -> 3 LEVEL GENERATION
     def level3(self, level3: Level3) -> u32:
         match level3:
             case Term(): return self.term(level3)
     # IR -> 3 TERM GENERATION
     def term(self, term: Term) -> u32:
-        numerator = [self.level4(item) for item in term.numerator]
-        denominator = [self.level4(item) for item in term.denominator]
-        register = self.new()
         self.ir.append(IRTerm(
-            register,
-            numerator,
-            denominator
+            numerator = [self.level4(item) for item in term.numerator],
+            denominator = [self.level4(item) for item in term.denominator]
         ))
-        return register
+        return self.new()
     # IR -> 4 LEVEL GENERATION
     def level4(self, level4: Level4) -> u32:
         match level4:
@@ -395,31 +347,21 @@ class IR:
             case Limit(): return self.limit(level4)
     # IR -> 4 FACTOR GENERATION
     def factor(self, factor: Factor) -> u32:
-        expression = self.expression(factor.exponent) if factor.exponent is not None else null32()
-        pointer = self.level5(factor.value)
-        register = self.new()
         self.ir.append(IRFactor(
-            register,
-            pointer,
-            expression
+            pointer = self.level5(factor.value),
+            expression = self.expression(factor.exponent) if factor.exponent is not None else null32()
         ))
-        return register
+        return self.new()
     # IR -> 4 LIMIT GENERATION
     def limit(self, limit: Limit) -> u32:
-        variable = self.variable(limit.variable)
-        approach = self.expression(limit.approach)
-        pointer = self.nest(limit.of)
-        exponent = self.expression(limit.exponent) if limit.exponent is not None else null32()
-        register = self.new()
         self.ir.append(IRLimit(
-            register,
-            variable,
-            approach,
-            u8(int(limit.direction) + 1) if limit.direction is not None else null8(),
-            pointer,
-            exponent
+            variable = self.variable(limit.variable),
+            approach = self.expression(limit.approach),
+            direction = u8(int(limit.direction) + 1) if limit.direction is not None else null8(),
+            pointer = self.nest(limit.of),
+            exponent = self.expression(limit.exponent) if limit.exponent is not None else null32()
         ))
-        return register
+        return self.new()
     # IR -> 5 LEVEL GENERATION
     def level5(self, level5: Level5) -> u32:
         match level5:
@@ -430,43 +372,30 @@ class IR:
             case Number(): return self.number(level5)
     # IR -> 5 INFINITE GENERATION
     def infinite(self, infinite: Infinite) -> u32:
-        register = self.new()
-        self.ir.append(IRInfinite(
-            register
-        ))
-        return register
+        self.ir.append(IRInfinite())
+        return self.new()
     # IR -> 5 VARIABLE GENERATION
-    def variable(self, variable: Variable) -> u32:
-        register = self.new()
+    def variable(self, variable: Variable) -> u32: 
         self.ir.append(IRVariable(
-            register,
-            [variable.representation.encode()]
+            characters = [variable.representation.encode()]
         ))
-        return register
+        return self.new()
     # IR -> 5 NEST GENERATION
     def nest(self, nest: Nest) -> u32:
-        pointer = self.expression(nest.expression)
-        register = self.new()
         self.ir.append(IRNest(
-            register,
-            pointer
+            pointer = self.expression(nest.expression)
         ))
-        return register
+        return self.new()
     # IR -> 5 VECTOR GENERATION
     def vector(self, vector: Vector) -> u32:
-        values = [self.expression(value) for value in vector.values]
-        register = self.new()
         self.ir.append(IRVector(
-            register,
-            values
+            values = [self.expression(value) for value in vector.values]
         ))
-        return register
+        return self.new()
     # IR -> 5 NUMBER GENERATION
     def number(self, number: Number) -> u32:
-        register = self.new()
         self.ir.append(IRNumber(
-            register,
-            u32(int(number.whole + (number.decimal if number.decimal is not None else "")) + 1),
-            u8(len(number.decimal)) if number.decimal is not None else null8()
+            value = u32(int(number.whole + (number.decimal if number.decimal is not None else ""))) if int(number.whole) != 0 or int(number.decimal if number.decimal is not None else "0") != 0 else null32(),
+            shift = u8(len(number.decimal)) if number.decimal is not None else null8()
         ))
-        return register
+        return self.new()
