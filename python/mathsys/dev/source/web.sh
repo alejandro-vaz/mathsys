@@ -13,8 +13,8 @@
         (import "sys" "call1" (func $call1 (param i32 i32)))
         (import "sys" "call60" (func $call60 (param i32)))
 EOF
-        cat system/exit/exit.wat
-        cat system/write/write.wat
+        cat exit/exit.wat
+        cat write/write.wat
         echo ")"
     } > web.wat
     wat2wasm web.wat -r -o web.wasm

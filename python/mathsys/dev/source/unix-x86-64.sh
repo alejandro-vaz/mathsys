@@ -8,8 +8,8 @@
     cd python/mathsys/dev/source
     {
         cat << 'EOF'
-        %include "system/exit/exit.asm"
-        %include "system/write/write.asm"
+        %include "exit/exit.asm"
+        %include "write/write.asm"
         section .note.GNU-no-entry
 EOF
     } > unix-x86-64.asm

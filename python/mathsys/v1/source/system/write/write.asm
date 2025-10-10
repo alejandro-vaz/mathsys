@@ -1,6 +1,19 @@
-; SYSTEM -> WRITE
+;
+;   HEAD
+;
+
+; HEAD -> GLOBALS
 global systemWrite
+
+; HEAD -> MARK
 section .text
+
+
+;
+;   SYSTEM
+;
+
+; SYSTEM -> WRITE
 systemWrite:;                                                                   systemWrite(rdi)
     mov rsi, rdi
     xor rcx, rcx

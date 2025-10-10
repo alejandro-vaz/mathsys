@@ -17,14 +17,14 @@ fn print(string: &str, append: &[u8]) -> () {
     }
     bytes.extend_from_slice(signature().as_bytes());
     bytes.extend_from_slice(&[0x1B, 0x5B, 0x30, 0x6D, 0x0A, 0x00]);
-    crate::stack::system::write(bytes.as_ptr());
+    crate::stack::write(bytes.as_ptr());
 }
 
 // FORMATTING -> MEMORY SIGNATURE
 fn signature() -> crate::String {
     return crate::format!(
         "    {}",
-        crate::number::scientific(crate::ALLOCATOR.mark() - crate::ALLOCATOR.start())
+        crate::formatting::scientific(crate::ALLOCATOR.mark() - crate::ALLOCATOR.start())
     );
 }
 
@@ -54,11 +54,13 @@ pub fn crash(code: u8) -> ! {
     crate::ALLOCATOR.tempSpace(|| {
         print(
             &crate::format!(
-                "CRASH: {}.",
+                "CRASH: {} {}.",
+                code,
                 match code {
                     0 => "Run finished successfully",
                     1 => "Out of memory",
                     2 => "Error parsing IR",
+                    3 => "Error during runtime",
                     255 => panic!(),
                     _ => "Unknown reason"
                 }
@@ -66,7 +68,7 @@ pub fn crash(code: u8) -> ! {
             &[0x0A, 0x1B, 0x5B, 0x31, 0x3B, 0x39, 0x31, 0x3B, 0x34, 0x39, 0x6D]
         );
     });
-    crate::stack::system::exit(code);
+    crate::stack::exit(code);
 }
 
 

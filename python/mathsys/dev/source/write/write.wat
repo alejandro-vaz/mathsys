@@ -1,5 +1,9 @@
-;; SYSTEM -> WRITE
-(func $systemWrite (param $pointer i32)
+;;
+;;  WRITE
+;;
+
+;; WRITE -> FUNCTION
+(func $_write (param $pointer i32)
     (local $current i32)
     local.get $pointer
     local.set $current
@@ -21,4 +25,4 @@
     i32.sub
     local.get $pointer
     call $call1
-)(export "systemWrite" (func $systemWrite))
+)(export "_write" (func $_write))

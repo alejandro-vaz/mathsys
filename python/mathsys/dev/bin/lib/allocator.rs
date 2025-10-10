@@ -53,7 +53,7 @@ impl Allocator {
     #[inline(always)]
     pub fn mark(&self) -> usize {return self.next.load(crate::Ordering::Acquire)}
     #[inline(always)]
-    pub fn reset(&self, mark: usize) -> () {self.next.store(mark, crate::Ordering::Release)}
+    fn reset(&self, mark: usize) -> () {self.next.store(mark, crate::Ordering::Release)}
     #[inline(always)]
     pub fn tempSpace<Function, Returns>(&self, process: Function) -> Returns where Function: FnOnce() -> Returns {
         let mark = self.mark();

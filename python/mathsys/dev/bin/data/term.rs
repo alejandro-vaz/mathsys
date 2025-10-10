@@ -9,13 +9,14 @@ pub struct Term {
 }
 
 // TERM -> IMPLEMENTATION
-impl crate::Object for Term {}
-impl Term {
-    pub fn new(numerator: &[u32], denominator: &[u32]) -> Self {
-        crate::stdout::trace("Creating Term");
-        return Term {
-            numerator: numerator.into(),
-            denominator: denominator.into()
-        }
+impl crate::converter::Class for Term {
+    fn name(&self) -> &'static str {"Term"}
+    fn evaluate(&self, context: &mut crate::runtime::Context) -> crate::Box<dyn crate::runtime::Value> {
+        return crate::Box::new(crate::_Undefined {})
     }
+} impl Term {
+    pub fn new(numerator: &[u32], denominator: &[u32]) -> Self {return Term {
+        numerator: numerator.into(),
+        denominator: denominator.into()
+    }}
 }

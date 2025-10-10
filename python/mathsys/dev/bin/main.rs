@@ -12,6 +12,14 @@
 // HEAD -> SYSTEM CRATES
 extern crate alloc;
 
+// HEAD -> CONTEXT
+mod context {
+    pub mod _infinity;
+    pub mod _number;
+    pub mod _undefined;
+    pub mod _variable;
+}
+
 // HEAD -> DATA
 mod data {
     pub mod comment;
@@ -36,15 +44,12 @@ mod data {
 mod lib {
     pub mod allocator;
     pub mod converter;
+    pub mod formatting;
     pub mod memory;
-    pub mod number;
+    pub mod runtime;
     pub mod rustc;
+    pub mod stack;
     pub mod stdout;
-}
-
-// HEAD -> STACK
-pub mod stack {
-    pub mod system;
 }
 
 
@@ -52,7 +57,13 @@ pub mod stack {
 //  PULLS
 //
 
-// PULLS -> LIB AND DATA
+// PULLS -> CONTEXT
+use context::_infinity::_Infinity;
+use context::_number::_Number;
+use context::_undefined::_Undefined;
+use context::_variable::_Variable;
+
+// PULLS -> DATA
 use data::comment::Comment;
 use data::debug::Debug;
 use data::declaration::Declaration;
@@ -69,9 +80,9 @@ use data::start::Start;
 use data::term::Term;
 use data::variable::Variable;
 use data::vector::Vector;
-use lib::*;
 
-// PULLS -> DATA
+// PULLS -> LIB
+use lib::*;
 
 // PULLS -> ALLOC
 use alloc::vec::Vec;
@@ -109,7 +120,7 @@ static SETTINGS: Settings = Settings {
     lookup: true,
     memsize: 33554432,
     precision: if usize::BITS == 64 {3} else {2},
-    width: 80
+    width: 100
 };
 
 // GLOBALS -> ALLOCATOR
@@ -128,9 +139,9 @@ pub extern "C" fn _start() -> ! {
     ALLOCATOR.init();
     stdout::login();
     ALLOCATOR.tempSpace(|| {
-        stdout::trace(&format!(
+        stdout::debug(&format!(
             "Total heap size is {}B",
-            number::scientific(SETTINGS.memsize).trim_start()
+            formatting::scientific(SETTINGS.memsize).trim_start()
         ));
         stdout::debug(&format!(
             "Detail calls are {}",
@@ -145,21 +156,15 @@ pub extern "C" fn _start() -> ! {
             SETTINGS.precision
         ));
     });
-    runtime();
+    run();
     stdout::crash(0);
 }
 
-
-//
-//  RUNTIME
-//
-
-// RUNTIME -> OBJECT
-pub trait Object {}
-
 // RUNTIME -> FUNCTION
-fn runtime() -> () {
+fn run() -> () {
     stdout::space("Processing IR");
     let mut converter = converter::Converter::new();
-    converter.run();
+    let memory = converter.run();
+    let mut context = runtime::Context::new(memory.len(), memory);
+    let output = context.quick();
 }

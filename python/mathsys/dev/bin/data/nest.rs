@@ -8,12 +8,13 @@ pub struct Nest {
 }
 
 // NEST -> IMPLEMENTATION
-impl crate::Object for Nest {}
-impl Nest {
-    pub fn new(pointer: u32) -> Self {
-        crate::stdout::trace("Creating Nest");
-        return Nest {
-            pointer: pointer
-        }
+impl crate::converter::Class for Nest {
+    fn name(&self) -> &'static str {"Nest"}
+    fn evaluate(&self, context: &mut crate::runtime::Context) -> crate::Box<dyn crate::runtime::Value> {
+        return crate::Box::new(crate::_Undefined {});
     }
+} impl Nest {
+    pub fn new(pointer: u32) -> Self {return Nest {
+        pointer: pointer
+    }}
 }

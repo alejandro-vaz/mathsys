@@ -155,7 +155,7 @@ class LaTeX:
         self.expression(equation.right)
     # GENERATOR -> 1 COMMENT GENERATION
     def comment(self, comment: Comment) -> None:
-        self.latex.append(r"\text{")
+        self.latex.append(r"\\\text{")
         self.latex.append("".join(self.SPECIAL.get(character, character) for character in comment.content))
         self.latex.append(r"}")
     # GENERATOR -> 2 LEVEL GENERATION

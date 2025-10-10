@@ -12,7 +12,4 @@ dist/
 **/**.egg-info
 
 # IGNORE -> PYCACHE
-**/__pycache__
-
-# IGNORE -> PREVIOUS VERSIONS
-python/mathsys/v*
+**/__pycache__/

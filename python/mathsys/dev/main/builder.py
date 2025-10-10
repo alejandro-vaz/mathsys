@@ -44,16 +44,15 @@ class Builder:
         except Exception: raise
     # CLASS -> COMMAND CREATOR HELPER
     def command(self, target: str, filename: str) -> list[str]:
-        sysroot = subprocess.check_output(
-            ["rustc", "+nightly", "--print", "sysroot"],
-            text = True
-        ).strip()
         return [
             "rustc",
             "+nightly",
             "../bin/main.rs",
             "--target", self.targets[target],
-            "--sysroot", sysroot,
+            "--sysroot", subprocess.check_output(
+                ["rustc", "+nightly", "--print", "sysroot"],
+                text = True
+            ).strip(),
             "-C", f"opt-level=3",
             "-C", "panic=abort",
             *(["-C", "link-arg=-nostartfiles"] if target == "unix-x86-64" else []),

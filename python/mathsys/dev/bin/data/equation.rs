@@ -9,13 +9,14 @@ pub struct Equation {
 }
 
 // EQUATION -> IMPLEMENTATION
-impl crate::Object for Equation {}
-impl Equation {
-    pub fn new(left: u32, right: u32) -> Self {
-        crate::stdout::trace("Creating Equation");
-        return Equation {
-            left: left,
-            right: right
-        }
+impl crate::converter::Class for Equation {
+    fn name(&self) -> &'static str {"Equation"}
+    fn evaluate(&self, context: &mut crate::runtime::Context) -> crate::Box<dyn crate::runtime::Value> {
+        return crate::Box::new(crate::_Undefined {});
     }
+} impl Equation {
+    pub fn new(left: u32, right: u32) -> Self {return Equation {
+        left: left,
+        right: right
+    }}
 }
