@@ -1,11 +1,11 @@
-//
-//  INFINITE
-//
+//^
+//^ INFINITE
+//^
 
-// INFINITE -> STRUCT
+//> INFINITE -> STRUCT
 pub struct Infinite {}
 
-// INFINITE -> IMPLEMENTATION
+//> INFINITE -> IMPLEMENTATION
 impl crate::converter::Class for Infinite {
     fn name(&self) -> &'static str {"Infinite"}
     fn evaluate(&self, context: &mut crate::runtime::Context) -> crate::Box<dyn crate::runtime::Value> {

@@ -1,14 +1,14 @@
-//
-//  EXPRESSION
-//
+//^
+//^ EXPRESSION
+//^
 
-// EXPRESSION -> STRUCT
+//> EXPRESSION -> STRUCT
 pub struct Expression {
     terms: crate::Box<[u32]>,
     signs: crate::Box<[u8]>
 }
 
-// EXPRESSION -> IMPLEMENTATION
+//> EXPRESSION -> IMPLEMENTATION
 impl crate::converter::Class for Expression {
     fn name(&self) -> &'static str {"Expression"}
     fn evaluate(&self, context: &mut crate::runtime::Context) -> crate::Box<dyn crate::runtime::Value> {

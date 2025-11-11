@@ -1,14 +1,14 @@
-//
-//  DECLARATION
-//
+//^
+//^ DECLARATION
+//^
 
-// DECLARATION -> STRUCT
+//> DECLARATION -> STRUCT
 pub struct Declaration {
     variable: u32,
     pointer: u32
 }
 
-// DECLARATION -> IMPL
+//> DECLARATION -> IMPLEMENTATION
 impl crate::converter::Class for Declaration {
     fn name(&self) -> &'static str {"Declaration"}
     fn evaluate(&self, context: &mut crate::runtime::Context) -> crate::Box<dyn crate::runtime::Value> {

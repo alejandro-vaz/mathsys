@@ -1,8 +1,8 @@
-;;
-;;  EXIT
-;;
+;;^
+;;^ EXIT
+;;^
 
-;; EXIT -> FUNCTION
+;;> EXIT -> FUNCTION
 (func $_exit (param $code i32)
     local.get $code
     call $call60

@@ -1,25 +1,25 @@
-//
-//  CLASS
-//
+//^
+//^ CLASS
+//^
 
-// CLASS -> TRAIT
+//> CLASS -> TRAIT
 pub trait Class {
     fn name(&self) -> &'static str;
     fn evaluate(&self, context: &mut crate::runtime::Context) -> crate::Box<dyn crate::runtime::Value>;
 }
 
 
-//
-//  CONVERTER
-//
+//^
+//^ CONVERTER
+//^
 
-// CONVERTER -> STRUCT
+//> CONVERTER -> STRUCT
 pub struct Converter {
     locus: usize,
     memory: crate::Vec<crate::Box <dyn Class>>
 }
 
-// CONVERTER -> IMPLEMENTATION
+//> CONVERTER -> IMPLEMENTATION
 impl Converter {
     pub fn run(&mut self) -> &crate::Vec<crate::Box <dyn Class>> {
         while self.locus < crate::SETTINGS.ir.len() {
@@ -41,7 +41,7 @@ impl Converter {
                 0x0F => self.vector(),
                 0x10 => self.number(),
                 _ => crate::stdout::crash(2)
-            } as crate::Box<dyn Class>;
+            };
             self.memory.push(object);
         };
         return &self.memory;
@@ -151,7 +151,7 @@ impl Converter {
     }
 }
 
-// CONVERTER -> METHODS
+//> CONVERTER -> METHODS
 impl Converter {
     pub fn new() -> Self {
         return Converter { 

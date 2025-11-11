@@ -1,18 +1,18 @@
-//
-//  CONTEXT
-//
+//^
+//^ CONTEXT
+//^
 
-// CONTEXT -> VALUE
+//> CONTEXT -> VALUE
 pub trait Value {
     fn id(&self) -> &'static str;
 }
 
-// CONTEXT -> ID
+//> CONTEXT -> ID
 pub trait Id {
     const ID: &'static str;
 }
 
-// CONTEXT -> STRUCT
+//> CONTEXT -> STRUCT
 pub struct Context<'a> {
     cache: crate::Vec<crate::Box<dyn Value>>,
     memory: &'a crate::Vec<crate::Box <dyn crate::converter::Class>>,
@@ -20,7 +20,7 @@ pub struct Context<'a> {
     pub immutable: crate::Vec<(crate::String, crate::Box<dyn Value>)>
 }
 
-// CONTEXT -> IMPLEMENTATION
+//> CONTEXT -> IMPLEMENTATION
 impl<'a> Context<'a> {
     pub fn new(size: usize, memory: &'a crate::Vec<crate::Box <dyn crate::converter::Class>>) -> Self {
         let mut instance = Context {
@@ -50,18 +50,18 @@ impl<'a> Context<'a> {
 }
 
 
-//
-//  DOWNCASTING
-//
+//^
+//^ DOWNCASTING
+//^
 
-// DOWNCASTING -> STATIC
+//> DOWNCASTING -> STATIC
 pub fn downcast<Type: Id>(value: &dyn Value) -> &Type {
     if value.id() != Type::ID {crate::stdout::crash(3)} else {
         return unsafe {&*(value as *const dyn Value as *const Type)}
     }
 }
 
-// DOWNCASTING -> MUTABLE
+//> DOWNCASTING -> MUTABLE
 pub fn mutDowncast<Type: Id>(value: &mut dyn Value) -> &mut Type {
     if value.id() != Type::ID {crate::stdout::crash(3)} else {
         return unsafe {&mut *(value as *mut dyn Value as *mut Type)}

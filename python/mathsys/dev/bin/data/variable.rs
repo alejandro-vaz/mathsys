@@ -1,13 +1,13 @@
-//
-//  VARIABLE
-//
+//^
+//^ VARIABLE
+//^
 
-// VARIABLE -> STRUCT
+//> VARIABLE -> STRUCT
 pub struct Variable {
     characters: crate::Box<str>
 }
 
-// VARIABLE -> IMPLEMENTATION
+//> VARIABLE -> IMPLEMENTATION
 impl crate::converter::Class for Variable {
     fn name(&self) -> &'static str {"Variable"}
     fn evaluate(&self, context: &mut crate::runtime::Context) -> crate::Box<dyn crate::runtime::Value> {

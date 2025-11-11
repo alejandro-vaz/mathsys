@@ -1,8 +1,8 @@
-;
-;   EXIT
-;
+;^
+;^  EXIT
+;^
 
-; EXIT -> FUNCTION
+;> EXIT -> FUNCTION
 global _exit
 section .text
 _exit:

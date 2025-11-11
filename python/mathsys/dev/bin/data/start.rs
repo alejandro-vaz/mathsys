@@ -1,13 +1,13 @@
-//
-//  START
-//
+//^
+//^ START
+//^
 
-// START -> STRUCT
+//> START -> STRUCT
 pub struct Start {
     statements: crate::Box<[u32]>
 }
 
-// START -> IMPL
+//> START -> IMPLEMENTATION
 impl crate::converter::Class for Start {
     fn name(&self) -> &'static str {"Start"}
     fn evaluate(&self, context: &mut crate::runtime::Context) -> crate::Box<dyn crate::runtime::Value> {

@@ -1,14 +1,14 @@
-//
-//  NUMBER
-//
+//^
+//^ NUMBER
+//^
 
-// NUMBER -> STRUCT
+//> NUMBER -> STRUCT
 pub struct Number {
     value: u32,
     shift: u8
 }
 
-// NUMBER -> IMPLEMENTATION
+//> NUMBER -> IMPLEMENTATION
 impl crate::converter::Class for Number {
     fn name(&self) -> &'static str {"Number"}
     fn evaluate(&self, context: &mut crate::runtime::Context) -> crate::Box<dyn crate::runtime::Value> {

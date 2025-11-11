@@ -1,13 +1,13 @@
-//
-//  VECTOR
-//
+//^
+//^ VECTOR
+//^
 
-// VECTOR -> STRUCT
+//> VECTOR -> STRUCT
 pub struct Vector {
     values: crate::Box<[u32]>
 }
 
-// VECTOR -> IMPLEMENTATION
+//> VECTOR -> IMPLEMENTATION
 impl crate::converter::Class for Vector {
     fn name(&self) -> &'static str {"Vector"}
     fn evaluate(&self, context: &mut crate::runtime::Context) -> crate::Box<dyn crate::runtime::Value> {

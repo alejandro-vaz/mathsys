@@ -1,8 +1,8 @@
-//
-//  LIMIT
-//
+//^
+//^ LIMIT
+//^
 
-// LIMIT -> STRUCT
+//> LIMIT -> STRUCT
 pub struct Limit {
     variable: u32,
     approach: u32,
@@ -11,7 +11,7 @@ pub struct Limit {
     exponent: u32
 }
 
-// LIMIT -> IMPLEMENTATION
+//> LIMIT -> IMPLEMENTATION
 impl crate::converter::Class for Limit {
     fn name(&self) -> &'static str {"Limit"}
     fn evaluate(&self, context: &mut crate::runtime::Context) -> crate::Box<dyn crate::runtime::Value> {
