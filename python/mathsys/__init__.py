@@ -3,8 +3,8 @@
 #^
 
 #> EXPORTS -> VERSION
-__version__ = "3.3.1"
-__version_info__ = (3, 3, 1)
+__version__ = "3.5.4"
+__version_info__ = (3, 5, 4)
 
 #> EXPORTS -> LATEST
 from .v2 import (
