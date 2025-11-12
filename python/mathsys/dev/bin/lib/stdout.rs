@@ -1,8 +1,8 @@
-//
-//  FORMATTING
-//
+//^
+//^ FORMATTING
+//^
 
-// FORMATTING -> FUNCTION
+//> FORMATTING -> FUNCTION
 fn print(string: &str, append: &[u8]) -> () {
     let mut bytes = crate::Vec::new();
     bytes.extend_from_slice(append);
@@ -20,7 +20,7 @@ fn print(string: &str, append: &[u8]) -> () {
     crate::stack::write(bytes.as_ptr());
 }
 
-// FORMATTING -> MEMORY SIGNATURE
+//> FORMATTING -> MEMORY SIGNATURE
 fn signature() -> crate::String {
     return crate::format!(
         "    {}",
@@ -29,11 +29,11 @@ fn signature() -> crate::String {
 }
 
 
-//
-//  CALLS
-//
+//^
+//^ CALLS
+//^
 
-// CALLS -> LOGIN
+//> CALLS -> LOGIN
 pub fn login() -> () {
     crate::ALLOCATOR.tempSpace(|| {
         print(
@@ -49,7 +49,7 @@ pub fn login() -> () {
     })
 }
 
-// CALLS -> CRASH
+//> CALLS -> CRASH
 pub fn crash(code: u8) -> ! {
     crate::ALLOCATOR.tempSpace(|| {
         print(
@@ -72,11 +72,11 @@ pub fn crash(code: u8) -> ! {
 }
 
 
-//
-//  DETAIL
-//
+//^
+//^ DETAIL
+//^
 
-// DETAIL -> SPACE
+//> DETAIL -> SPACE
 pub fn space(message: &str) -> () {
     if crate::SETTINGS.detail {
         crate::ALLOCATOR.tempSpace(|| {
@@ -91,7 +91,7 @@ pub fn space(message: &str) -> () {
     }
 }
 
-// DETAIL -> ISSUE
+//> DETAIL -> ISSUE
 pub fn issue(message: &str) -> () {
     if crate::SETTINGS.detail {
         crate::ALLOCATOR.tempSpace(|| {
@@ -107,11 +107,11 @@ pub fn issue(message: &str) -> () {
 }
 
 
-//
-//  LOOKUP
-//
+//^
+//^ LOOKUP
+//^
 
-// LOOKUP -> DEBUG
+//> LOOKUP -> DEBUG
 pub fn debug(message: &str) -> () {
     if crate::SETTINGS.lookup {
         crate::ALLOCATOR.tempSpace(|| {
@@ -126,7 +126,7 @@ pub fn debug(message: &str) -> () {
     }
 }
 
-// LOOKUP -> ALERT
+//> LOOKUP -> ALERT
 pub fn alert(message: &str) -> () {
     if crate::SETTINGS.lookup {
         crate::ALLOCATOR.tempSpace(|| {
@@ -141,7 +141,7 @@ pub fn alert(message: &str) -> () {
     }
 }
 
-// LOOKUP -> TRACE
+//> LOOKUP -> TRACE
 pub fn trace(message: &str) -> () {
     if crate::SETTINGS.lookup {
         crate::ALLOCATOR.tempSpace(|| {

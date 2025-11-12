@@ -1,13 +1,13 @@
-//
-//  NODE
-//
+//^
+//^ NODE
+//^
 
-// NODE -> STRUCT
+//> NODE -> STRUCT
 pub struct Node {
     pointer: u32
 }
 
-// NODE -> IMPLEMENTATION
+//> NODE -> IMPLEMENTATION
 impl crate::converter::Class for Node {
     fn name(&self) -> &'static str {"Node"}
     fn evaluate(&self, context: &mut crate::runtime::Context) -> crate::Box<dyn crate::runtime::Value> {

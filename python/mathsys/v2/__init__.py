@@ -43,7 +43,6 @@ def unix_x86_64(content: str) -> bytes: return _builder.run(_ir.run(_parser.run(
 
 # MAIN -> TARGET
 def wrapper(*arguments: str) -> None: 
-    if not arguments[1].endswith(".math"): sys.exit("[ENTRY ISSUE] Unknown filename extension.")
     components = arguments[1].split(".")
     with open(arguments[1]) as origin: content = origin.read()
     match arguments[0]:

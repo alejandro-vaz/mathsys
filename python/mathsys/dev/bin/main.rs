@@ -1,18 +1,18 @@
-//
-//  HEAD
-//
+//^
+//^ HEAD
+//^
 
-// HEAD -> FLAGS
+//> HEAD -> FLAGS
 #![no_std]
 #![no_main]
 #![allow(unused_variables)]
 #![allow(static_mut_refs)]
 #![allow(non_snake_case)]
 
-// HEAD -> SYSTEM CRATES
+//> HEAD -> SYSTEM CRATES
 extern crate alloc;
 
-// HEAD -> CONTEXT
+//> HEAD -> CONTEXT
 mod context {
     pub mod _infinity;
     pub mod _number;
@@ -20,7 +20,7 @@ mod context {
     pub mod _variable;
 }
 
-// HEAD -> DATA
+//> HEAD -> DATA
 mod data {
     pub mod comment;
     pub mod debug;
@@ -40,12 +40,11 @@ mod data {
     pub mod vector;
 }
 
-// HEAD -> LIB
+//> HEAD -> LIB
 mod lib {
     pub mod allocator;
     pub mod converter;
     pub mod formatting;
-    pub mod memory;
     pub mod runtime;
     pub mod rustc;
     pub mod stack;
@@ -53,17 +52,17 @@ mod lib {
 }
 
 
-//
-//  PULLS
-//
+//^
+//^ PULLS
+//^
 
-// PULLS -> CONTEXT
+//> PULLS -> CONTEXT
 use context::_infinity::_Infinity;
 use context::_number::_Number;
 use context::_undefined::_Undefined;
 use context::_variable::_Variable;
 
-// PULLS -> DATA
+//> PULLS -> DATA
 use data::comment::Comment;
 use data::debug::Debug;
 use data::declaration::Declaration;
@@ -81,27 +80,27 @@ use data::term::Term;
 use data::variable::Variable;
 use data::vector::Vector;
 
-// PULLS -> LIB
+//> PULLS -> LIB
 use lib::*;
 
-// PULLS -> ALLOC
+//> PULLS -> ALLOC
 use alloc::vec::Vec;
 use alloc::boxed::Box;
 use alloc::format;
 use alloc::string::String;
 use alloc::alloc::Layout;
 
-// PULLS -> CORE
+//> PULLS -> CORE
 use core::sync::atomic::{AtomicUsize, Ordering};
 use core::alloc::GlobalAlloc;
 use core::panic::PanicInfo;
 
 
-//
-//  GLOBALS
-//
+//^
+//^ GLOBALS
+//^
 
-// GLOBALS -> SETTINGS STRUCT
+//> GLOBALS -> SETTINGS STRUCT
 struct Settings {
     ir: &'static [u8],
     version: [usize; 3],
@@ -112,10 +111,10 @@ struct Settings {
     width: u8
 }
 
-// GLOBALS -> SETTINGS
+//> GLOBALS -> SETTINGS
 static SETTINGS: Settings = Settings {
     ir: include_bytes!(env!("Mathsys")),
-    version: [3, 3, 1],
+    version: [3, 5, 4],
     detail: true,
     lookup: true,
     memsize: 33554432,
@@ -123,17 +122,17 @@ static SETTINGS: Settings = Settings {
     width: 100
 };
 
-// GLOBALS -> ALLOCATOR
+//> GLOBALS -> ALLOCATOR
 #[global_allocator]
 static ALLOCATOR: allocator::Allocator = allocator::Allocator::new();
 static mut HEAP: [u8; SETTINGS.memsize] = [0; SETTINGS.memsize];
 
 
-//
-//  ENTRY
-//
+//^
+//^ ENTRY
+//^
 
-// ENTRY -> POINT
+//> ENTRY -> POINT
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
     ALLOCATOR.init();
@@ -160,7 +159,7 @@ pub extern "C" fn _start() -> ! {
     stdout::crash(0);
 }
 
-// RUNTIME -> FUNCTION
+//> RUNTIME -> FUNCTION
 fn run() -> () {
     stdout::space("Processing IR");
     let mut converter = converter::Converter::new();

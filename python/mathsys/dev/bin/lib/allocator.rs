@@ -1,16 +1,16 @@
-//
-//  ALLOCATOR
-//
+//^
+//^ ALLOCATOR
+//^
 
-// ALLOCATOR -> STRUCT
+//> ALLOCATOR -> STRUCT
 pub struct Allocator {
     next: crate::AtomicUsize
 }
 
-// ALLOCATOR -> MULTITHREADING
+//> ALLOCATOR -> MULTITHREADING
 unsafe impl Sync for Allocator {}
 
-// ALLOCATOR -> IMPLEMENTATION
+//> ALLOCATOR -> IMPLEMENTATION
 unsafe impl crate::GlobalAlloc for Allocator {
     unsafe fn alloc(&self, layout: crate::Layout) -> *mut u8 {
         loop {
@@ -35,7 +35,7 @@ unsafe impl crate::GlobalAlloc for Allocator {
     unsafe fn dealloc(&self, pointer: *mut u8, layout: crate::Layout) -> () {}
 }
 
-// ALLOCATOR -> METHODS
+//> ALLOCATOR -> METHODS
 impl Allocator {
     pub const fn new() -> Self {
         Allocator {

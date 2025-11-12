@@ -1,9 +1,9 @@
 #!/bin/bash
-#
-#   COMPILE
-#
+#^
+#^  COMPILE
+#^
 
-# COMPILE -> COMMAND
+#> COMPILE -> COMMAND
 (
     cd python/mathsys/dev/source
     {

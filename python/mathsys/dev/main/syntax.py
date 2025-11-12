@@ -1,8 +1,8 @@
-#
-#   SYNTAX
-#
+#^
+#^  SYNTAX
+#^
 
-# SYNTAX -> VARIABLE
+#> SYNTAX -> VARIABLE
 syntax = r"""
 start: (_S | _L)* (level1 _S? (_L+ level1)*)? (_S | _L)*
 
@@ -41,7 +41,7 @@ _OF: /of/
 _DEBUG: /debug/
 _COMMAND: /\#/
 QUOTE: /[^\n]+/
-IDENTIFIER: /[A-Za-z]+/
+IDENTIFIER: /(?i)(?!\b(?:inf|of|lim)\b)[A-Za-z]+/
 _EXPONENTIATION: /\^/
 NUMBER: /[0-9]+/
 _DOT: /\./

@@ -1,25 +1,25 @@
-#
-#   HEAD
-#
+#^
+#^  HEAD
+#^
 
-# HEAD -> MODULES
+#> HEAD -> MODULES
 import subprocess
 import os
 import tempfile
 
 
-#
-#   BUILDER
-#
+#^
+#^  BUILDER
+#^
 
-# BUILDER -> CLASS
+#> BUILDER -> CLASS
 class Builder:
-    # CLASS -> VARIABLES
+    #~ CLASS -> VARIABLES
     targets = {
         "unix-x86-64": "x86_64-unknown-linux-gnu",
         "web": "wasm32-unknown-unknown"
     }
-    # CLASS -> RUN
+    #~ CLASS -> RUN
     def run(self, data: bytes, target: str) -> bytes:
         try:
             self.checks()
@@ -42,7 +42,7 @@ class Builder:
             os.remove(ir)
             return binary
         except Exception: raise
-    # CLASS -> COMMAND CREATOR HELPER
+    #~ CLASS -> COMMAND CREATOR HELPER
     def command(self, target: str, filename: str) -> list[str]:
         return [
             "rustc",
@@ -59,7 +59,7 @@ class Builder:
             "-o", filename,
             "-C", f"link-arg=../source/{target}.o"
         ]
-    # CLASS -> CHECKS
+    #~ CLASS -> CHECKS
     def checks(self) -> None:
         subprocess.run(
             ["rustc", "--version"],

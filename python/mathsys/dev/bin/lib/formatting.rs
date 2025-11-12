@@ -1,8 +1,8 @@
-//
-//  FORMATTING
-//
+//^
+//^ FORMATTING
+//^
 
-// FORMATTING -> SCIENTIFIC
+//> FORMATTING -> SCIENTIFIC
 pub fn scientific(number: usize) -> crate::String {
     let k = 1_000;
     let m = 1_000_000;

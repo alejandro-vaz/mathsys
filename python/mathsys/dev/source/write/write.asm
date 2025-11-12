@@ -1,8 +1,8 @@
-;
-;   WRITE
-;
+;^
+;^  WRITE
+;^
 
-; WRITE -> FUNCTION
+;> WRITE -> FUNCTION
 global _write
 section .text
 _write:

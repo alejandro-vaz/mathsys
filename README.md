@@ -20,7 +20,7 @@ To use the package, simply import it:
 import mathsys
 ```
 
-It is recommended that you import a version specifically, versions available now are `v1` and `dev`:
+It is recommended that you import a version specifically, versions available now are `v1`, `v2` and `dev`:
 ```py
 import mathsys.dev as mathsys
 ```
@@ -31,8 +31,10 @@ The latter way ensures you always use that version, no matter the updates that t
 Compile a Mathsys file to different targets with:
 
 ```sh
-python -m mathsys <target> <filename>.math
+python -m mathsys <target> <filename>.msX
 ```
+
+where `.msX` stands for `.ms1` ... `.ms2` and `.msd`.
 
 You will need `rustc` installed with the target you are compiling to. If that feels too cumbersome (it really is), try it out first on [Abscissa.](https://app.abscissa.eu/playground)
 

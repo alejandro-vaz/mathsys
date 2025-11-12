@@ -1,18 +1,19 @@
-//
-//  CONTEXT
-//
+//^
+//^ CONTEXT
+//^
 
-// CONTEXT -> VALUE
+//> CONTEXT -> VALUE
 pub trait Value {
     fn id(&self) -> &'static str;
+    fn ctrlcv(&self) -> crate::Box<dyn Value>;
 }
 
-// CONTEXT -> ID
+//> CONTEXT -> ID
 pub trait Id {
     const ID: &'static str;
 }
 
-// CONTEXT -> STRUCT
+//> CONTEXT -> STRUCT
 pub struct Context<'a> {
     cache: crate::Vec<crate::Box<dyn Value>>,
     memory: &'a crate::Vec<crate::Box <dyn crate::converter::Class>>,
@@ -20,7 +21,7 @@ pub struct Context<'a> {
     pub immutable: crate::Vec<(crate::String, crate::Box<dyn Value>)>
 }
 
-// CONTEXT -> IMPLEMENTATION
+//> CONTEXT -> IMPLEMENTATION
 impl<'a> Context<'a> {
     pub fn new(size: usize, memory: &'a crate::Vec<crate::Box <dyn crate::converter::Class>>) -> Self {
         let mut instance = Context {
@@ -33,16 +34,24 @@ impl<'a> Context<'a> {
         return instance;
     }
     fn set(&mut self, id: u32, value: crate::Box<dyn Value>) {self.cache[(id as usize) - 1] = value}
-    fn get(&self, id: u32) -> &dyn Value {return &*self.cache[(id as usize) - 1]}
-    pub fn process(&mut self, id: u32) -> &dyn Value {
-        let output = self.memory[(id as usize) - 1].evaluate(self);
+    pub fn read(&self, id: u32) -> crate::Box<dyn Value> {
+        return self.cache[(id as usize) - 1].ctrlcv();
+    }
+    pub fn get(&self, id: u32) -> &dyn Value {return &*self.cache[(id as usize) - 1]}
+    pub fn process(&mut self, id: u32) -> () {
+        let item = &self.memory[(id as usize) - 1];
+        crate::ALLOCATOR.tempSpace(|| {crate::stdout::space(&crate::format!(
+            "Evaluating {}",
+            item.name()
+        ))});
+        let output = item.evaluate(self);
         self.set(id, output);
-        return self.get(id);
     }
     pub fn quick(&mut self) -> &dyn Value {
         for (index, element) in self.memory.iter().enumerate() {
             if element.as_ref().name() == "Start" {
-                return self.process((index + 1) as u32);
+                self.process((index + 1) as u32);
+                return self.get((index + 1) as u32)
             }
         }
         crate::stdout::crash(3);
@@ -50,19 +59,27 @@ impl<'a> Context<'a> {
 }
 
 
-//
-//  DOWNCASTING
-//
+//^
+//^ DOWNCASTING
+//^
 
-// DOWNCASTING -> STATIC
+//> DOWNCASTING -> STATIC
 pub fn downcast<Type: Id>(value: &dyn Value) -> &Type {
+    crate::ALLOCATOR.tempSpace(|| {crate::stdout::trace(&crate::format!(
+        "Statically downcasting a {}",
+        Type::ID
+    ))});
     if value.id() != Type::ID {crate::stdout::crash(3)} else {
         return unsafe {&*(value as *const dyn Value as *const Type)}
     }
 }
 
-// DOWNCASTING -> MUTABLE
+//> DOWNCASTING -> MUTABLE
 pub fn mutDowncast<Type: Id>(value: &mut dyn Value) -> &mut Type {
+    crate::ALLOCATOR.tempSpace(|| {crate::stdout::trace(&crate::format!(
+        "Dinamically downcasting a {}",
+        Type::ID
+    ))});
     if value.id() != Type::ID {crate::stdout::crash(3)} else {
         return unsafe {&mut *(value as *mut dyn Value as *mut Type)}
     }

@@ -1,8 +1,8 @@
-;;
-;;  WRITE
-;;
+;;^
+;;^ WRITE
+;;^
 
-;; WRITE -> FUNCTION
+;;> WRITE -> FUNCTION
 (func $_write (param $pointer i32)
     (local $current i32)
     local.get $pointer

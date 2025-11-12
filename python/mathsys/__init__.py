@@ -1,12 +1,12 @@
-#
-#   EXPORTS
-#
+#^
+#^  EXPORTS
+#^
 
-# EXPORTS -> VERSION
-__version__ = "3.3.1"
-__version_info__ = (3, 3, 1)
+#> EXPORTS -> VERSION
+__version__ = "3.5.4"
+__version_info__ = (3, 5, 4)
 
-# EXPORTS -> LATEST
+#> EXPORTS -> LATEST
 from .v2 import (
     validate,
     latex,
@@ -15,11 +15,13 @@ from .v2 import (
     wrapper
 )
 
-# EXPORTS -> PUBLIC API
+#> EXPORTS -> PUBLIC API
 __all__ = [
     "validate",
     "latex",
     "web",
     "unix_x86_64",
-    "wrapper"
+    "wrapper",
+    "__version__",
+    "__version_info__"
 ]
