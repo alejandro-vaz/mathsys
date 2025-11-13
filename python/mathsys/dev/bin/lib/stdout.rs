@@ -50,25 +50,45 @@ pub fn login() -> () {
 }
 
 //> CALLS -> CRASH
-pub fn crash(code: u8) -> ! {
+pub fn crash(code: Code) -> ! {
+    let value = code as u8;
     crate::ALLOCATOR.tempSpace(|| {
         print(
             &crate::format!(
                 "CRASH: {} {}.",
-                code,
-                match code {
+                value,
+                match value {
                     0 => "Run finished successfully",
-                    1 => "Out of memory",
-                    2 => "Error parsing IR",
-                    3 => "Error during runtime",
-                    255 => panic!(),
-                    _ => "Unknown reason"
+                    1 => "Tried to modify value of immutable variable",
+                    2 => "Found unexpected value type",
+                    3 => "Locale not found",
+                    4 => "Out of memory bounds",
+                    5 => "Malformed Intermediate Representation",
+                    6 => "Unknown IR object code",
+                    7 => "Start object not found",
+                    8 => "Attempted to downcast a different object type",
+                    255 => crate::stack::exit(255),
+                    _ => panic!()
                 }
             ),
             &[0x0A, 0x1B, 0x5B, 0x31, 0x3B, 0x39, 0x31, 0x3B, 0x34, 0x39, 0x6D]
         );
     });
-    crate::stack::exit(code);
+    crate::stack::exit(value);
+}
+
+//> CALLS -> CRASH ENUM
+pub enum Code {
+    Success = 0,
+    ImmutableModification = 1,
+    UnexpectedValue = 2,
+    LocaleNotFound = 3,
+    OutOfMemory = 4,
+    MalformedIR = 5,
+    UnknownIRObject = 6,
+    StartNotFound = 7,
+    FailedDowncast = 8,
+    Fatal = 255
 }
 
 
@@ -78,32 +98,28 @@ pub fn crash(code: u8) -> ! {
 
 //> DETAIL -> SPACE
 pub fn space(message: &str) -> () {
-    if crate::SETTINGS.detail {
-        crate::ALLOCATOR.tempSpace(|| {
-            print(
-                &crate::format!(
-                    "SPACE: {}.",
-                    message
-                ),
-                &[0x0A, 0x1B, 0x5B, 0x30, 0x3B, 0x33, 0x33, 0x3B, 0x34, 0x39, 0x6D]
-            );
-        })
-    }
+    crate::ALLOCATOR.tempSpace(|| {
+        print(
+            &crate::format!(
+                "SPACE: {}.",
+                message
+            ),
+            &[0x0A, 0x1B, 0x5B, 0x30, 0x3B, 0x33, 0x33, 0x3B, 0x34, 0x39, 0x6D]
+        );
+    })
 }
 
 //> DETAIL -> ISSUE
 pub fn issue(message: &str) -> () {
-    if crate::SETTINGS.detail {
-        crate::ALLOCATOR.tempSpace(|| {
-            print(
-                &crate::format!(
-                    "ISSUE: {}.",
-                    message
-                ),
-                &[0x0A, 0x1B, 0x5B, 0x30, 0x3B, 0x33, 0x31, 0x3B, 0x34, 0x39, 0x6D]
-            );
-        })
-    }
+    crate::ALLOCATOR.tempSpace(|| {
+        print(
+            &crate::format!(
+                "ISSUE: {}.",
+                message
+            ),
+            &[0x0A, 0x1B, 0x5B, 0x30, 0x3B, 0x33, 0x31, 0x3B, 0x34, 0x39, 0x6D]
+        );
+    })
 }
 
 
@@ -113,45 +129,39 @@ pub fn issue(message: &str) -> () {
 
 //> LOOKUP -> DEBUG
 pub fn debug(message: &str) -> () {
-    if crate::SETTINGS.lookup {
-        crate::ALLOCATOR.tempSpace(|| {
-            print(
-                &crate::format!(
-                    "    DEBUG: {}.",
-                    message
-                ),
-                &[0x1B, 0x5B, 0x32, 0x3B, 0x33, 0x35, 0x3B, 0x34, 0x39, 0x6D]
-            );
-        })
-    }
+    crate::ALLOCATOR.tempSpace(|| {
+        print(
+            &crate::format!(
+                "    DEBUG: {}.",
+                message
+            ),
+            &[0x1B, 0x5B, 0x32, 0x3B, 0x33, 0x35, 0x3B, 0x34, 0x39, 0x6D]
+        );
+    })
 }
 
 //> LOOKUP -> ALERT
 pub fn alert(message: &str) -> () {
-    if crate::SETTINGS.lookup {
-        crate::ALLOCATOR.tempSpace(|| {
-            print(
-                &crate::format!(
-                    "    ALERT: {}.",
-                    message
-                ),
-                &[0x1B, 0x5B, 0x32, 0x3B, 0x33, 0x33, 0x3B, 0x34, 0x39, 0x6D]
-            );
-        })
-    }
+    crate::ALLOCATOR.tempSpace(|| {
+        print(
+            &crate::format!(
+                "    ALERT: {}.",
+                message
+            ),
+            &[0x1B, 0x5B, 0x32, 0x3B, 0x33, 0x33, 0x3B, 0x34, 0x39, 0x6D]
+        );
+    })
 }
 
 //> LOOKUP -> TRACE
 pub fn trace(message: &str) -> () {
-    if crate::SETTINGS.lookup {
-        crate::ALLOCATOR.tempSpace(|| {
-            print(
-                &crate::format!(
-                    "    TRACE: {}.",
-                    message
-                ),
-                &[0x1B, 0x5B, 0x32, 0x3B, 0x33, 0x36, 0x3B, 0x34, 0x39, 0x6D]
-            );
-        })
-    }
+    crate::ALLOCATOR.tempSpace(|| {
+        print(
+            &crate::format!(
+                "    TRACE: {}.",
+                message
+            ),
+            &[0x1B, 0x5B, 0x32, 0x3B, 0x33, 0x36, 0x3B, 0x34, 0x39, 0x6D]
+        );
+    })
 }

@@ -1,4 +1,12 @@
 //^
+//^ HEAD
+//^
+
+//> HEAD -> CROSS-SCOPE TRAIT
+use crate::runtime::Value;
+
+
+//^
 //^ VARIABLE
 //^
 
@@ -9,15 +17,35 @@ pub struct _Variable {
 }
 
 //> VARIABLE -> IMPLEMENTATION
+impl crate::runtime::Id for _Variable {const ID: &'static str = "_Variable";} 
 impl crate::runtime::Value for _Variable {
-    fn id(&self) -> &'static str {"Variable"}
+    fn id(&self) -> &'static str {"_Variable"}
     fn ctrlcv(&self) -> crate::Box<dyn crate::runtime::Value> {return crate::Box::new(self.clone())}
-} 
-impl crate::runtime::Id for _Variable {const ID: &'static str = "Variable";} 
-impl _Variable {
+    fn locale(&self, code: u8) -> () {match code {
+        0 => {crate::ALLOCATOR.tempSpace(|| {crate::stdout::trace(&crate::format!(
+            "Setting mutable value for variable \"{}\"",
+            &self.name
+        ))})},
+        1 => {crate::ALLOCATOR.tempSpace(|| {crate::stdout::trace(&crate::format!(
+            "Setting immutable value for variable \"{}\"",
+            &self.name
+        ))})},
+        2 => {crate::ALLOCATOR.tempSpace(|| {crate::stdout::trace(&crate::format!(
+            "Obtaining value of variable \"{}\"",
+            &self.name
+        ))})},
+        3 => {crate::ALLOCATOR.tempSpace(|| {crate::stdout::alert(&crate::format!(
+            "Value of variable \"{}\" is not defined",
+            &self.name
+        ))})},
+        _ => {crate::stdout::crash(crate::stdout::Code::LocaleNotFound)}
+    }}
+} impl _Variable {
     pub fn set(&self, value: crate::Box<dyn crate::runtime::Value>, mutable: bool, context: &mut crate::runtime::Context) -> () {
         if mutable {self.locale(0)} else {self.locale(1)};
-        for (key, data) in &context.immutable {if key == &self.name {crate::stdout::crash(3)}}
+        for (key, data) in &context.immutable {
+            if key == &self.name {crate::stdout::crash(crate::stdout::Code::ImmutableModification)}
+        }
         if mutable {
             for (key, data) in &mut context.mutable {if *key == self.name {*data = value; return}}
             context.mutable.push((self.name.clone(), value));
@@ -31,26 +59,5 @@ impl _Variable {
         for (key, value) in &context.mutable {if key == &self.name {return &**value}}
         self.locale(3);
         return &crate::_Undefined {};
-    }
-    fn locale(&self, code: u8) -> () {
-        match code {
-            0 => {crate::ALLOCATOR.tempSpace(|| {crate::stdout::trace(&crate::format!(
-                "Setting mutable value for variable \"{}\"",
-                &self.name
-            ))})},
-            1 => {crate::ALLOCATOR.tempSpace(|| {crate::stdout::trace(&crate::format!(
-                "Setting immutable value for variable \"{}\"",
-                &self.name
-            ))})},
-            2 => {crate::ALLOCATOR.tempSpace(|| {crate::stdout::trace(&crate::format!(
-                "Obtaining value of variable \"{}\"",
-                &self.name
-            ))})},
-            3 => {crate::ALLOCATOR.tempSpace(|| {crate::stdout::alert(&crate::format!(
-                "Value of variable \"{}\" is not defined",
-                &self.name
-            ))})}
-            _ => {}
-        }
     }
 }

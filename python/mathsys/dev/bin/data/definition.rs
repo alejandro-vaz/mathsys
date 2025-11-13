@@ -12,11 +12,33 @@ pub struct Definition {
 impl crate::converter::Class for Definition {
     fn name(&self) -> &'static str {"Definition"}
     fn evaluate(&self, context: &mut crate::runtime::Context) -> crate::Box<dyn crate::runtime::Value> {
+        self.locale(0);
+        self.locale(1);
+        context.process(self.variable);
+        context.process(self.pointer);
+        self.locale(2);
+        let pointer = context.read(self.pointer);
+        let reference = context.read(self.variable);
+        let variable = match reference.id() {
+            "_Variable" => crate::runtime::downcast::<crate::_Variable>(&*reference),
+            _ => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
+        };
+        variable.set(pointer, false, context);
         return crate::Box::new(crate::_Undefined {});
     }
-} impl Definition {
-    pub fn new(variable: u32, pointer: u32) -> Self {return Definition {
-        variable: variable,
-        pointer: pointer
+    fn locale(&self, code: u8) -> () {match code {
+        0 => {crate::ALLOCATOR.tempSpace(|| {crate::stdout::debug(&crate::format!(
+            "Variable ID is {}",
+            self.variable
+        ))})},
+        1 => {crate::ALLOCATOR.tempSpace(|| {crate::stdout::debug(&crate::format!(
+            "Main expression ID is {}",
+            self.pointer
+        ))})},
+        2 => {crate::stdout::space("Assigning immutable variable")},
+        _ => {crate::stdout::crash(crate::stdout::Code::LocaleNotFound)}
     }}
-}
+} impl Definition {pub fn new(variable: u32, pointer: u32) -> Self {return Definition {
+    variable: variable,
+    pointer: pointer
+}}}

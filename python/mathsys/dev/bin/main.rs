@@ -15,6 +15,7 @@ extern crate alloc;
 //> HEAD -> CONTEXT
 mod context {
     pub mod _infinity;
+    pub mod _nexists;
     pub mod _number;
     pub mod _undefined;
     pub mod _variable;
@@ -23,7 +24,6 @@ mod context {
 //> HEAD -> DATA
 mod data {
     pub mod comment;
-    pub mod debug;
     pub mod declaration;
     pub mod definition;
     pub mod equation;
@@ -58,13 +58,13 @@ mod lib {
 
 //> PULLS -> CONTEXT
 use context::_infinity::_Infinity;
+use context::_nexists::_Nexists;
 use context::_number::_Number;
 use context::_undefined::_Undefined;
 use context::_variable::_Variable;
 
 //> PULLS -> DATA
 use data::comment::Comment;
-use data::debug::Debug;
 use data::declaration::Declaration;
 use data::definition::Definition;
 use data::equation::Equation;
@@ -104,8 +104,6 @@ use core::panic::PanicInfo;
 struct Settings {
     ir: &'static [u8],
     version: [usize; 3],
-    detail: bool,
-    lookup: bool,
     memsize: usize,
     precision: u8,
     width: u8
@@ -114,9 +112,7 @@ struct Settings {
 //> GLOBALS -> SETTINGS
 static SETTINGS: Settings = Settings {
     ir: include_bytes!(env!("Mathsys")),
-    version: [3, 5, 4],
-    detail: true,
-    lookup: true,
+    version: [3, 7, 0],
     memsize: 33554432,
     precision: if usize::BITS == 64 {3} else {2},
     width: 100
@@ -143,20 +139,12 @@ pub extern "C" fn _start() -> ! {
             formatting::scientific(SETTINGS.memsize).trim_start()
         ));
         stdout::debug(&format!(
-            "Detail calls are {}",
-            if SETTINGS.detail {"enabled"} else {"disabled"}
-        ));
-        stdout::debug(&format!(
-            "Lookup calls are {}",
-            if SETTINGS.lookup {"enabled"} else {"disabled"}
-        ));
-        stdout::debug(&format!(
             "Precision is set to {}",
             SETTINGS.precision
         ));
     });
     run();
-    stdout::crash(0);
+    stdout::crash(stdout::Code::Success);
 }
 
 //> RUNTIME -> FUNCTION

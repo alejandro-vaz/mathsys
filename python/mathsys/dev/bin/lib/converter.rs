@@ -6,6 +6,7 @@
 pub trait Class {
     fn name(&self) -> &'static str;
     fn evaluate(&self, context: &mut crate::runtime::Context) -> crate::Box<dyn crate::runtime::Value>;
+    fn locale(&self, code: u8) -> ();
 }
 
 
@@ -25,22 +26,21 @@ impl Converter {
         while self.locus < crate::SETTINGS.ir.len() {
             let object = match self.use8() {
                 0x01 => self.start(),
-                0x02 => self.debug(),
-                0x03 => self.declaration(),
-                0x04 => self.definition(),
-                0x05 => self.node(),
-                0x06 => self.equation(),
-                0x07 => self.comment(),
-                0x08 => self.expression(),
-                0x09 => self.term(),
-                0x0A => self.factor(),
-                0x0B => self.limit(),
-                0x0C => self.infinite(),
-                0x0D => self.variable(),
-                0x0E => self.nest(),
-                0x0F => self.vector(),
-                0x10 => self.number(),
-                _ => crate::stdout::crash(2)
+                0x02 => self.declaration(),
+                0x03 => self.definition(),
+                0x04 => self.node(),
+                0x05 => self.equation(),
+                0x06 => self.comment(),
+                0x07 => self.expression(),
+                0x08 => self.term(),
+                0x09 => self.factor(),
+                0x0A => self.limit(),
+                0x0B => self.infinite(),
+                0x0C => self.variable(),
+                0x0D => self.nest(),
+                0x0E => self.vector(),
+                0x0F => self.number(),
+                _ => crate::stdout::crash(crate::stdout::Code::UnknownIRObject)
             };
             self.memory.push(object);
         };
@@ -51,10 +51,6 @@ impl Converter {
         return crate::Box::new(crate::Comment::new(
             &self.listchar()
         ));
-    }
-    fn debug(&mut self) -> crate::Box<dyn Class> {
-        crate::stdout::trace("Creating Debug data structure");
-        return crate::Box::new(crate::Debug::new());
     }
     fn declaration(&mut self) -> crate::Box<dyn Class> {
         crate::stdout::trace("Creating Declaration data structure");
@@ -202,7 +198,7 @@ impl Converter {
     #[inline(always)]
     fn check(&self, distance: usize) -> () {
         if self.locus + distance > crate::SETTINGS.ir.len() {
-            crate::stdout::crash(2);
+            crate::stdout::crash(crate::stdout::Code::MalformedIR);
         }
     }
 }

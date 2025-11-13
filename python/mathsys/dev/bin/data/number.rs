@@ -17,9 +17,10 @@ impl crate::converter::Class for Number {
             shift: self.shift
         });
     }
-} impl Number {
-    pub fn new(value: u32, shift: u8) -> Self {return Number {
-        value: value,
-        shift: shift
+    fn locale(&self, code: u8) -> () {match code {
+        _ => {crate::stdout::crash(crate::stdout::Code::LocaleNotFound)}
     }}
-}
+} impl Number {pub fn new(value: u32, shift: u8) -> Self {return Number {
+    value: value,
+    shift: shift
+}}}

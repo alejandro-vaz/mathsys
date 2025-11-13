@@ -6,6 +6,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from lark import Lark, Transformer, Token
+from functools import lru_cache
 
 
 #^
@@ -13,9 +14,9 @@ from lark import Lark, Transformer, Token
 #^
 
 #> START -> CLASS
-@dataclass
+@dataclass(frozen = True)
 class Start:
-    statements: list[Level1]
+    statements: tuple[Level1]
 
 
 #^
@@ -25,35 +26,31 @@ class Start:
 #> 1ºLEVEL -> NAMESPACE
 class Level1: pass
 
-#> 1ºLEVEL -> DEBUG
-@dataclass
-class Debug(Level1): pass
-
 #> 1ºLEVEL -> DECLARATION
-@dataclass
+@dataclass(frozen = True)
 class Declaration(Level1):
     identifier: Variable
     expression: Expression
 
 #> 1ºLEVEL -> DEFINITION
-@dataclass
+@dataclass(frozen = True)
 class Definition(Level1):
     identifier: Variable
     expression: Expression
 
 #> 1ºLEVEL -> NODE
-@dataclass
+@dataclass(frozen = True)
 class Node(Level1):
     value: Expression
 
 #> 1ºLEVEL -> EQUATION
-@dataclass
+@dataclass(frozen = True)
 class Equation(Level1):
     left: Expression
     right: Expression
 
 #> 1ºLEVEL -> COMMENT
-@dataclass
+@dataclass(frozen = True)
 class Comment(Level1):
     content: str
 
@@ -66,10 +63,10 @@ class Comment(Level1):
 class Level2: pass
 
 #> 2ºLEVEL -> EXPRESSION
-@dataclass
+@dataclass(frozen = True)
 class Expression(Level2):
-    signs: list[str | None]
-    terms: list[Level3]
+    signs: tuple[str | None]
+    terms: tuple[Level3]
 
 
 #^
@@ -80,10 +77,10 @@ class Expression(Level2):
 class Level3: pass
 
 #> 3ºLEVEL -> TERM
-@dataclass
+@dataclass(frozen = True)
 class Term(Level3):
-    numerator: list[Level4]
-    denominator: list[Level4]
+    numerator: tuple[Level4]
+    denominator: tuple[Level4]
 
 
 #^
@@ -94,13 +91,13 @@ class Term(Level3):
 class Level4: pass
 
 #> 4ºLEVEL -> FACTOR
-@dataclass
+@dataclass(frozen = True)
 class Factor(Level4):
     value: Level5
     exponent: Expression | None
 
 #> 4ºLEVEL -> LIMIT
-@dataclass
+@dataclass(frozen = True)
 class Limit(Level4):
     variable: Variable
     approach: Expression
@@ -117,26 +114,26 @@ class Limit(Level4):
 class Level5: pass
 
 #> 5ºLEVEL -> INFINITE
-@dataclass
+@dataclass(frozen = True)
 class Infinite(Level5): pass
 
 #> 5ºLEVEL -> VARIABLE
-@dataclass
+@dataclass(frozen = True)
 class Variable(Level5):
     representation: str
 
 #> 5ºLEVEL -> NEST
-@dataclass
+@dataclass(frozen = True)
 class Nest(Level5):
     expression: Expression
 
 #> 5ºLEVEL -> VECTOR
-@dataclass
+@dataclass(frozen = True)
 class Vector(Level5):
-    values: list[Expression]
+    values: tuple[Expression]
 
 #> 5ºLEVEL -> NUMBER
-@dataclass
+@dataclass(frozen = True)
 class Number(Level5):
     whole: str
     decimal: str | None
@@ -156,6 +153,7 @@ class Parser(Transformer):
     #~ CLASS -> INIT
     def __init__(self, syntax: str) -> None: super(); self.parser = Lark(syntax, parser="earley")
     #~ CLASS -> RUN
+    @lru_cache(maxsize = None)
     def run(self, content: str) -> Start: return self.transform(self.parser.parse(content))
     #~ CLASS -> LEVEL 1
     def level1(self, items: list[Level1]) -> Level1: return items[0]
@@ -170,41 +168,41 @@ class Parser(Transformer):
     #~ CLASS -> START CONSTRUCT
     def start(self, items: list[Level1]) -> Start: 
         return Start(
-            items
+            statements = tuple(items)
         )
-    #~ CLASS -> 1 DEBUG CONSTRUCT
-    def debug(self, items: list) -> Debug: 
-        return Debug()
     #~ CLASS -> 1 DECLARATION CONSTRUCT
     def declaration(self, items: list[Variable | Expression]) -> Declaration: 
         return Declaration(
-            *items
+            identifier = items[0],
+            expression = items[1]
         )
     #~ CLASS -> 1 DEFINITION CONSTRUCT
     def definition(self, items: list[Variable | Expression]) -> Definition: 
         return Definition(
-            *items
+            identifier = items[0],
+            expression = items[1]
         )
     #~ CLASS -> 1 NODE CONSTRUCT
     def node(self, items: list[Expression]) -> Node: 
         return Node(
-            *items
+            value = items[0]
         )
     #~ CLASS -> 1 EQUATION CONSTRUCT
     def equation(self, items: list[Expression]) -> Equation: 
         return Equation(
-            *items
+            left = items[0],
+            right = items[1]
         )
     #~ CLASS -> 1 COMMENT CONSTRUCT
     def comment(self, items: list[Token]) -> Comment:
         return Comment(
-            items[0].value if items else ""
+            content = items[0].value if items else ""
         )
     #~ CLASS -> 2 EXPRESSION CONSTRUCT
     def expression(self, items: list[Token | Level3]) -> Expression:
         return Expression(
-            ([] if isinstance(items[0], Token) else [None]) + [ñ(item) for item in items if isinstance(item, Token)],
-            [item for item in items if isinstance(item, Level3)]
+            signs = tuple(([] if isinstance(items[0], Token) else [None]) + [ñ(item) for item in items if isinstance(item, Token)]),
+            terms = tuple([item for item in items if isinstance(item, Level3)])
         )
     #~ CLASS -> 3 TERM CONSTRUCT
     def term(self, items: list[Token | Level4]) -> Term:
@@ -220,23 +218,23 @@ class Parser(Transformer):
                 if location: numerator.append(item)
                 else: denominator.append(item)
         return Term(
-            numerator,
-            denominator
+            numerator = tuple(numerator),
+            denominator = tuple(denominator)
         )
     #~ CLASS -> 4 FACTOR CONSTRUCT
     def factor(self, items: list[Level5 | Expression]) -> Factor:
         return Factor(
-            items[0],
-            items[1] if len(items) == 2 else None
+            value = items[0],
+            exponent = items[1] if len(items) == 2 else None
         )
     #~ CLASS -> 4 LIMIT CONSTRUCT
     def limit(self, items: list[Variable | Expression | Token | Nest]) -> Limit:
         return Limit(
-            items[0],
-            items[1],
-            ñ(items[2]) == "+" if isinstance(items[2], Token) else None,
-            items[-2] if isinstance(items[-2], Nest) else items[-1],
-            items[-1] if isinstance(items[-1], Expression) else None
+            variable = items[0],
+            approach = items[1],
+            direction = ñ(items[2]) == "+" if isinstance(items[2], Token) else None,
+            of = items[-2] if isinstance(items[-2], Nest) else items[-1],
+            exponent = items[-1] if isinstance(items[-1], Expression) else None
         )
     #~ CLASS -> 5 INFINITE CONSTRUCT
     def infinite(self, items: list) -> Infinite:
@@ -244,21 +242,21 @@ class Parser(Transformer):
     #~ CLASS -> 5 VARIABLE CONSTRUCT
     def variable(self, items: list[Token]) -> Variable:
         return Variable(
-            ñ(*items)
+            representation = ñ(items[0])
         )
     #~ CLASS -> 5 NEST CONSTRUCT
     def nest(self, items: list[Expression]) -> Nest:
         return Nest(
-            *items
+            expression = items[0]
         )
     #~ CLASS -> 5 VECTOR CONSTRUCT
     def vector(self, items: list[Expression]) -> Vector:
         return Vector(
-            items
+            values = tuple(items)
         )
     #~ CLASS -> 5 NUMBER CONSTRUCT
     def number(self, items: list[Token]) -> Number:
         return Number(
-            ñ(items[0]),
-            ñ(items[-1]) if len(items) == 2 else None
+            whole = ñ(items[0]),
+            decimal = ñ(items[-1]) if len(items) == 2 else None
         )

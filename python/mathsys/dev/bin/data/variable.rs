@@ -16,17 +16,13 @@ impl crate::converter::Class for Variable {
             name: self.characters.clone().into_string()
         });
     }
-} impl Variable {
-    pub fn new(characters: &str) -> Self {return Variable {
-        characters: characters.into()
+    fn locale(&self, code: u8) -> () {match code {
+        0 => {crate::ALLOCATOR.tempSpace(|| {crate::stdout::debug(&crate::format!(
+            "Variable name is \"{}\"",
+            &*self.characters
+        ))})},
+        _ => {crate::stdout::crash(crate::stdout::Code::LocaleNotFound)}
     }}
-    fn locale(&self, code: u8) -> () {
-        match code {
-            0 => {crate::ALLOCATOR.tempSpace(|| {crate::stdout::debug(&crate::format!(
-                "Variable name is \"{}\"",
-                &*self.characters
-            ))})},
-            _ => {}
-        }
-    }
-}
+} impl Variable {pub fn new(characters: &str) -> Self {return Variable {
+    characters: characters.into()
+}}}

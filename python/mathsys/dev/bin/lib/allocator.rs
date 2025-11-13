@@ -19,7 +19,7 @@ unsafe impl crate::GlobalAlloc for Allocator {
             let to = from + layout.size();
             if to > self.end() {
                 self.init();
-                crate::stdout::crash(1);
+                crate::stdout::crash(crate::stdout::Code::OutOfMemory);
             }
             match self.next.compare_exchange_weak(
                 mark, 

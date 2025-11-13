@@ -3,8 +3,8 @@
 #^
 
 #> EXPORTS -> VERSION
-__version__ = "3.5.4"
-__version_info__ = (3, 5, 4)
+__version__ = "3.7.0"
+__version_info__ = (3, 7, 0)
 
 #> EXPORTS -> LATEST
 from .v2 import (
@@ -17,11 +17,11 @@ from .v2 import (
 
 #> EXPORTS -> PUBLIC API
 __all__ = [
+    "__version__",
+    "__version_info__",
     "validate",
     "latex",
     "web",
     "unix_x86_64",
-    "wrapper",
-    "__version__",
-    "__version_info__"
+    "wrapper"
 ]

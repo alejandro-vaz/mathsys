@@ -26,24 +26,42 @@ _latex = LaTeX()
 _ir = IR()
 _builder = Builder()
 
+#> MAIN -> TIME WRAPPER
+def timeWrapper(function):
+    def wrapper(*args, **kwargs):
+        start = time.time()
+        state = function(*args, **kwargs)
+        print(f"[SUCCESS] Compiled in {(time.time() - start):.3f}s.")
+        return state
+    return wrapper
+
 #> MAIN -> VALIDATE
+@timeWrapper
 def validate(content: str) -> bool:
     try: _parser.run(content); return True
     except: return False
 
 #> MAIN -> LATEX
-def latex(content: str) -> str: return _latex.run(_parser.run(content))
+@timeWrapper
+def latex(content: str) -> str: 
+    return _latex.run(_parser.run(content))
 
 #> MAIN -> WEB
-def web(content: str) -> bytes: return _builder.run(_ir.run(_parser.run(content)), "web")
+@timeWrapper
+def web(content: str) -> bytes: 
+    return _builder.run(_ir.run(_parser.run(content)), "web")
 
 #> MAIN -> UNIX_X86_X64
-def unix_x86_64(content: str) -> bytes: return _builder.run(_ir.run(_parser.run(content)), "unix-x86-64")
+@timeWrapper
+def unix_x86_64(content: str) -> bytes: 
+    return _builder.run(_ir.run(_parser.run(content)), "unix-x86-64")
 
 #> MAIN -> TARGET
 def wrapper(*arguments: str) -> None: 
+    #~ TARGET -> PREPROCESSING
     components = arguments[1].split(".")
     with open(arguments[1]) as origin: content = origin.read()
+    #~ TARGET -> MATCHING
     match arguments[0]:
         case "watch":
             components[-1] = "ltx"

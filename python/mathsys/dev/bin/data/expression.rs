@@ -16,16 +16,12 @@ impl crate::converter::Class for Expression {
         self.locale(1);
         return crate::Box::new(crate::_Undefined {});
     }
-} impl Expression {
-    pub fn new(terms: &[u32], signs: &[u8]) -> Self {return Expression {
-        terms: terms.into(),
-        signs: signs.into()
+    fn locale(&self, code: u8) -> () {match code {
+        0 => {crate::stdout::debug("To be developed, nothing here yet")},
+        1 => {crate::stdout::trace("Returning an undefined placeholder")},
+        _ => {crate::stdout::crash(crate::stdout::Code::LocaleNotFound)}
     }}
-    fn locale(&self, code: u8) -> () {
-        match code {
-            0 => {crate::stdout::debug("To be developed, nothing here yet")},
-            1 => {crate::stdout::trace("Returning an undefined placeholder")},
-            _ => {}
-        }
-    }
-}
+} impl Expression {pub fn new(terms: &[u32], signs: &[u8]) -> Self {return Expression {
+    terms: terms.into(),
+    signs: signs.into()
+}}}

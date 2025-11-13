@@ -6,6 +6,7 @@
 pub trait Value {
     fn id(&self) -> &'static str;
     fn ctrlcv(&self) -> crate::Box<dyn Value>;
+    fn locale(&self, code: u8) -> ();
 }
 
 //> CONTEXT -> ID
@@ -35,13 +36,25 @@ impl<'a> Context<'a> {
     }
     fn set(&mut self, id: u32, value: crate::Box<dyn Value>) {self.cache[(id as usize) - 1] = value}
     pub fn read(&self, id: u32) -> crate::Box<dyn Value> {
+        if id == 0 {return (crate::_Nexists {}).ctrlcv()}
+        crate::ALLOCATOR.tempSpace(|| {crate::stdout::trace(&crate::format!(
+            "Reading object with ID {}",
+            id
+        ))});
         return self.cache[(id as usize) - 1].ctrlcv();
     }
-    pub fn get(&self, id: u32) -> &dyn Value {return &*self.cache[(id as usize) - 1]}
+    pub fn get(&self, id: u32) -> &dyn Value {
+        if id == 0 {return &crate::_Nexists {}}
+        crate::ALLOCATOR.tempSpace(|| {crate::stdout::trace(&crate::format!(
+            "Retrieving object with ID {}",
+            id
+        ))});
+        return &*self.cache[(id as usize) - 1]
+    }
     pub fn process(&mut self, id: u32) -> () {
         let item = &self.memory[(id as usize) - 1];
         crate::ALLOCATOR.tempSpace(|| {crate::stdout::space(&crate::format!(
-            "Evaluating {}",
+            "[{}] Processing",
             item.name()
         ))});
         let output = item.evaluate(self);
@@ -54,7 +67,7 @@ impl<'a> Context<'a> {
                 return self.get((index + 1) as u32)
             }
         }
-        crate::stdout::crash(3);
+        crate::stdout::crash(crate::stdout::Code::StartNotFound);
     }
 }
 
@@ -69,7 +82,7 @@ pub fn downcast<Type: Id>(value: &dyn Value) -> &Type {
         "Statically downcasting a {}",
         Type::ID
     ))});
-    if value.id() != Type::ID {crate::stdout::crash(3)} else {
+    if value.id() != Type::ID {crate::stdout::crash(crate::stdout::Code::FailedDowncast)} else {
         return unsafe {&*(value as *const dyn Value as *const Type)}
     }
 }
@@ -80,7 +93,7 @@ pub fn mutDowncast<Type: Id>(value: &mut dyn Value) -> &mut Type {
         "Dinamically downcasting a {}",
         Type::ID
     ))});
-    if value.id() != Type::ID {crate::stdout::crash(3)} else {
+    if value.id() != Type::ID {crate::stdout::crash(crate::stdout::Code::FailedDowncast)} else {
         return unsafe {&mut *(value as *mut dyn Value as *mut Type)}
     }
 }

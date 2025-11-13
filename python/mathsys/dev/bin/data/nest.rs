@@ -13,8 +13,9 @@ impl crate::converter::Class for Nest {
     fn evaluate(&self, context: &mut crate::runtime::Context) -> crate::Box<dyn crate::runtime::Value> {
         return crate::Box::new(crate::_Undefined {});
     }
-} impl Nest {
-    pub fn new(pointer: u32) -> Self {return Nest {
-        pointer: pointer
+    fn locale(&self, code: u8) -> () {match code {
+        _ => {crate::stdout::crash(crate::stdout::Code::LocaleNotFound)}
     }}
-}
+} impl Nest {pub fn new(pointer: u32) -> Self {return Nest {
+    pointer: pointer
+}}}
