@@ -112,7 +112,7 @@ struct Settings {
 //> GLOBALS -> SETTINGS
 static SETTINGS: Settings = Settings {
     ir: include_bytes!(env!("Mathsys")),
-    version: [3, 5, 4],
+    version: [3, 7, 0],
     memsize: 33554432,
     precision: if usize::BITS == 64 {3} else {2},
     width: 100
