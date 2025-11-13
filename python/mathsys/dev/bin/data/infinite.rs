@@ -9,8 +9,11 @@ pub struct Infinite {}
 impl crate::converter::Class for Infinite {
     fn name(&self) -> &'static str {"Infinite"}
     fn evaluate(&self, context: &mut crate::runtime::Context) -> crate::Box<dyn crate::runtime::Value> {
-        return crate::Box::new(crate::_Infinity {});
+        return crate::Box::new(crate::_Infinity {
+            negative: false
+        });
     }
-} impl Infinite {
-    pub fn new() -> Self {return Infinite {}}
-}
+    fn locale(&self, code: u8) -> () {match code {
+        _ => {crate::stdout::crash(crate::stdout::Code::LocaleNotFound)}
+    }}
+} impl Infinite {pub fn new() -> Self {return Infinite {}}}

@@ -7,19 +7,19 @@ use crate::runtime::Value;
 
 
 //^
-//^ UNDEFINED
+//^ NEXISTS
 //^
 
-//> UNDEFINED -> STRUCT
+//> NEXISTS -> CONSTRUCT
 #[derive(Clone)]
-pub struct _Undefined {}
+pub struct _Nexists {}
 
-//> UNDEFINED -> IMPLEMENTATION
-impl crate::runtime::Id for _Undefined {const ID: &'static str = "_Undefined";} 
-impl crate::runtime::Value for _Undefined {
-    fn id(&self) -> &'static str {"_Undefined"}
+//> NEXISTS -> IMPLEMENTATION
+impl crate::runtime::Id for _Nexists {const ID: &'static str = "_Nexists";} 
+impl crate::runtime::Value for _Nexists {
+    fn id(&self) -> &'static str {"_Nexists"}
     fn ctrlcv(&self) -> crate::Box<dyn crate::runtime::Value> {return crate::Box::new(self.clone())}
     fn locale(&self, code: u8) -> () {match code {
         _ => {crate::stdout::crash(crate::stdout::Code::LocaleNotFound)}
     }}
-} impl _Undefined {}
+}

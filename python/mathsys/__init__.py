@@ -17,11 +17,11 @@ from .v2 import (
 
 #> EXPORTS -> PUBLIC API
 __all__ = [
+    "__version__",
+    "__version_info__",
     "validate",
     "latex",
     "web",
     "unix_x86_64",
-    "wrapper",
-    "__version__",
-    "__version_info__"
+    "wrapper"
 ]

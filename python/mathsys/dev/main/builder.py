@@ -6,6 +6,18 @@
 import subprocess
 import os
 import tempfile
+from functools import lru_cache
+
+
+#^
+#^  STATIC
+#^
+
+#> STATIC -> TARGETS
+TARGETS = {
+    "unix-x86-64": "x86_64-unknown-linux-gnu",
+    "web": "wasm32-unknown-unknown"
+}
 
 
 #^
@@ -14,12 +26,8 @@ import tempfile
 
 #> BUILDER -> CLASS
 class Builder:
-    #~ CLASS -> VARIABLES
-    targets = {
-        "unix-x86-64": "x86_64-unknown-linux-gnu",
-        "web": "wasm32-unknown-unknown"
-    }
     #~ CLASS -> RUN
+    @lru_cache(maxsize = None)
     def run(self, data: bytes, target: str) -> bytes:
         try:
             self.checks()
@@ -29,7 +37,7 @@ class Builder:
             os.close(descriptor)
             environment = os.environ.copy()
             environment["Mathsys"] = ir
-            subprocess.run(
+            try: subprocess.run(
                 self.command(target, filename),
                 cwd = os.path.dirname(os.path.abspath(__file__)),
                 env = environment,
@@ -37,6 +45,7 @@ class Builder:
                 text = True,
                 check = True
             )
+            except: pass
             with open(filename, "rb") as file: binary = file.read()
             os.remove(filename)
             os.remove(ir)
@@ -48,7 +57,7 @@ class Builder:
             "rustc",
             "+nightly",
             "../bin/main.rs",
-            "--target", self.targets[target],
+            "--target", TARGETS[target],
             "--sysroot", subprocess.check_output(
                 ["rustc", "+nightly", "--print", "sysroot"],
                 text = True
