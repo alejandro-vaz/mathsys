@@ -6,6 +6,9 @@
 import sys
 import time
 
+#> HEAD -> CACHE
+from functools import lru_cache
+
 #> HEAD -> COMPILER
 from .main.parser import Parser
 from .main.latex import LaTeX
@@ -31,27 +34,47 @@ def timeWrapper(function):
     def wrapper(*args, **kwargs):
         start = time.time()
         state = function(*args, **kwargs)
-        print(f"[SUCCESS] Compiled in {(time.time() - start):.3f}s.")
+        print(f"[INFO] Compiled to {function.__name__} in {(time.time() - start):.3f}s.")
         return state
     return wrapper
 
+#> MAIN -> STATISTICS
+def statistics() -> list:
+    return [
+        validate.cache_info(),
+        latex.cache_info(),
+        web.cache_info(),
+        unix_x86_64.cache_info()
+    ]
+
+#> MAIN -> CLEAR
+def clear() -> None:
+    validate.cache_clear()
+    latex.cache_clear()
+    web.cache_clear()
+    unix_x86_64.cache_clear()
+
 #> MAIN -> VALIDATE
+@lru_cache(maxsize = None)
 @timeWrapper
 def validate(content: str) -> bool:
     try: _parser.run(content); return True
     except: return False
 
 #> MAIN -> LATEX
+@lru_cache(maxsize = None)
 @timeWrapper
 def latex(content: str) -> str: 
     return _latex.run(_parser.run(content))
 
 #> MAIN -> WEB
+@lru_cache(maxsize = None)
 @timeWrapper
 def web(content: str) -> bytes: 
     return _builder.run(_ir.run(_parser.run(content)), "web")
 
 #> MAIN -> UNIX_X86_X64
+@lru_cache(maxsize = None)
 @timeWrapper
 def unix_x86_64(content: str) -> bytes: 
     return _builder.run(_ir.run(_parser.run(content)), "unix-x86-64")
@@ -63,17 +86,6 @@ def wrapper(*arguments: str) -> None:
     with open(arguments[1]) as origin: content = origin.read()
     #~ TARGET -> MATCHING
     match arguments[0]:
-        case "watch":
-            components[-1] = "ltx"
-            try:
-                while True:
-                    with open(arguments[1]) as origin: content = origin.read()
-                    with open(".".join(components), "w") as destination:
-                        try: destination.write(latex(content))
-                        except KeyboardInterrupt: raise
-                        except: pass
-                    time.sleep(0.2)
-            except KeyboardInterrupt: pass
         case "validate": print(validate(content))
         case "latex": 
             components[-1] = "ltx"
@@ -87,4 +99,4 @@ def wrapper(*arguments: str) -> None:
             components.pop()
             with open(".".join(components), "wb") as destination:
                 destination.write(unix_x86_64(content))
-        case _: sys.exit(f"[ENTRY ISSUE] Unknown command. Available commands: watch, validate, latex, web, unix-x86-64.")
+        case _: sys.exit(f"[ENTRY ISSUE] Unknown command. Available commands: validate, latex, web, unix-x86-64.")

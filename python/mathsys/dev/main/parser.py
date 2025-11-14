@@ -6,7 +6,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from lark import Lark, Transformer, Token
-from functools import lru_cache
 
 
 #^
@@ -16,7 +15,7 @@ from functools import lru_cache
 #> START -> CLASS
 @dataclass(frozen = True)
 class Start:
-    statements: tuple[Level1]
+    statements: list[Level1]
 
 
 #^
@@ -65,8 +64,8 @@ class Level2: pass
 #> 2ºLEVEL -> EXPRESSION
 @dataclass(frozen = True)
 class Expression(Level2):
-    signs: tuple[str | None]
-    terms: tuple[Level3]
+    signs: list[str | None]
+    terms: list[Level3]
 
 
 #^
@@ -79,8 +78,8 @@ class Level3: pass
 #> 3ºLEVEL -> TERM
 @dataclass(frozen = True)
 class Term(Level3):
-    numerator: tuple[Level4]
-    denominator: tuple[Level4]
+    numerator: list[Level4]
+    denominator: list[Level4]
 
 
 #^
@@ -130,7 +129,7 @@ class Nest(Level5):
 #> 5ºLEVEL -> VECTOR
 @dataclass(frozen = True)
 class Vector(Level5):
-    values: tuple[Expression]
+    values: list[Expression]
 
 #> 5ºLEVEL -> NUMBER
 @dataclass(frozen = True)
@@ -153,7 +152,6 @@ class Parser(Transformer):
     #~ CLASS -> INIT
     def __init__(self, syntax: str) -> None: super(); self.parser = Lark(syntax, parser="earley")
     #~ CLASS -> RUN
-    @lru_cache(maxsize = None)
     def run(self, content: str) -> Start: return self.transform(self.parser.parse(content))
     #~ CLASS -> LEVEL 1
     def level1(self, items: list[Level1]) -> Level1: return items[0]
@@ -168,7 +166,7 @@ class Parser(Transformer):
     #~ CLASS -> START CONSTRUCT
     def start(self, items: list[Level1]) -> Start: 
         return Start(
-            statements = tuple(items)
+            statements = items
         )
     #~ CLASS -> 1 DECLARATION CONSTRUCT
     def declaration(self, items: list[Variable | Expression]) -> Declaration: 
@@ -201,8 +199,8 @@ class Parser(Transformer):
     #~ CLASS -> 2 EXPRESSION CONSTRUCT
     def expression(self, items: list[Token | Level3]) -> Expression:
         return Expression(
-            signs = tuple(([] if isinstance(items[0], Token) else [None]) + [ñ(item) for item in items if isinstance(item, Token)]),
-            terms = tuple([item for item in items if isinstance(item, Level3)])
+            signs = ([] if isinstance(items[0], Token) else [None]) + [ñ(item) for item in items if isinstance(item, Token)],
+            terms = [item for item in items if isinstance(item, Level3)]
         )
     #~ CLASS -> 3 TERM CONSTRUCT
     def term(self, items: list[Token | Level4]) -> Term:
@@ -218,8 +216,8 @@ class Parser(Transformer):
                 if location: numerator.append(item)
                 else: denominator.append(item)
         return Term(
-            numerator = tuple(numerator),
-            denominator = tuple(denominator)
+            numerator = numerator,
+            denominator = denominator
         )
     #~ CLASS -> 4 FACTOR CONSTRUCT
     def factor(self, items: list[Level5 | Expression]) -> Factor:
@@ -252,7 +250,7 @@ class Parser(Transformer):
     #~ CLASS -> 5 VECTOR CONSTRUCT
     def vector(self, items: list[Expression]) -> Vector:
         return Vector(
-            values = tuple(items)
+            values = items
         )
     #~ CLASS -> 5 NUMBER CONSTRUCT
     def number(self, items: list[Token]) -> Number:

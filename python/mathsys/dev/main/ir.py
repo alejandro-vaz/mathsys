@@ -4,7 +4,6 @@
 
 #> HEAD -> DATACLASSES
 from dataclasses import dataclass
-from functools import lru_cache
 from .parser import (
     #~ DATACLASSES -> START
     Start,
@@ -69,7 +68,7 @@ class Sequence:
     code: u8
 
 #> TYPES -> JOIN
-def join(binary: tuple[bytes] | list[bytes]) -> bytes:
+def join(binary: list[bytes]) -> bytes:
     return b"".join(binary)
 
 
@@ -81,7 +80,7 @@ def join(binary: tuple[bytes] | list[bytes]) -> bytes:
 @dataclass
 class IRStart(Sequence):
     code = u8(0x01)
-    statements: tuple[u32]
+    statements: list[u32]
     def __bytes__(self) -> bytes:
         return self.code + (join(self.statements) + null32())
 
@@ -129,7 +128,7 @@ class IREquation(Sequence):
 @dataclass
 class IRComment(Sequence):
     code = u8(0x06)
-    characters: tuple[u8]
+    characters: list[u8]
     def __bytes__(self) -> bytes:
         return self.code + (join(self.characters) + null8())
 
@@ -142,8 +141,8 @@ class IRComment(Sequence):
 @dataclass
 class IRExpression(Sequence):
     code = u8(0x07)
-    terms: tuple[u32]
-    signs: tuple[u8]
+    terms: list[u32]
+    signs: list[u8]
     def __bytes__(self) -> bytes:
         return self.code + (join(self.terms) + null32()) + (join(self.signs) + null8())
 
@@ -156,8 +155,8 @@ class IRExpression(Sequence):
 @dataclass
 class IRTerm(Sequence):
     code = u8(0x08)
-    numerator: tuple[u32]
-    denominator: tuple[u32]
+    numerator: list[u32]
+    denominator: list[u32]
     def __bytes__(self) -> bytes:
         return self.code + (join(self.numerator) + null32()) + (join(self.denominator) + null32())
 
@@ -203,7 +202,7 @@ class IRInfinite(Sequence):
 @dataclass
 class IRVariable(Sequence):
     code = u8(0x0C)
-    characters: tuple[u8]
+    characters: list[u8]
     def __bytes__(self) -> bytes:
         return self.code + (join(self.characters) + null8())
 
@@ -219,7 +218,7 @@ class IRNest(Sequence):
 @dataclass
 class IRVector(Sequence):
     code = u8(0x0E)
-    values: tuple[u32]
+    values: list[u32]
     def __bytes__(self) -> bytes:
         return self.code + (join(self.values) + null32())
 
@@ -251,7 +250,6 @@ class IR:
         self.counter += 1
         return u32(self.counter)
     #~ IR -> RUN
-    @lru_cache(maxsize = None)
     def run(self, start: Start) -> bytes:
         self.ir = []
         self.counter = 0
@@ -260,7 +258,7 @@ class IR:
     #~ IR -> START GENERATION
     def start(self, start: Start) -> u32:
         self.ir.append(IRStart(
-            statements = tuple(self.level1(statement) for statement in start.statements)
+            statements = [self.level1(statement) for statement in start.statements]
         ))
         return self.new()
     #~ IR -> 1 LEVEL GENERATION
@@ -301,7 +299,7 @@ class IR:
     #~ IR -> 1 COMMENT GENERATION
     def comment(self, comment: Comment) -> u32:
         self.ir.append(IRComment(
-            characters = tuple([comment.content.encode()])
+            characters = [comment.content.encode()]
         ))
         return self.new()
     #~ IR -> 2 LEVEL GENERATION
@@ -311,8 +309,8 @@ class IR:
     #~ IR -> 2 EXPRESSION GENERATION
     def expression(self, expression: Expression) -> u32:
         self.ir.append(IRExpression(
-            terms = tuple(self.level3(item) for item in expression.terms),
-            signs = tuple(u8(1) if sign is None or sign.count("-") == 0 else u8(sign.count("-") + 1) for sign in expression.signs)
+            terms = [self.level3(item) for item in expression.terms],
+            signs = [u8(1) if sign is None or sign.count("-") == 0 else u8(sign.count("-") + 1) for sign in expression.signs]
         ))
         return self.new()
     #~ IR -> 3 LEVEL GENERATION
@@ -322,8 +320,8 @@ class IR:
     #~ IR -> 3 TERM GENERATION
     def term(self, term: Term) -> u32:
         self.ir.append(IRTerm(
-            numerator = tuple(self.level4(item) for item in term.numerator),
-            denominator = tuple(self.level4(item) for item in term.denominator)
+            numerator = [self.level4(item) for item in term.numerator],
+            denominator = [self.level4(item) for item in term.denominator]
         ))
         return self.new()
     #~ IR -> 4 LEVEL GENERATION
@@ -363,7 +361,7 @@ class IR:
     #~ IR -> 5 VARIABLE GENERATION
     def variable(self, variable: Variable) -> u32: 
         self.ir.append(IRVariable(
-            characters = tuple([variable.representation.encode()])
+            characters = [variable.representation.encode()]
         ))
         return self.new()
     #~ IR -> 5 NEST GENERATION
@@ -375,7 +373,7 @@ class IR:
     #~ IR -> 5 VECTOR GENERATION
     def vector(self, vector: Vector) -> u32:
         self.ir.append(IRVector(
-            values = tuple(self.expression(value) for value in vector.values)
+            values = [self.expression(value) for value in vector.values]
         ))
         return self.new()
     #~ IR -> 5 NUMBER GENERATION

@@ -38,7 +38,7 @@ _TO: /->/
 _OF: /of/
 _COMMAND: /\#/
 QUOTE: /[^\n]+/
-IDENTIFIER: /(?i)(?!\b(?:inf|of|lim)\b)[A-Za-z]+/
+IDENTIFIER: /(?i)(?!\b(?:inf|of|lim)\b)[A-Za-zº$%]+/
 _INF: /\binf\b/
 _EXPONENTIATION: /\^/
 NUMBER: /[0-9]+/

@@ -4,6 +4,7 @@
 
 //> HEAD -> CROSS-SCOPE TRAIT
 use crate::runtime::Value;
+use crate::runtime::Id;
 
 
 //^
@@ -18,10 +19,15 @@ pub struct _Infinity {
 
 //> INFINITY -> IMPLEMENTATION
 impl crate::runtime::Id for _Infinity {const ID: &'static str = "_Infinity";} 
-impl crate::runtime::Value for _Infinity {
-    fn id(&self) -> &'static str {"_Infinity"}
+impl Value for _Infinity {
+    fn id(&self) -> &'static str {crate::ALLOCATOR.tempSpace(|| {crate::stdout::trace(&crate::format!(
+        "Element is of type {}",
+        Self::ID
+    ))}); return Self::ID}
     fn ctrlcv(&self) -> crate::Box<dyn crate::runtime::Value> {return crate::Box::new(self.clone())}
     fn locale(&self, code: u8) -> () {match code {
         _ => {crate::stdout::crash(crate::stdout::Code::LocaleNotFound)}
     }}
-} impl _Infinity {}
+} impl _Infinity {
+    pub fn change(&mut self) -> () {self.negative = !self.negative}
+}

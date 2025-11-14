@@ -1,4 +1,12 @@
 //^
+//^ HEAD
+//^
+
+//> HEAD -> CROSS-SCOPE TRAIT
+use crate::converter::Class;
+
+
+//^
 //^ COMMENT
 //^
 
@@ -10,10 +18,6 @@ pub struct Comment {
 //> COMMENT -> IMPLEMENTATION
 impl crate::converter::Class for Comment {
     fn name(&self) -> &'static str {"Comment"}
-    fn evaluate(&self, context: &mut crate::runtime::Context) -> crate::Box<dyn crate::runtime::Value> {
-        self.locale(0);
-        return crate::Box::new(crate::_Undefined {});
-    }
     fn locale(&self, code: u8) -> () {match code {
         0 => {crate::ALLOCATOR.tempSpace(|| {crate::stdout::debug(&crate::format!(
             "{}",
@@ -21,6 +25,12 @@ impl crate::converter::Class for Comment {
         ))})},
         _ => {crate::stdout::crash(crate::stdout::Code::LocaleNotFound)}
     }}
-} impl Comment {pub fn new(characters: &str) -> Self {return Comment {
-    characters: characters.into()
-}}}
+    fn evaluate(&self, context: &mut crate::runtime::Context) -> crate::Box<dyn crate::runtime::Value> {
+        self.locale(0);
+        return crate::Box::new(crate::_Undefined {});
+    }
+} impl Comment {
+    pub fn new(characters: &str) -> Self {return Comment {
+        characters: characters.into()
+    }}
+}

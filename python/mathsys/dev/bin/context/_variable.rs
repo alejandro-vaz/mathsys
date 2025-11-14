@@ -4,6 +4,7 @@
 
 //> HEAD -> CROSS-SCOPE TRAIT
 use crate::runtime::Value;
+use crate::runtime::Id;
 
 
 //^
@@ -18,8 +19,11 @@ pub struct _Variable {
 
 //> VARIABLE -> IMPLEMENTATION
 impl crate::runtime::Id for _Variable {const ID: &'static str = "_Variable";} 
-impl crate::runtime::Value for _Variable {
-    fn id(&self) -> &'static str {"_Variable"}
+impl Value for _Variable {
+    fn id(&self) -> &'static str {crate::ALLOCATOR.tempSpace(|| {crate::stdout::trace(&crate::format!(
+        "Element is of type {}",
+        Self::ID
+    ))}); return Self::ID}
     fn ctrlcv(&self) -> crate::Box<dyn crate::runtime::Value> {return crate::Box::new(self.clone())}
     fn locale(&self, code: u8) -> () {match code {
         0 => {crate::ALLOCATOR.tempSpace(|| {crate::stdout::trace(&crate::format!(

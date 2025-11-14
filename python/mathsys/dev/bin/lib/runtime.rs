@@ -35,6 +35,14 @@ impl<'a> Context<'a> {
         return instance;
     }
     fn set(&mut self, id: u32, value: crate::Box<dyn Value>) {self.cache[(id as usize) - 1] = value}
+    fn get(&self, id: u32) -> &dyn Value {
+        if id == 0 {return &crate::_Nexists {}}
+        crate::ALLOCATOR.tempSpace(|| {crate::stdout::trace(&crate::format!(
+            "Retrieving object with ID {}",
+            id
+        ))});
+        return &*self.cache[(id as usize) - 1]
+    }
     pub fn read(&self, id: u32) -> crate::Box<dyn Value> {
         if id == 0 {return (crate::_Nexists {}).ctrlcv()}
         crate::ALLOCATOR.tempSpace(|| {crate::stdout::trace(&crate::format!(
@@ -43,28 +51,22 @@ impl<'a> Context<'a> {
         ))});
         return self.cache[(id as usize) - 1].ctrlcv();
     }
-    pub fn get(&self, id: u32) -> &dyn Value {
-        if id == 0 {return &crate::_Nexists {}}
-        crate::ALLOCATOR.tempSpace(|| {crate::stdout::trace(&crate::format!(
-            "Retrieving object with ID {}",
-            id
-        ))});
-        return &*self.cache[(id as usize) - 1]
-    }
     pub fn process(&mut self, id: u32) -> () {
         let item = &self.memory[(id as usize) - 1];
         crate::ALLOCATOR.tempSpace(|| {crate::stdout::space(&crate::format!(
-            "[{}] Processing",
-            item.name()
+            "[{}] Processing ID {}",
+            item.name(),
+            id
         ))});
         let output = item.evaluate(self);
         self.set(id, output);
     }
     pub fn quick(&mut self) -> &dyn Value {
-        for (index, element) in self.memory.iter().enumerate() {
+        for element in self.memory.iter().rev().take(1) {
             if element.as_ref().name() == "Start" {
-                self.process((index + 1) as u32);
-                return self.get((index + 1) as u32)
+                let index = self.memory.len() as u32;
+                self.process(index);
+                return self.get(index);
             }
         }
         crate::stdout::crash(crate::stdout::Code::StartNotFound);
@@ -76,24 +78,13 @@ impl<'a> Context<'a> {
 //^ DOWNCASTING
 //^
 
-//> DOWNCASTING -> STATIC
+//> DOWNCASTING -> FUNCTION
 pub fn downcast<Type: Id>(value: &dyn Value) -> &Type {
     crate::ALLOCATOR.tempSpace(|| {crate::stdout::trace(&crate::format!(
-        "Statically downcasting a {}",
+        "Downcasting a {}",
         Type::ID
     ))});
     if value.id() != Type::ID {crate::stdout::crash(crate::stdout::Code::FailedDowncast)} else {
         return unsafe {&*(value as *const dyn Value as *const Type)}
-    }
-}
-
-//> DOWNCASTING -> MUTABLE
-pub fn mutDowncast<Type: Id>(value: &mut dyn Value) -> &mut Type {
-    crate::ALLOCATOR.tempSpace(|| {crate::stdout::trace(&crate::format!(
-        "Dinamically downcasting a {}",
-        Type::ID
-    ))});
-    if value.id() != Type::ID {crate::stdout::crash(crate::stdout::Code::FailedDowncast)} else {
-        return unsafe {&mut *(value as *mut dyn Value as *mut Type)}
     }
 }

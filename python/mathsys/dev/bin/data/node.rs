@@ -1,4 +1,12 @@
 //^
+//^ HEAD
+//^
+
+//> HEAD -> CROSS-SCOPE TRAIT
+use crate::converter::Class;
+
+
+//^
 //^ NODE
 //^
 
@@ -10,12 +18,20 @@ pub struct Node {
 //> NODE -> IMPLEMENTATION
 impl crate::converter::Class for Node {
     fn name(&self) -> &'static str {"Node"}
-    fn evaluate(&self, context: &mut crate::runtime::Context) -> crate::Box<dyn crate::runtime::Value> {
-        return crate::Box::new(crate::_Undefined {});
-    }
     fn locale(&self, code: u8) -> () {match code {
+        0 => {crate::ALLOCATOR.tempSpace(|| {crate::stdout::debug(&crate::format!(
+            "Expression to evaluate has an ID of {}",
+            self.pointer
+        ))})},
         _ => {crate::stdout::crash(crate::stdout::Code::LocaleNotFound)}
     }}
-} impl Node {pub fn new(pointer: u32) -> Self {return Node {
-    pointer: pointer
-}}}
+    fn evaluate(&self, context: &mut crate::runtime::Context) -> crate::Box<dyn crate::runtime::Value> {
+        self.locale(0);
+        context.process(self.pointer);
+        return crate::Box::new(crate::_Undefined {});
+    }
+} impl Node {
+    pub fn new(pointer: u32) -> Self {return Node {
+        pointer: pointer
+    }}
+}
