@@ -65,19 +65,22 @@ def validate(content: str) -> bool:
 @lru_cache(maxsize = None)
 @timeWrapper
 def latex(content: str) -> str: 
-    return _latex.run(_parser.run(content))
+    try: return _latex.run(_parser.run(content))
+    except Exception as error: print(str(error)); exit(1)
 
 #> MAIN -> WEB
 @lru_cache(maxsize = None)
 @timeWrapper
 def web(content: str) -> bytes: 
-    return _builder.run(_ir.run(_parser.run(content)), "web")
+    try: return _builder.run(_ir.run(_parser.run(content)), "web")
+    except Exception as error: print(str(error)); exit(1)
 
 #> MAIN -> UNIX_X86_X64
 @lru_cache(maxsize = None)
 @timeWrapper
 def unix_x86_64(content: str) -> bytes: 
-    return _builder.run(_ir.run(_parser.run(content)), "unix-x86-64")
+    try: return _builder.run(_ir.run(_parser.run(content)), "unix-x86-64")
+    except Exception as error: print(str(error)); exit(1)
 
 #> MAIN -> TARGET
 def wrapper(*arguments: str) -> None: 

@@ -152,7 +152,8 @@ class Parser(Transformer):
     #~ CLASS -> INIT
     def __init__(self, syntax: str) -> None: super(); self.parser = Lark(syntax, parser="earley")
     #~ CLASS -> RUN
-    def run(self, content: str) -> Start: return self.transform(self.parser.parse(content))
+    def run(self, content: str) -> Start: 
+        return self.transform(self.parser.parse(content))
     #~ CLASS -> LEVEL 1
     def level1(self, items: list[Level1]) -> Level1: return items[0]
     #~ CLASS -> LEVEL 2

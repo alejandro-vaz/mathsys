@@ -34,7 +34,7 @@ class Builder:
         os.close(descriptor)
         environment = os.environ.copy()
         environment["Mathsys"] = ir
-        try: subprocess.run(
+        subprocess.run(
             self.command(target, filename),
             cwd = os.path.dirname(os.path.abspath(__file__)),
             env = environment,
@@ -42,7 +42,6 @@ class Builder:
             text = True,
             check = True
         )
-        except: exit(1)
         with open(filename, "rb") as file: binary = file.read()
         os.remove(filename)
         os.remove(ir)

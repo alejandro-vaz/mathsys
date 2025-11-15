@@ -7,6 +7,7 @@ pub trait Value {
     fn id(&self) -> &'static str;
     fn ctrlcv(&self) -> crate::Box<dyn Value>;
     fn locale(&self, code: u8) -> ();
+    fn equiv(&self, to: crate::Box<dyn Value>) -> bool;
 }
 
 //> CONTEXT -> ID

@@ -1,1 +1,0 @@
-hello asd = 2*2x
