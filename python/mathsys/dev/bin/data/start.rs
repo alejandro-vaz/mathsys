@@ -1,4 +1,12 @@
 //^
+//^ HEAD
+//^
+
+//> HEAD -> CROSS-SCOPE TRAIT
+use crate::converter::Class;
+
+
+//^
 //^ START
 //^
 
@@ -10,13 +18,6 @@ pub struct Start {
 //> START -> IMPLEMENTATION
 impl crate::converter::Class for Start {
     fn name(&self) -> &'static str {"Start"}
-    fn evaluate(&self, context: &mut crate::runtime::Context) -> crate::Box<dyn crate::runtime::Value> {
-        self.locale(0);
-        for &statement in &self.statements {context.process(statement);}
-        self.locale(1);
-        self.locale(2);
-        return crate::Box::new(crate::_Undefined {});
-    }
     fn locale(&self, code: u8) -> () {match code {
         0 => {crate::ALLOCATOR.tempSpace(|| {crate::stdout::debug(&crate::format!(
             "There {} {} statement{}",
@@ -24,14 +25,30 @@ impl crate::converter::Class for Start {
             self.statements.len(),
             if self.statements.len() == 1 {""} else {"s"}
         ))})},
-        1 => {crate::stdout::space("Shutdown")},
-        2 => {crate::ALLOCATOR.tempSpace(|| {crate::stdout::debug(&crate::format!(
+        1 => {crate::ALLOCATOR.tempSpace(|| {crate::stdout::debug(&crate::format!(
+            "Statement ID{} {} {}",
+            if self.statements.len() == 1 {""} else {"s"},
+            if self.statements.len() == 1 {"is"} else {"are"},
+            self.statements.iter().map(|id| crate::format!("{}", id)).collect::<crate::Vec<_>>().join(", ")
+        ))})},
+        2 => {crate::stdout::space("[Start] Shutdown")},
+        3 => {crate::ALLOCATOR.tempSpace(|| {crate::stdout::debug(&crate::format!(
             "{} statement{} evaluated correctly",
             self.statements.len(),
             if self.statements.len() == 1 {""} else {"s"}
         ))})},
         _ => {crate::stdout::crash(crate::stdout::Code::LocaleNotFound)},
     }}
-} impl Start {pub fn new(statements: &[u32]) -> Self {return Start {
-    statements: statements.into()
-}}}
+    fn evaluate(&self, context: &mut crate::runtime::Context) -> crate::Box<dyn crate::runtime::Value> {
+        self.locale(0);
+        self.locale(1);
+        for &statement in &self.statements {context.process(statement);}
+        self.locale(2);
+        self.locale(3);
+        return crate::Box::new(crate::_Undefined {});
+    }
+} impl Start {
+    pub fn new(statements: &[u32]) -> Self {return Start {
+        statements: statements.into()
+    }}
+}

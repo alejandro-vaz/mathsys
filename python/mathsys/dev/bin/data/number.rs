@@ -1,4 +1,12 @@
 //^
+//^ HEAD
+//^
+
+//> HEAD -> CROSS-SCOPE TRAIT
+use crate::converter::Class;
+
+
+//^
 //^ NUMBER
 //^
 
@@ -11,16 +19,25 @@ pub struct Number {
 //> NUMBER -> IMPLEMENTATION
 impl crate::converter::Class for Number {
     fn name(&self) -> &'static str {"Number"}
-    fn evaluate(&self, context: &mut crate::runtime::Context) -> crate::Box<dyn crate::runtime::Value> {
-        return crate::Box::new(crate::_Number {
-            value: self.value,
-            shift: self.shift
-        });
-    }
     fn locale(&self, code: u8) -> () {match code {
+        0 => {crate::ALLOCATOR.tempSpace(|| {crate::stdout::debug(&crate::format!(
+            "New number is of value {} and shiht {}",
+            self.value,
+            self.shift
+        ))})},
         _ => {crate::stdout::crash(crate::stdout::Code::LocaleNotFound)}
     }}
-} impl Number {pub fn new(value: u32, shift: u8) -> Self {return Number {
-    value: value,
-    shift: shift
-}}}
+    fn evaluate(&self, context: &mut crate::runtime::Context) -> crate::Box<dyn crate::runtime::Value> {
+        self.locale(0);
+        return crate::Box::new(crate::_Number {
+            value: self.value,
+            shift: self.shift,
+            negative: false
+        });
+    }
+} impl Number {
+    pub fn new(value: u32, shift: u8) -> Self {return Number {
+        value: value,
+        shift: shift
+    }}
+}

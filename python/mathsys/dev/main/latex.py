@@ -4,7 +4,6 @@
 
 #> HEAD -> DATACLASSES
 from dataclasses import dataclass
-from functools import lru_cache
 from .parser import (
     #~ DATACLASSES -> START
     Start,
@@ -88,13 +87,7 @@ VARIABLES = {
     "psi": r"\psi ",
     "Psi": r"\Psi ",
     "omega": r"\omega ",
-    "Omega": r"\Omega ",
-    "varepsilon": r"\varepsilon ",
-    "vartheta": r"\vartheta ",
-    "varpi": r"\varpi ",
-    "varrho": r"\varrho ",
-    "varsigma": r"\varsigma ",
-    "varphi": r"\varphi "
+    "Omega": r"\Omega "
 }
 
 #> MAPPINGS -> SPECIAL
@@ -113,12 +106,12 @@ SPECIAL = {
 #> START -> CLASS
 @dataclass(frozen = True)
 class LTXStart:
-    statements: tuple[str]
+    statements: list[str]
     def __str__(self) -> str:
         match len(self.statements):
-            case 0: delimiters = ("", "")
-            case 1: delimiters = (r"\(", r"\)")
-            case _: delimiters = (r"\[", r"\]")
+            case 0: delimiters = ["", ""]
+            case 1: delimiters = [r"\(", r"\)"]
+            case _: delimiters = [r"\[", r"\]"]
         values = r"\\ ".join(self.statements)
         while values.startswith(r"\\"): values = values[2:]
         return f"{delimiters[0]}{values}{delimiters[1]}"
@@ -175,8 +168,8 @@ class LTXComment:
 #> 2ºLEVEL -> EXPRESSION
 @dataclass(frozen = True)
 class LTXExpression:
-    signs: tuple[str]
-    terms: tuple[str]
+    signs: list[str]
+    terms: list[str]
     def __str__(self) -> str:
         string = "".join([f"{self.signs[index]}{self.terms[index]}" for index in range(len(self.terms))])
         return string
@@ -189,8 +182,8 @@ class LTXExpression:
 #> 3ºLEVEL -> TERM
 @dataclass(frozen = True)
 class LTXTerm:
-    numerator: tuple[str]
-    denominator: tuple[str]
+    numerator: list[str]
+    denominator: list[str]
     def __str__(self) -> str:
         numerator = "".join(self.numerator)
         denominator = "".join(self.denominator)
@@ -240,7 +233,8 @@ class LTXInfinite:
 class LTXVariable:
     name: str
     def __str__(self) -> str:
-        curated = VARIABLES.get(self.name, self.name)
+        curated = self.name
+        for source, replace in VARIABLES.items(): curated = curated.replace(source, replace)
         return curated
 
 #> 5ºLEVEL -> NEST
@@ -253,7 +247,7 @@ class LTXNest:
 #> 5ºLEVEL -> VECTOR
 @dataclass(frozen = True)
 class LTXVector:
-    values: tuple[str]
+    values: list[str]
     def __str__(self) -> str:
         inside = r"\; " if len(self.values) == 0 else r"\\ ".join(self.values)
         return fr"\begin{{bmatrix}}{inside}\end{{bmatrix}}"
@@ -277,12 +271,11 @@ class LaTeX:
     #~ GENERATOR -> INIT
     def __init__(self) -> None: pass
     #~ GENERATOR -> RUN
-    @lru_cache(maxsize = None)
     def run(self, start: Start) -> str: return self.start(start)
     #~ GENERATOR -> START GENERATION
     def start(self, start: Start) -> str:
         return str(LTXStart(
-            statements = tuple([self.level1(statement) for statement in start.statements if self.level1(statement)])
+            statements = [self.level1(statement) for statement in start.statements if self.level1(statement)]
         ))
     #~ GENERATOR -> 1 LEVEL GENERATION
     def level1(self, level1: Level1) -> str:
@@ -327,8 +320,8 @@ class LaTeX:
     #~ GENERATOR -> 2 EXPRESSION GENERATION
     def expression(self, expression: Expression) -> str:
         return str(LTXExpression(
-            signs = tuple([sign if sign is not None else "" for sign in expression.signs]),
-            terms = tuple([self.level3(term) for term in expression.terms])
+            signs = [sign if sign is not None else "" for sign in expression.signs],
+            terms = [self.level3(term) for term in expression.terms]
         ))
     #~ GENERATOR -> 3 LEVEL GENERATION
     def level3(self, level3: Level3) -> str:
@@ -361,8 +354,8 @@ class LaTeX:
                 else: value = r"\cdot " + value
             denominator.append(value)
         return str(LTXTerm(
-            numerator = tuple(numerator),
-            denominator = tuple(denominator)
+            numerator = numerator,
+            denominator = denominator
         ))
     #~ GENERATOR -> 4 LEVEL GENERATION
     def level4(self, level4: Level4) -> str:
@@ -408,7 +401,7 @@ class LaTeX:
     #~ GENERATOR -> 5 VECTOR GENERATION
     def vector(self, vector: Vector) -> str:
         return str(LTXVector(
-            values = tuple([self.expression(value) for value in vector.values])
+            values = [self.expression(value) for value in vector.values]
         ))
     #~ GENERATOR -> 5 NUMBER GENERATION
     def number(self, number: Number) -> str:

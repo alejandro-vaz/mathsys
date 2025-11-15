@@ -1,4 +1,12 @@
 //^
+//^ HEAD
+//^
+
+//> HEAD -> CROSS-SCOPE TRAIT
+use crate::converter::Class;
+
+
+//^
 //^ DEFINITION
 //^
 
@@ -11,6 +19,18 @@ pub struct Definition {
 //> DEFINITION -> IMPLEMENTATION
 impl crate::converter::Class for Definition {
     fn name(&self) -> &'static str {"Definition"}
+    fn locale(&self, code: u8) -> () {match code {
+        0 => {crate::ALLOCATOR.tempSpace(|| {crate::stdout::debug(&crate::format!(
+            "Variable ID is {}",
+            self.variable
+        ))})},
+        1 => {crate::ALLOCATOR.tempSpace(|| {crate::stdout::debug(&crate::format!(
+            "Main expression ID is {}",
+            self.pointer
+        ))})},
+        2 => {crate::stdout::space("[Definition] Assigning immutable variable")},
+        _ => {crate::stdout::crash(crate::stdout::Code::LocaleNotFound)}
+    }}
     fn evaluate(&self, context: &mut crate::runtime::Context) -> crate::Box<dyn crate::runtime::Value> {
         self.locale(0);
         self.locale(1);
@@ -26,19 +46,9 @@ impl crate::converter::Class for Definition {
         variable.set(pointer, false, context);
         return crate::Box::new(crate::_Undefined {});
     }
-    fn locale(&self, code: u8) -> () {match code {
-        0 => {crate::ALLOCATOR.tempSpace(|| {crate::stdout::debug(&crate::format!(
-            "Variable ID is {}",
-            self.variable
-        ))})},
-        1 => {crate::ALLOCATOR.tempSpace(|| {crate::stdout::debug(&crate::format!(
-            "Main expression ID is {}",
-            self.pointer
-        ))})},
-        2 => {crate::stdout::space("Assigning immutable variable")},
-        _ => {crate::stdout::crash(crate::stdout::Code::LocaleNotFound)}
+} impl Definition {
+    pub fn new(variable: u32, pointer: u32) -> Self {return Definition {
+        variable: variable,
+        pointer: pointer
     }}
-} impl Definition {pub fn new(variable: u32, pointer: u32) -> Self {return Definition {
-    variable: variable,
-    pointer: pointer
-}}}
+}

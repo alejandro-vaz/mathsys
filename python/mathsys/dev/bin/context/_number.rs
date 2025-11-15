@@ -4,6 +4,7 @@
 
 //> HEAD -> CROSS-SCOPE TRAIT
 use crate::runtime::Value;
+use crate::runtime::Id;
 
 
 //^
@@ -14,15 +15,30 @@ use crate::runtime::Value;
 #[derive(Clone)]
 pub struct _Number {
     pub value: u32,
-    pub shift: u8
+    pub shift: u8,
+    pub negative: bool
 }
 
 //> NUMBER -> IMPLEMENTATION
-impl crate::runtime::Id for _Number {const ID: &'static str = "_Number";} 
-impl crate::runtime::Value for _Number {
-    fn id(&self) -> &'static str {"_Number"}
-    fn ctrlcv(&self) -> crate::Box<dyn crate::runtime::Value> {return crate::Box::new(self.clone())}
+impl Id for _Number {const ID: &'static str = "_Number";} 
+impl Value for _Number {
+    fn id(&self) -> &'static str {crate::ALLOCATOR.tempSpace(|| {crate::stdout::trace(&crate::format!(
+        "Selected element is of type {}",
+        Self::ID
+    ))}); return Self::ID}
+    fn ctrlcv(&self) -> crate::Box<dyn Value> {return crate::Box::new(self.clone())}
     fn locale(&self, code: u8) -> () {match code {
         _ => {crate::stdout::crash(crate::stdout::Code::LocaleNotFound)}
+    }}
+    fn equiv(&self, to: crate::Box<dyn Value>) -> bool {self.id(); return match to.id() {
+        "_Infinity" => to.equiv(self.ctrlcv()),
+        "_Nexists" => to.equiv(self.ctrlcv()),
+        "_Number" => {
+            let value = crate::runtime::downcast::<crate::_Number>(&*to);
+            self.value == value.value && self.shift == value.shift && self.negative == value.negative
+        },
+        "_Undefined" => false,
+        "_Variable" => false,
+        _ => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
     }}
 } impl _Number {}

@@ -1,4 +1,12 @@
 //^
+//^ HEAD
+//^
+
+//> HEAD -> CROSS-SCOPE TRAIT
+use crate::converter::Class;
+
+
+//^
 //^ VECTOR
 //^
 
@@ -10,12 +18,14 @@ pub struct Vector {
 //> VECTOR -> IMPLEMENTATION
 impl crate::converter::Class for Vector {
     fn name(&self) -> &'static str {"Vector"}
-    fn evaluate(&self, context: &mut crate::runtime::Context) -> crate::Box<dyn crate::runtime::Value> {
-        return crate::Box::new(crate::_Undefined {})
-    }
     fn locale(&self, code: u8) -> () {match code {
         _ => {crate::stdout::crash(crate::stdout::Code::LocaleNotFound)}
     }}
-} impl Vector {pub fn new(values: &[u32]) -> Self {return Vector {
-    values: values.into()
-}}}
+    fn evaluate(&self, context: &mut crate::runtime::Context) -> crate::Box<dyn crate::runtime::Value> {
+        return crate::Box::new(crate::_Undefined {})
+    }
+} impl Vector {
+    pub fn new(values: &[u32]) -> Self {return Vector {
+        values: values.into()
+    }}
+}
