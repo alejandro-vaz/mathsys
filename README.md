@@ -39,7 +39,7 @@ where `.msX` stands for `.ms1` ... `.ms2` and `.msd`.
 You will need `rustc` installed with the target you are compiling to. If that feels too cumbersome (it really is), try it out first on [Abscissa.](https://app.abscissa.eu/playground)
 
 > [!NOTE]
-> Targets available are: `watch`, `validate`, `latex`, `web` and `unix-x86-64`.
+> Targets available are: `validate`, `latex`, `web` and `unix-x86-64`.
 
 ## Project Status
 Mathsys is actively developed with regular releases every 1-3 weeks. This project is still in its early stages, so expect major shifts and changes. Most features aren't close to being developed yet.
