@@ -23,6 +23,7 @@ pub struct Converter {
 //> CONVERTER -> IMPLEMENTATION
 impl Converter {
     pub fn run(&mut self) -> &crate::Vec<crate::Box <dyn Class>> {
+        crate::stdout::space("[CONVERTER] Processing IR");
         while self.locus < crate::SETTINGS.ir.len() {
             let object = match self.use8() {
                 0x01 => self.start(),

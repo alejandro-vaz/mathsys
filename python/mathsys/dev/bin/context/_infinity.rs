@@ -21,6 +21,9 @@ pub struct _Infinity {
 impl Id for _Infinity {const ID: &'static str = "_Infinity";} 
 impl Value for _Infinity {
     fn id(&self) -> &'static str {return Self::ID}
+    fn info(&self) -> () {
+        crate::stdout::debug(&crate::format!("> negative = {}", self.negative));
+    }
     fn ctrlcv(&self) -> crate::Box<dyn Value> {self.genlocale(0); return crate::Box::new(self.clone())}
     fn equiv(&self, to: crate::Box<dyn Value>) -> bool {self.genlocale(1); return match to.id() {
         "_Infinity" => {
@@ -41,12 +44,13 @@ impl Value for _Infinity {
                 let value = crate::runtime::mutcast::<crate::_Infinity>(&mut *to);
                 if inverse {value.negate()}
                 if self.negative != value.negative {
-                    crate::Box::new(crate::_Undefined {})
+                    let result = crate::_Undefined {};
+                    result.ctrlcv()
                 } else {self.ctrlcv()}
             },
             "_Nexists" => self.ctrlcv(),
             "_Number" => self.ctrlcv(),
-            "_Undefined" => to,
+            "_Undefined" => to.ctrlcv(),
             "_Variable" => crate::stdout::crash(crate::stdout::Code::UnexpectedValue),
             other => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
         }

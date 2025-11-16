@@ -21,6 +21,9 @@ pub struct _Variable {
 impl Id for _Variable {const ID: &'static str = "_Variable";} 
 impl Value for _Variable {
     fn id(&self) -> &'static str {return Self::ID}
+    fn info(&self) -> () {
+        crate::stdout::debug(&crate::format!("> name = {}", self.name));
+    }
     fn ctrlcv(&self) -> crate::Box<dyn Value> {self.genlocale(0); return crate::Box::new(self.clone())}
     fn equiv(&self, to: crate::Box<dyn Value>) -> bool {self.genlocale(1); return match to.id() {
         "_Infinity" => to.equiv(self.ctrlcv()),
@@ -81,6 +84,6 @@ impl Value for _Variable {
         for (key, value) in &context.immutable {if key == &self.name {return value.ctrlcv()}}
         for (key, value) in &context.mutable {if key == &self.name {return value.ctrlcv()}}
         self.locale(3);
-        return (crate::_Undefined {}).ctrlcv();
+        return crate::Box::new(crate::_Undefined {});
     }
 }

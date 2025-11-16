@@ -23,6 +23,9 @@ pub struct _Number {
 impl Id for _Number {const ID: &'static str = "_Number";} 
 impl Value for _Number {
     fn id(&self) -> &'static str {return Self::ID}
+    fn info(&self) -> () {
+        crate::stdout::debug(&crate::format!("> value = {}, shift = {}, negative = {}", self.value, self.shift, self.negative));
+    }
     fn ctrlcv(&self) -> crate::Box<dyn Value> {self.genlocale(0); return crate::Box::new(self.clone())}
     fn equiv(&self, to: crate::Box<dyn Value>) -> bool {self.genlocale(1); return match to.id() {
         "_Infinity" => to.equiv(self.ctrlcv()),
@@ -59,13 +62,14 @@ impl Value for _Number {
                     if self.value >= value.value {self.negative}
                     else {value.negative}
                 };
-                return crate::Box::new(crate::_Number {
+                let result = crate::Box::new(crate::_Number {
                     value: total,
                     shift: shift,
                     negative: negative
                 });
+                result.ctrlcv()
             },
-            "_Undefined" => to,
+            "_Undefined" => to.ctrlcv(),
             "_Variable" => crate::stdout::crash(crate::stdout::Code::UnexpectedValue),
             other => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
         }

@@ -21,7 +21,7 @@ fn print(string: &str, append: &[u8]) -> () {
 //> FORMATTING -> MEMORY SIGNATURE
 fn signature() -> crate::String {return crate::format!(
     "    {}",
-    crate::formatting::scientific(crate::ALLOCATOR.mark())
+    crate::formatting::scientific(crate::allocator::mark())
 )}
 
 

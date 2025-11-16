@@ -10,6 +10,7 @@
 #![allow(non_snake_case)]
 #![feature(const_cmp)]
 #![feature(const_trait_impl)]
+#![feature(allocator_api)]
 
 //> HEAD -> SYSTEM CRATES
 extern crate alloc;
@@ -87,6 +88,7 @@ use lib::*;
 
 //> PULLS -> ALLOC
 use alloc::vec::Vec;
+use alloc::vec;
 use alloc::boxed::Box;
 use alloc::format;
 use alloc::string::String;
@@ -121,12 +123,7 @@ static SETTINGS: Settings = Settings {
         env!("MathsysMinor"), 
         env!("MathsysPatch")
     ],
-    memsize: match env!("MathsysMemory") {
-        "page" => 2usize.pow(12),
-        "basic" => 2usize.pow(16),
-        "maximum" => 2usize.pow(22),
-        other => 2usize.pow(16)
-    },
+    memsize: 4096,
     block: match env!("MathsysOptimization") {
         "very low" => 2usize.pow(7),
         "low" => 2usize.pow(6),
@@ -143,22 +140,18 @@ static SETTINGS: Settings = Settings {
     width: 100
 };
 
-//> GLOBALS -> ALLOCATOR
-#[repr(align(128))]
-struct AlignedHeap {data: [u8; SETTINGS.memsize]}
-static mut HEAP: AlignedHeap = AlignedHeap {data: [0; SETTINGS.memsize]};
-#[global_allocator]
-static ALLOCATOR: allocator::Allocator = allocator::Allocator::new();
-
 
 //^
 //^ ENTRY
 //^
 
+//> ENTRY -> ALLOCATOR
+#[global_allocator]
+static ALLOCATOR: allocator::Allocator = allocator::Allocator::new();
+
 //> ENTRY -> POINT
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
-    ALLOCATOR.reset();
     stdout::login();
     stdout::debug(&format!(
         "Total heap size is {}B",
@@ -179,7 +172,6 @@ pub extern "C" fn _start() -> ! {
 
 //> RUNTIME -> FUNCTION
 fn run() -> () {
-    stdout::space("Processing IR");
     let mut converter = converter::Converter::new();
     let memory = converter.run();
     let mut context = runtime::Context::new(memory.len(), memory);
