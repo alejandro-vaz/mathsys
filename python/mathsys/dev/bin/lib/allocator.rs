@@ -3,10 +3,16 @@
 //^
 
 //> ALLOCATOR -> HEAP
+#[repr(align(128))]
+struct Heap([u8; crate::SETTINGS.memsize]);
+static mut HEAP: Heap = Heap([0; crate::SETTINGS.memsize]);
+
+//> ALLOCATOR -> BITMAP
 static BITMAP: [crate::AtomicBool; crate::SETTINGS.memsize / crate::SETTINGS.block] = [
     const {crate::AtomicBool::new(false)}; 
     crate::SETTINGS.memsize / crate::SETTINGS.block
 ];
+
 
 //> ALLOCATOR -> STRUCT
 pub struct Allocator {}
@@ -37,13 +43,8 @@ unsafe impl crate::GlobalAlloc for Allocator {
 //> ALLOCATOR -> METHODS
 impl Allocator {
     pub const fn new() -> Self {Allocator {}}
-    pub fn reset(&self) -> () {self.free(0, crate::SETTINGS.memsize / crate::SETTINGS.block)}
-    pub fn mark(&self) -> usize {
-        let mut using = 0;
-        for block in BITMAP.iter() {if block.load(crate::Ordering::Acquire) {using += 1}}
-        return using * crate::SETTINGS.block;
-    }
-    fn start(&self) -> usize {return unsafe {crate::HEAP.data.as_ptr() as usize}}
+    fn reset(&self) -> () {self.free(0, crate::SETTINGS.memsize / crate::SETTINGS.block)}
+    fn start(&self) -> usize {return unsafe {HEAP.0.as_ptr() as usize}}
     fn blockAmount(&self, size: usize) -> usize {return (size + crate::SETTINGS.block - 1) / crate::SETTINGS.block}
     fn search(&self, amount: usize) -> usize {
         let mut count = 0;
@@ -83,4 +84,16 @@ impl Allocator {
     fn free(&self, from: usize, amount: usize) -> () {
         for index in from..(from + amount) {BITMAP[index].store(false, crate::Ordering::Release)}
     }
+}
+
+
+//^
+//^ STATISTICS
+//^
+
+//> STATISTICS -> MARK
+pub fn mark() -> usize {
+    let mut using = 0;
+    for block in BITMAP.iter() {if block.load(crate::Ordering::Acquire) {using += 1}};
+    return using * crate::SETTINGS.block;
 }

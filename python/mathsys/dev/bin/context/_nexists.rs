@@ -19,6 +19,9 @@ pub struct _Nexists {}
 impl Id for _Nexists {const ID: &'static str = "_Nexists";} 
 impl Value for _Nexists {
     fn id(&self) -> &'static str {return Self::ID}
+    fn info(&self) -> () {
+        crate::stdout::debug(&crate::format!("> "));
+    }
     fn ctrlcv(&self) -> crate::Box<dyn Value> {self.genlocale(0); return crate::Box::new(self.clone())}
     fn equiv(&self, to: crate::Box<dyn Value>) -> bool {self.genlocale(1); return match to.id() {
         "_Infinity" => to.equiv(self.ctrlcv()),
@@ -33,8 +36,12 @@ impl Value for _Nexists {
         return match to.id() {
             "_Infinity" => to.summation(self.ctrlcv(), false, inverse),
             "_Nexists" => self.ctrlcv(),
-            "_Number" => to,
-            "_Undefined" => to,
+            "_Number" => {
+                let value = crate::runtime::mutcast::<crate::_Number>(&mut *to);
+                if inverse {value.negate()}
+                value.ctrlcv()
+            },
+            "_Undefined" => to.ctrlcv(),
             "_Variable" => crate::stdout::crash(crate::stdout::Code::UnexpectedValue),
             other => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
         }

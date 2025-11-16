@@ -37,7 +37,6 @@ class Builder:
         os.close(descriptor)
         environment = os.environ.copy()
         environment["MathsysSource"] = ir
-        environment["MathsysMemory"] = "basic"
         environment["MathsysOptimization"] = "default"
         environment["MathsysPrecision"] = "standard"
         environment["MathsysMajor"] = str(__version_info__[0])

@@ -5,25 +5,26 @@
 //> CONTEXT -> VALUE
 pub trait Value {
     fn id(&self) -> &'static str;
+    fn info(&self) -> ();
     fn ctrlcv(&self) -> crate::Box<dyn Value>;
     fn equiv(&self, to: crate::Box<dyn Value>) -> bool;
     fn summation(&mut self, to: crate::Box<dyn Value>, inverse: bool, selfinverse: bool) -> crate::Box<dyn Value>;
     fn locale(&self, code: u8) -> ();
     fn genlocale(&self, code: u8) -> () {match code {
         0 => crate::stdout::trace(&crate::format!(
-            "Copying element of type {}",
+            "Copying {}",
             self.id()
         )),
         1 => crate::stdout::trace(&crate::format!(
-            "Checking equivalency of an element of type {}",
+            "Checking equivalency of {}",
             self.id()
         )),
         2 => crate::stdout::trace(&crate::format!(
-            "Adding an element of type {}",
+            "Adding {}",
             self.id()
         )),
         other => crate::stdout::crash(crate::stdout::Code::LocaleNotFound)
-    }}
+    }; self.info()}
 }
 
 //> CONTEXT -> ID

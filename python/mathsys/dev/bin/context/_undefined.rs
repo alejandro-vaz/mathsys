@@ -19,6 +19,9 @@ pub struct _Undefined {}
 impl Id for _Undefined {const ID: &'static str = "_Undefined";} 
 impl Value for _Undefined {
     fn id(&self) -> &'static str {return Self::ID}
+    fn info(&self) -> () {
+        crate::stdout::debug(&crate::format!("> "));
+    }
     fn ctrlcv(&self) -> crate::Box<dyn Value> {self.genlocale(0); return crate::Box::new(self.clone())}
     fn equiv(&self, to: crate::Box<dyn Value>) -> bool {self.genlocale(1); return match to.id() {
         "_Infinity" => to.equiv(self.ctrlcv()),

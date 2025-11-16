@@ -67,12 +67,12 @@ def validate(content: str) -> bool:
 def latex(content: str) -> str: return _latex.run(_parser.run(content))
 
 #> MAIN -> WEB
-@lru_cache(maxsize = None)
+@lru_cache(maxsize = 256)
 @timeWrapper
 def web(content: str) -> bytes: return _builder.run(_ir.run(_parser.run(content)), "web")
 
 #> MAIN -> UNIX_X86_X64
-@lru_cache(maxsize = None)
+@lru_cache(maxsize = 256)
 @timeWrapper
 def unix_x86_64(content: str) -> bytes: return _builder.run(_ir.run(_parser.run(content)), "unix-x86-64")
 
@@ -88,11 +88,7 @@ def wrapper(*arguments: str) -> None:
             components[-1] = "ltx"
             with open(".".join(components), "w") as destination:
                 try: destination.write(latex(content))
-                except Exception as error: 
-                    message = str(error)
-                    print(message)
-                    destination.write(message)
-                    exit(1)
+                except Exception as error: print(str(error)); exit(1)
         case "web": 
             components[-1] = "wasm"
             with open(".".join(components), "wb") as destination:
