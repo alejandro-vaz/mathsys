@@ -3,8 +3,8 @@
 #^
 
 #> EXPORTS -> VERSION
-__version__ = "3.7.40"
-__version_info__ = (3, 7, 0)
+__version__ = "3.9.10"
+__version_info__ = tuple([int(number) for number in __version__.split(".")])
 
 #> EXPORTS -> LATEST
 from .v2 import (

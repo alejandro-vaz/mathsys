@@ -1,6 +1,6 @@
 {
   "name": "mathsys",
-  "version": "3.7.40",
+  "version": "3.9.10",
   "type": "module",
   "description": "The Domain Specific Language for math.",
   "scripts": {

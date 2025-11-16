@@ -124,7 +124,7 @@ class Variable(Level5):
 #> 5ºLEVEL -> NEST
 @dataclass(frozen = True)
 class Nest(Level5):
-    expression: Expression
+    expression: Expression | None
 
 #> 5ºLEVEL -> VECTOR
 @dataclass(frozen = True)
@@ -246,7 +246,7 @@ class Parser(Transformer):
     #~ CLASS -> 5 NEST CONSTRUCT
     def nest(self, items: list[Expression]) -> Nest:
         return Nest(
-            expression = items[0]
+            expression = items[0] if len(items) == 1 else None
         )
     #~ CLASS -> 5 VECTOR CONSTRUCT
     def vector(self, items: list[Expression]) -> Vector:

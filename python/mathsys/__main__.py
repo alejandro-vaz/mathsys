@@ -17,5 +17,5 @@ if __name__ == "__main__":
             case value if value.endswith(".ms1"): wrapper1(*sys.argv[1:])
             case value if value.endswith(".ms2"): wrapper2(*sys.argv[1:])
             case value if value.endswith(".msd"): wrapperDev(*sys.argv[1:])
-            case _: sys.exit("[ENTRY ISSUE] Usage: python -m mathsys <target> <filename>.msX.") 
+            case other: sys.exit("[ENTRY ISSUE] Usage: python -m mathsys <target> <filename>.msX.") 
     else: sys.exit("[ENTRY ISSUE] Usage: python -m mathsys <target> <filename>.msX.") 

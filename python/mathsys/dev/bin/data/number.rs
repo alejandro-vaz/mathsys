@@ -4,6 +4,7 @@
 
 //> HEAD -> CROSS-SCOPE TRAIT
 use crate::converter::Class;
+use crate::runtime::Value;
 
 
 //^
@@ -20,14 +21,14 @@ pub struct Number {
 impl crate::converter::Class for Number {
     fn name(&self) -> &'static str {"Number"}
     fn locale(&self, code: u8) -> () {match code {
-        0 => {crate::ALLOCATOR.tempSpace(|| {crate::stdout::debug(&crate::format!(
-            "New number is of value {} and shiht {}",
+        0 => crate::stdout::debug(&crate::format!(
+            "New number is of value {} and shift {}",
             self.value,
             self.shift
-        ))})},
-        _ => {crate::stdout::crash(crate::stdout::Code::LocaleNotFound)}
+        )),
+        other => crate::stdout::crash(crate::stdout::Code::LocaleNotFound)
     }}
-    fn evaluate(&self, context: &mut crate::runtime::Context) -> crate::Box<dyn crate::runtime::Value> {
+    fn evaluate(&self, context: &mut crate::runtime::Context) -> crate::Box<dyn Value> {
         self.locale(0);
         return crate::Box::new(crate::_Number {
             value: self.value,

@@ -20,25 +20,44 @@ pub struct _Infinity {
 //> INFINITY -> IMPLEMENTATION
 impl Id for _Infinity {const ID: &'static str = "_Infinity";} 
 impl Value for _Infinity {
-    fn id(&self) -> &'static str {crate::ALLOCATOR.tempSpace(|| {crate::stdout::trace(&crate::format!(
-        "Selected element is of type {}",
-        Self::ID
-    ))}); return Self::ID}
-    fn ctrlcv(&self) -> crate::Box<dyn Value> {return crate::Box::new(self.clone())}
-    fn locale(&self, code: u8) -> () {match code {
-        _ => {crate::stdout::crash(crate::stdout::Code::LocaleNotFound)}
-    }}
-    fn equiv(&self, to: crate::Box<dyn Value>) -> bool {self.id(); return match to.id() {
+    fn id(&self) -> &'static str {return Self::ID}
+    fn ctrlcv(&self) -> crate::Box<dyn Value> {self.genlocale(0); return crate::Box::new(self.clone())}
+    fn equiv(&self, to: crate::Box<dyn Value>) -> bool {self.genlocale(1); return match to.id() {
         "_Infinity" => {
             let value = crate::runtime::downcast::<crate::_Infinity>(&*to);
             self.negative == value.negative
-        }
+        },
         "_Nexists" => false,
         "_Number" => false,
         "_Undefined" => false,
         "_Variable" => false,
-        _ => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
+        other => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
+    }}
+    fn summation(&mut self, mut to: crate::Box<dyn Value>, inverse: bool, selfinverse: bool) -> crate::Box<dyn Value> {
+        self.genlocale(2);
+        if selfinverse {self.negate()}; 
+        return match to.id() {
+            "_Infinity" => {
+                let value = crate::runtime::mutcast::<crate::_Infinity>(&mut *to);
+                if inverse {value.negate()}
+                if self.negative != value.negative {
+                    crate::Box::new(crate::_Undefined {})
+                } else {self.ctrlcv()}
+            },
+            "_Nexists" => self.ctrlcv(),
+            "_Number" => self.ctrlcv(),
+            "_Undefined" => to,
+            "_Variable" => crate::stdout::crash(crate::stdout::Code::UnexpectedValue),
+            other => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
+        }
+    }
+    fn locale(&self, code: u8) -> () {match code {
+        0 => crate::stdout::trace(&crate::format!(
+            "Inverting sign of infinite to be {}",
+            if !self.negative {"positive"} else {"negative"}
+        )),
+        other => crate::stdout::crash(crate::stdout::Code::LocaleNotFound)
     }}
 } impl _Infinity {
-    pub fn change(&mut self) -> () {self.negative = !self.negative}
+    pub fn negate(&mut self) -> () {self.locale(0); self.negative = !self.negative}
 }

@@ -210,7 +210,7 @@ class IRVariable(Sequence):
 @dataclass
 class IRNest(Sequence):
     code = u8(0x0D)
-    pointer: u32
+    pointer: u32 | null32
     def __bytes__(self) -> bytes:
         return self.code + self.pointer
 
@@ -367,7 +367,7 @@ class IR:
     #~ IR -> 5 NEST GENERATION
     def nest(self, nest: Nest) -> u32:
         self.ir.append(IRNest(
-            pointer = self.expression(nest.expression)
+            pointer = self.expression(nest.expression) if nest.expression is not None else null32()
         ))
         return self.new()
     #~ IR -> 5 VECTOR GENERATION

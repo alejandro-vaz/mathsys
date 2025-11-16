@@ -64,23 +64,17 @@ def validate(content: str) -> bool:
 #> MAIN -> LATEX
 @lru_cache(maxsize = None)
 @timeWrapper
-def latex(content: str) -> str: 
-    try: return _latex.run(_parser.run(content))
-    except Exception as error: print(str(error)); exit(1)
+def latex(content: str) -> str: return _latex.run(_parser.run(content))
 
 #> MAIN -> WEB
 @lru_cache(maxsize = None)
 @timeWrapper
-def web(content: str) -> bytes: 
-    try: return _builder.run(_ir.run(_parser.run(content)), "web")
-    except Exception as error: print(str(error)); exit(1)
+def web(content: str) -> bytes: return _builder.run(_ir.run(_parser.run(content)), "web")
 
 #> MAIN -> UNIX_X86_X64
 @lru_cache(maxsize = None)
 @timeWrapper
-def unix_x86_64(content: str) -> bytes: 
-    try: return _builder.run(_ir.run(_parser.run(content)), "unix-x86-64")
-    except Exception as error: print(str(error)); exit(1)
+def unix_x86_64(content: str) -> bytes: return _builder.run(_ir.run(_parser.run(content)), "unix-x86-64")
 
 #> MAIN -> TARGET
 def wrapper(*arguments: str) -> None: 
@@ -93,13 +87,20 @@ def wrapper(*arguments: str) -> None:
         case "latex": 
             components[-1] = "ltx"
             with open(".".join(components), "w") as destination:
-                destination.write(latex(content))
+                try: destination.write(latex(content))
+                except Exception as error: 
+                    message = str(error)
+                    print(message)
+                    destination.write(message)
+                    exit(1)
         case "web": 
             components[-1] = "wasm"
             with open(".".join(components), "wb") as destination:
-                destination.write(web(content))
+                try: destination.write(web(content))
+                except Exception as error: print(str(error)); exit(1)
         case "unix-x86-64": 
             components.pop()
             with open(".".join(components), "wb") as destination:
-                destination.write(unix_x86_64(content))
-        case _: sys.exit(f"[ENTRY ISSUE] Unknown command. Available commands: validate, latex, web, unix-x86-64.")
+                try: destination.write(unix_x86_64(content))
+                except Exception as error: print(str(error)); exit(1)
+        case other: sys.exit("[ENTRY ISSUE] Unknown command. Available commands: validate, latex, web, unix-x86-64.")

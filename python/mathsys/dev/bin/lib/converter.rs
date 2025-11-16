@@ -40,7 +40,7 @@ impl Converter {
                 0x0D => self.nest(),
                 0x0E => self.vector(),
                 0x0F => self.number(),
-                _ => crate::stdout::crash(crate::stdout::Code::UnknownIRObject)
+                other => crate::stdout::crash(crate::stdout::Code::UnknownIRObject)
             };
             self.memory.push(object);
         };
