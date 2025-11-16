@@ -21,7 +21,7 @@ limit: _LIM _S variable _S? _TO _S? expression SIGN? _S _OF _S nest (_EXPONENTIA
 
 variable: IDENTIFIER
 infinite: _INF
-nest: _OPEN _S? expression _S? _CLOSE
+nest: _OPEN _S? expression? _S? _CLOSE
 vector: _ENTER _S? (expression (_S? _COMMA _S? expression)* _S?)? _EXIT
 number: NUMBER (_DOT NUMBER)?
 

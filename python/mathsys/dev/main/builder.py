@@ -7,6 +7,9 @@ import subprocess
 import os
 import tempfile
 
+#> HEAD -> VERSION
+from mathsys import __version_info__
+
 
 #^
 #^  STATIC
@@ -33,19 +36,28 @@ class Builder:
         descriptor, filename = tempfile.mkstemp(dir = "/tmp")
         os.close(descriptor)
         environment = os.environ.copy()
-        environment["Mathsys"] = ir
-        subprocess.run(
-            self.command(target, filename),
-            cwd = os.path.dirname(os.path.abspath(__file__)),
-            env = environment,
-            capture_output = False,
-            text = True,
-            check = True
-        )
-        with open(filename, "rb") as file: binary = file.read()
-        os.remove(filename)
-        os.remove(ir)
-        return binary
+        environment["MathsysSource"] = ir
+        environment["MathsysMemory"] = "basic"
+        environment["MathsysOptimization"] = "default"
+        environment["MathsysPrecision"] = "standard"
+        environment["MathsysMajor"] = str(__version_info__[0])
+        environment["MathsysMinor"] = str(__version_info__[1])
+        environment["MathsysPatch"] = str(__version_info__[2])
+        try: 
+            subprocess.run(
+                self.command(target, filename),
+                cwd = os.path.dirname(os.path.abspath(__file__)),
+                env = environment,
+                capture_output = False,
+                text = True,
+                check = True
+            )
+            with open(filename, "rb") as file: binary = file.read()
+            return binary
+        except: raise
+        finally:
+            os.remove(filename)
+            os.remove(ir)
     #~ CLASS -> COMMAND CREATOR HELPER
     def command(self, target: str, filename: str) -> list[str]:
         return [

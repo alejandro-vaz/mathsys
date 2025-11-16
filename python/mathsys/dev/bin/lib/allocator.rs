@@ -2,10 +2,14 @@
 //^ ALLOCATOR
 //^
 
+//> ALLOCATOR -> HEAP
+static BITMAP: [crate::AtomicBool; crate::SETTINGS.memsize / crate::SETTINGS.block] = [
+    const {crate::AtomicBool::new(false)}; 
+    crate::SETTINGS.memsize / crate::SETTINGS.block
+];
+
 //> ALLOCATOR -> STRUCT
-pub struct Allocator {
-    next: crate::AtomicUsize
-}
+pub struct Allocator {}
 
 //> ALLOCATOR -> MULTITHREADING
 unsafe impl Sync for Allocator {}
@@ -13,52 +17,70 @@ unsafe impl Sync for Allocator {}
 //> ALLOCATOR -> IMPLEMENTATION
 unsafe impl crate::GlobalAlloc for Allocator {
     unsafe fn alloc(&self, layout: crate::Layout) -> *mut u8 {
+        let blocks = self.blockAmount(layout.size());
         loop {
-            let mark = self.mark();
-            let from = (mark + layout.align() - 1) & !(layout.align() - 1);
-            let to = from + layout.size();
-            if to > self.end() {
-                self.init();
-                crate::stdout::crash(crate::stdout::Code::OutOfMemory);
-            }
-            match self.next.compare_exchange_weak(
-                mark, 
-                to, 
-                crate::Ordering::Release, 
-                crate::Ordering::Acquire
-            ) {
-                Ok(_) => return from as *mut u8,
-                Err(_) => continue
+            let start = self.search(blocks);
+            let raw = self.start() + start * crate::SETTINGS.block;
+            let aligned = (raw + (layout.align() - 1)) & !(layout.align() - 1);
+            if aligned + layout.size() <= raw + blocks * crate::SETTINGS.block {
+                if self.tryAssign(start, blocks) {return aligned as *mut u8}
             }
         }
     }
-    unsafe fn dealloc(&self, pointer: *mut u8, layout: crate::Layout) -> () {}
+    unsafe fn dealloc(&self, pointer: *mut u8, layout: crate::Layout) -> () {
+        let start = ((pointer as usize) - self.start()) / crate::SETTINGS.block;
+        let blocks = self.blockAmount(layout.size());
+        self.free(start, blocks);
+    }
 }
 
 //> ALLOCATOR -> METHODS
 impl Allocator {
-    pub const fn new() -> Self {
-        Allocator {
-            next: crate::AtomicUsize::new(0)
+    pub const fn new() -> Self {Allocator {}}
+    pub fn reset(&self) -> () {self.free(0, crate::SETTINGS.memsize / crate::SETTINGS.block)}
+    pub fn mark(&self) -> usize {
+        let mut using = 0;
+        for block in BITMAP.iter() {if block.load(crate::Ordering::Acquire) {using += 1}}
+        return using * crate::SETTINGS.block;
+    }
+    fn start(&self) -> usize {return unsafe {crate::HEAP.data.as_ptr() as usize}}
+    fn blockAmount(&self, size: usize) -> usize {return (size + crate::SETTINGS.block - 1) / crate::SETTINGS.block}
+    fn search(&self, amount: usize) -> usize {
+        let mut count = 0;
+        let mut starting = 0;
+        for (index, value) in BITMAP.iter().enumerate() {
+            if count == 0 {
+                if !value.load(crate::Ordering::Acquire) {
+                    starting = index;
+                    count += 1;
+                }
+            } else {
+                if !value.load(crate::Ordering::Acquire) {
+                    count += 1;
+                } else {
+                    count = 0;
+                }
+            }
+            if count == amount {return starting}
         }
+        self.reset();
+        crate::stdout::crash(crate::stdout::Code::OutOfMemory);
     }
-    #[inline(always)]
-    pub fn init(&self) -> () {
-        self.reset(self.start())
+    fn tryAssign(&self, from: usize, amount: usize) -> bool {
+        for index in from..(from + amount) {
+            if BITMAP[index].compare_exchange(
+                false,
+                true,
+                crate::Ordering::AcqRel,
+                crate::Ordering::Acquire
+            ).is_err() {
+                for rollback in from..index {BITMAP[rollback].store(false, crate::Ordering::Release)}
+                return false;
+            }
+        }
+        return true;
     }
-    #[inline(always)]
-    pub fn start(&self) -> usize {return unsafe {crate::HEAP.as_ptr() as usize}}
-    #[inline(always)]
-    pub fn end(&self) -> usize {return unsafe {(crate::HEAP.as_ptr() as usize).saturating_add(crate::SETTINGS.memsize)}}
-    #[inline(always)]
-    pub fn mark(&self) -> usize {return self.next.load(crate::Ordering::Acquire)}
-    #[inline(always)]
-    fn reset(&self, mark: usize) -> () {self.next.store(mark, crate::Ordering::Release)}
-    #[inline(always)]
-    pub fn tempSpace<Function, Returns>(&self, process: Function) -> Returns where Function: FnOnce() -> Returns {
-        let mark = self.mark();
-        let result = process();
-        self.reset(mark);
-        return result;
+    fn free(&self, from: usize, amount: usize) -> () {
+        for index in from..(from + amount) {BITMAP[index].store(false, crate::Ordering::Release)}
     }
 }

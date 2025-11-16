@@ -111,7 +111,7 @@ class LTXStart:
         match len(self.statements):
             case 0: delimiters = ["", ""]
             case 1: delimiters = [r"\(", r"\)"]
-            case _: delimiters = [r"\[", r"\]"]
+            case other: delimiters = [r"\[", r"\]"]
         values = r"\\ ".join(self.statements)
         while values.startswith(r"\\"): values = values[2:]
         return f"{delimiters[0]}{values}{delimiters[1]}"
@@ -242,7 +242,8 @@ class LTXVariable:
 class LTXNest:
     expression: str
     def __str__(self) -> str:
-        return fr"\left( {self.expression}\right) "
+        inside = self.expression if self.expression else r"\, "
+        return fr"\left( {inside}\right) "
 
 #> 5ºLEVEL -> VECTOR
 @dataclass(frozen = True)
@@ -396,7 +397,7 @@ class LaTeX:
     #~ GENERATOR -> 5 NEST GENERATION
     def nest(self, nest: Nest) -> str:
         return str(LTXNest(
-            expression = self.expression(nest.expression)
+            expression = self.expression(nest.expression) if nest.expression is not None else ""
         ))
     #~ GENERATOR -> 5 VECTOR GENERATION
     def vector(self, vector: Vector) -> str:

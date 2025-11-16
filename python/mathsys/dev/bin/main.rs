@@ -8,6 +8,8 @@
 #![allow(unused_variables)]
 #![allow(static_mut_refs)]
 #![allow(non_snake_case)]
+#![feature(const_cmp)]
+#![feature(const_trait_impl)]
 
 //> HEAD -> SYSTEM CRATES
 extern crate alloc;
@@ -91,9 +93,10 @@ use alloc::string::String;
 use alloc::alloc::Layout;
 
 //> PULLS -> CORE
-use core::sync::atomic::{AtomicUsize, Ordering};
+use core::sync::atomic::{Ordering, AtomicBool};
 use core::alloc::GlobalAlloc;
 use core::panic::PanicInfo;
+use core::cmp::max;
 
 
 //^
@@ -103,25 +106,49 @@ use core::panic::PanicInfo;
 //> GLOBALS -> SETTINGS STRUCT
 struct Settings {
     ir: &'static [u8],
-    version: [usize; 3],
+    version: [&'static str; 3],
     memsize: usize,
+    block: usize,
     precision: u8,
     width: u8
 }
 
 //> GLOBALS -> SETTINGS
 static SETTINGS: Settings = Settings {
-    ir: include_bytes!(env!("Mathsys")),
-    version: [3, 7, 40],
-    memsize: 33554432,
-    precision: if usize::BITS == 64 {3} else {2},
+    ir: include_bytes!(env!("MathsysSource")),
+    version: [
+        env!("MathsysMajor"), 
+        env!("MathsysMinor"), 
+        env!("MathsysPatch")
+    ],
+    memsize: match env!("MathsysMemory") {
+        "page" => 2usize.pow(12),
+        "basic" => 2usize.pow(16),
+        "maximum" => 2usize.pow(22),
+        other => 2usize.pow(16)
+    },
+    block: match env!("MathsysOptimization") {
+        "very low" => 2usize.pow(7),
+        "low" => 2usize.pow(6),
+        "default" => 2usize.pow(5),
+        "high" => 2usize.pow(4),
+        "very high" => 2usize.pow(3),
+        other => 2usize.pow(5)
+    },
+    precision: match env!("MathsysPrecision") {
+        "reduced" => 2,
+        "standard" => if usize::BITS == 64 {3} else {2},
+        other => if usize::BITS == 64 {3} else {2}
+    },
     width: 100
 };
 
 //> GLOBALS -> ALLOCATOR
+#[repr(align(128))]
+struct AlignedHeap {data: [u8; SETTINGS.memsize]}
+static mut HEAP: AlignedHeap = AlignedHeap {data: [0; SETTINGS.memsize]};
 #[global_allocator]
 static ALLOCATOR: allocator::Allocator = allocator::Allocator::new();
-static mut HEAP: [u8; SETTINGS.memsize] = [0; SETTINGS.memsize];
 
 
 //^
@@ -131,18 +158,21 @@ static mut HEAP: [u8; SETTINGS.memsize] = [0; SETTINGS.memsize];
 //> ENTRY -> POINT
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
-    ALLOCATOR.init();
+    ALLOCATOR.reset();
     stdout::login();
-    ALLOCATOR.tempSpace(|| {
-        stdout::debug(&format!(
-            "Total heap size is {}B",
-            formatting::scientific(SETTINGS.memsize).trim_start()
-        ));
-        stdout::debug(&format!(
-            "Precision is set to {}",
-            SETTINGS.precision
-        ));
-    });
+    stdout::debug(&format!(
+        "Total heap size is {}B",
+        formatting::scientific(SETTINGS.memsize).trim_start()
+    ));
+    stdout::debug(&format!(
+        "There are {} memory blocks, each of {}B",
+        formatting::scientific(SETTINGS.memsize / SETTINGS.block).trim_start(),
+        formatting::scientific(SETTINGS.block).trim_start()
+    ));
+    stdout::debug(&format!(
+        "Precision is set to {}",
+        SETTINGS.precision
+    ));
     run();
     stdout::crash(stdout::Code::Success);
 }

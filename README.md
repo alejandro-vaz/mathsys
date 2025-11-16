@@ -8,7 +8,7 @@
 *Mathsys* bridges the gap between traditional mathematical notation and programming languages. It provides a hybrid syntax that maintains mathematical readability while adding programming language features like multi-character variables and structured expressions.
 
 ## Installation
-Install the latest version via pip:
+Install the latest version via `pip`:
 
 ```sh
 pip install mathsys
@@ -34,7 +34,7 @@ Compile a Mathsys file to different targets with:
 python -m mathsys <target> <filename>.msX
 ```
 
-where `.msX` stands for `.ms1` ... `.ms2` and `.msd`.
+where `.msX` stands for `.ms1`, `.ms2` ... and `.msd`.
 
 You will need `rustc` installed with the target you are compiling to. If that feels too cumbersome (it really is), try it out first on [Abscissa.](https://app.abscissa.eu/playground)
 

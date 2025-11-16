@@ -4,6 +4,7 @@
 
 //> HEAD -> CROSS-SCOPE TRAIT
 use crate::converter::Class;
+use crate::runtime::Value;
 
 
 //^
@@ -20,9 +21,11 @@ pub struct Term {
 impl crate::converter::Class for Term {
     fn name(&self) -> &'static str {"Term"}
     fn locale(&self, code: u8) -> () {match code {
-        _ => {crate::stdout::crash(crate::stdout::Code::LocaleNotFound)}
+        0 => crate::stdout::alert("To be developed, returning undefined meanwhile"),
+        other => crate::stdout::crash(crate::stdout::Code::LocaleNotFound)
     }}
-    fn evaluate(&self, context: &mut crate::runtime::Context) -> crate::Box<dyn crate::runtime::Value> {
+    fn evaluate(&self, context: &mut crate::runtime::Context) -> crate::Box<dyn Value> {
+        self.locale(0);
         return crate::Box::new(crate::_Undefined {})
     }
 } impl Term {

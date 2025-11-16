@@ -6,8 +6,24 @@
 pub trait Value {
     fn id(&self) -> &'static str;
     fn ctrlcv(&self) -> crate::Box<dyn Value>;
-    fn locale(&self, code: u8) -> ();
     fn equiv(&self, to: crate::Box<dyn Value>) -> bool;
+    fn summation(&mut self, to: crate::Box<dyn Value>, inverse: bool, selfinverse: bool) -> crate::Box<dyn Value>;
+    fn locale(&self, code: u8) -> ();
+    fn genlocale(&self, code: u8) -> () {match code {
+        0 => crate::stdout::trace(&crate::format!(
+            "Copying element of type {}",
+            self.id()
+        )),
+        1 => crate::stdout::trace(&crate::format!(
+            "Checking equivalency of an element of type {}",
+            self.id()
+        )),
+        2 => crate::stdout::trace(&crate::format!(
+            "Adding an element of type {}",
+            self.id()
+        )),
+        other => crate::stdout::crash(crate::stdout::Code::LocaleNotFound)
+    }}
 }
 
 //> CONTEXT -> ID
@@ -32,33 +48,33 @@ impl<'a> Context<'a> {
             mutable: crate::Vec::new(),
             immutable: crate::Vec::new()
         };
-        for index in 0..size {instance.cache.push(crate::Box::new(crate::_Undefined {}))};
+        for index in 0..size {instance.cache.push(crate::Box::new(crate::_Nexists {}))};
         return instance;
     }
     fn set(&mut self, id: u32, value: crate::Box<dyn Value>) {self.cache[(id as usize) - 1] = value}
     fn get(&self, id: u32) -> &dyn Value {
         if id == 0 {return &crate::_Nexists {}}
-        crate::ALLOCATOR.tempSpace(|| {crate::stdout::trace(&crate::format!(
+        crate::stdout::trace(&crate::format!(
             "Retrieving object with ID {}",
             id
-        ))});
+        ));
         return &*self.cache[(id as usize) - 1]
     }
     pub fn read(&self, id: u32) -> crate::Box<dyn Value> {
         if id == 0 {return (crate::_Nexists {}).ctrlcv()}
-        crate::ALLOCATOR.tempSpace(|| {crate::stdout::trace(&crate::format!(
+        crate::stdout::trace(&crate::format!(
             "Reading object with ID {}",
             id
-        ))});
+        ));
         return self.cache[(id as usize) - 1].ctrlcv();
     }
     pub fn process(&mut self, id: u32) -> () {
         let item = &self.memory[(id as usize) - 1];
-        crate::ALLOCATOR.tempSpace(|| {crate::stdout::space(&crate::format!(
+        crate::stdout::space(&crate::format!(
             "[{}] Processing ID {}",
             item.name(),
             id
-        ))});
+        ));
         let output = item.evaluate(self);
         self.set(id, output);
     }
@@ -79,13 +95,24 @@ impl<'a> Context<'a> {
 //^ DOWNCASTING
 //^
 
-//> DOWNCASTING -> FUNCTION
+//> DOWNCASTING -> IMMUTABLE FUNCTION
 pub fn downcast<Type: Id>(value: &dyn Value) -> &Type {
-    crate::ALLOCATOR.tempSpace(|| {crate::stdout::trace(&crate::format!(
+    crate::stdout::trace(&crate::format!(
         "Downcasting a {}",
         Type::ID
-    ))});
+    ));
     if value.id() != Type::ID {crate::stdout::crash(crate::stdout::Code::FailedDowncast)} else {
         return unsafe {&*(value as *const dyn Value as *const Type)}
+    }
+}
+
+//> DOWNCASTING -> MUTABLE FUNCTION
+pub fn mutcast<Type: Id>(value: &mut dyn Value) -> &mut Type {
+    crate::stdout::trace(&crate::format!(
+        "Mutcasting a {}",
+        Type::ID
+    ));
+    if value.id() != Type::ID {crate::stdout::crash(crate::stdout::Code::FailedMutcast)} else {
+        return unsafe {&mut *(value as *mut dyn Value as *mut Type)}
     }
 }

@@ -4,7 +4,7 @@
 
 #> EXPORTS -> VERSION
 __version__ = "3.7.40"
-__version_info__ = (3, 7, 0)
+__version_info__ = (3, 7, 40)
 
 #> EXPORTS -> LATEST
 from .v2 import (
