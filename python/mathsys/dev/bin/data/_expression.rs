@@ -12,14 +12,14 @@ use crate::runtime::Value;
 //^
 
 //> EXPRESSION -> STRUCT
-pub struct Expression {
+pub struct _Expression {
     terms: crate::Box<[u32]>,
     signs: crate::Box<[u8]>
 }
 
 //> EXPRESSION -> IMPLEMENTATION
-impl crate::converter::Class for Expression {
-    fn name(&self) -> &'static str {"Expression"}
+impl Class for _Expression {
+    fn name(&self) -> &'static str {"_Expression"}
     fn locale(&self, code: u8) -> () {match code {
         0 => crate::stdout::debug(&crate::format!(
             "There {} {} term{}",
@@ -35,7 +35,7 @@ impl crate::converter::Class for Expression {
     }}
     fn evaluate(&self, context: &mut crate::runtime::Context) -> crate::Box<dyn Value> {
         self.locale(0);
-        let mut current = crate::Box::new(crate::_Nexists {}) as crate::Box<dyn Value>;
+        let mut current = crate::Box::new(crate::Nexists {}) as crate::Box<dyn Value>;
         for (index, term) in self.terms.iter().enumerate() {
             context.process(self.terms[index]);
             self.locale(1);
@@ -45,8 +45,8 @@ impl crate::converter::Class for Expression {
         }
         return current;
     }
-} impl Expression {
-    pub fn new(terms: &[u32], signs: &[u8]) -> Self {return Expression {
+} impl _Expression {
+    pub fn new(terms: &[u32], signs: &[u8]) -> Self {return _Expression {
         terms: terms.into(),
         signs: signs.into()
     }}

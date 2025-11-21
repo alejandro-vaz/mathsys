@@ -13,39 +13,44 @@ use crate::runtime::Id;
 
 //> NUMBER -> STRUCT
 #[derive(Clone)]
-pub struct _Number {
+pub struct Number {
     pub value: u32,
     pub shift: u8,
     pub negative: bool
 }
 
 //> NUMBER -> IMPLEMENTATION
-impl Id for _Number {const ID: &'static str = "_Number";} 
-impl Value for _Number {
+impl Id for Number {const ID: &'static str = "Number";} 
+impl Value for Number {
     fn id(&self) -> &'static str {return Self::ID}
-    fn info(&self) -> () {
-        crate::stdout::debug(&crate::format!("> value = {}, shift = {}, negative = {}", self.value, self.shift, self.negative));
-    }
+    fn info(&self) -> () {crate::stdout::debug(&crate::format!(
+        "{} > value = {}, shift = {}, negative = {}", 
+        self.id(), 
+        self.value, 
+        self.shift, 
+        self.negative
+    ))}
     fn ctrlcv(&self) -> crate::Box<dyn Value> {self.genlocale(0); return crate::Box::new(self.clone())}
-    fn equiv(&self, to: crate::Box<dyn Value>) -> bool {self.genlocale(1); return match to.id() {
-        "_Infinity" => to.equiv(self.ctrlcv()),
-        "_Nexists" => to.equiv(self.ctrlcv()),
-        "_Number" => {
-            let value = crate::runtime::downcast::<crate::_Number>(&*to);
+    fn equiv(&self, mut to: crate::Box<dyn Value>) -> bool {self.genlocale(1); return match to.id() {
+        "Infinite" => to.equiv(self.ctrlcv()),
+        "Nexists" => to.equiv(self.ctrlcv()),
+        "Number" => {
+            let value = crate::runtime::mutcast::<crate::Number>(&mut *to);
             self.value == value.value && self.shift == value.shift && self.negative == value.negative
         },
-        "_Undefined" => false,
-        "_Variable" => false,
+        "Tensor" => false,
+        "Undefined" => false,
+        "Variable" => false,
         other => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
     }}
     fn summation(&mut self, mut to: crate::Box<dyn Value>, inverse: bool, selfinverse: bool) -> crate::Box<dyn Value> {
         self.genlocale(2);
         if selfinverse {self.negate()}; 
         return match to.id() {
-            "_Infinity" => to.summation(self.ctrlcv(), false, inverse),
-            "_Nexists" => to.summation(self.ctrlcv(), false, inverse),
-            "_Number" => {
-                let value = crate::runtime::mutcast::<crate::_Number>(&mut *to);
+            "Infinite" => to.summation(self.ctrlcv(), false, inverse),
+            "Nexists" => to.summation(self.ctrlcv(), false, inverse),
+            "Number" => {
+                let value = crate::runtime::mutcast::<crate::Number>(&mut *to);
                 if inverse {value.negate()}
                 self.reduce(); value.reduce();
                 let shift = crate::max(self.shift, value.shift);
@@ -62,15 +67,14 @@ impl Value for _Number {
                     if self.value >= value.value {self.negative}
                     else {value.negative}
                 };
-                let result = crate::Box::new(crate::_Number {
+                crate::Box::new(crate::Number {
                     value: total,
                     shift: shift,
                     negative: negative
-                });
-                result.ctrlcv()
+                })
             },
-            "_Undefined" => to.ctrlcv(),
-            "_Variable" => crate::stdout::crash(crate::stdout::Code::UnexpectedValue),
+            "Undefined" => to,
+            "Variable" => crate::stdout::crash(crate::stdout::Code::UnexpectedValue),
             other => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
         }
     }
@@ -81,9 +85,10 @@ impl Value for _Number {
         )),
         1 => crate::stdout::trace("Reducing the number minimum decimal places without losing precision"),
         2 => crate::stdout::trace("Adequating number to shift requirements"),
+        3 => crate::stdout::trace("Calculating number absolute value"),
         other => crate::stdout::crash(crate::stdout::Code::LocaleNotFound)
     }}
-} impl _Number {
+} impl Number {
     pub fn negate(&mut self) -> () {self.locale(0); self.negative = !self.negative}
     pub fn reduce(&mut self) -> () {self.locale(1); while self.value % 10 == 0 && self.shift != 0 {
         self.value = self.value / 10;
@@ -97,4 +102,5 @@ impl Value for _Number {
             self.shift += 1;
         }
     }
+    pub fn abs(&mut self) -> () {self.locale(3); self.negative = false}
 }

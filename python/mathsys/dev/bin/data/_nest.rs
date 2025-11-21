@@ -8,25 +8,25 @@ use crate::runtime::Value;
 
 
 //^
-//^ VECTOR
+//^ NEST
 //^
 
-//> VECTOR -> STRUCT
-pub struct Vector {
-    values: crate::Box<[u32]>
+//> NEST -> STRUCT
+pub struct _Nest {
+    pointer: u32
 }
 
-//> VECTOR -> IMPLEMENTATION
-impl crate::converter::Class for Vector {
-    fn name(&self) -> &'static str {"Vector"}
+//> NEST -> IMPLEMENTATION
+impl Class for _Nest {
+    fn name(&self) -> &'static str {"_Nest"}
     fn locale(&self, code: u8) -> () {match code {
         other => crate::stdout::crash(crate::stdout::Code::LocaleNotFound)
     }}
     fn evaluate(&self, context: &mut crate::runtime::Context) -> crate::Box<dyn Value> {
-        return crate::Box::new(crate::_Undefined {})
+        return crate::Box::new(crate::Undefined {});
     }
-} impl Vector {
-    pub fn new(values: &[u32]) -> Self {return Vector {
-        values: values.into()
+} impl _Nest {
+    pub fn new(pointer: u32) -> Self {return _Nest {
+        pointer: pointer
     }}
 }

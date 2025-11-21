@@ -12,14 +12,14 @@ use crate::runtime::Value;
 //^
 
 //> EQUATION -> STRUCT
-pub struct Equation {
+pub struct _Equation {
     left: u32,
     right: u32
 }
 
 //> EQUATION -> IMPLEMENTATION
-impl crate::converter::Class for Equation {
-    fn name(&self) -> &'static str {"Equation"}
+impl Class for _Equation {
+    fn name(&self) -> &'static str {"_Equation"}
     fn locale(&self, code: u8) -> () {match code {
         0 => crate::stdout::debug(&crate::format!(
             "Sides of the equation have IDs {} and {}",
@@ -42,10 +42,10 @@ impl crate::converter::Class for Equation {
         let left = context.read(self.left);
         let right = context.read(self.right);
         if left.equiv(right) {self.locale(2)} else {self.locale(3)}
-        return crate::Box::new(crate::_Nexists {});
+        return crate::Box::new(crate::Nexists {});
     }
-} impl Equation {
-    pub fn new(left: u32, right: u32) -> Self {return Equation {
+} impl _Equation {
+    pub fn new(left: u32, right: u32) -> Self {return _Equation {
         left: left,
         right: right
     }}

@@ -13,25 +13,27 @@ use crate::runtime::Id;
 
 //> VARIABLE -> STRUCT
 #[derive(Clone)]
-pub struct _Variable {
+pub struct Variable {
     pub name: crate::String
 }
 
 //> VARIABLE -> IMPLEMENTATION
-impl Id for _Variable {const ID: &'static str = "_Variable";} 
-impl Value for _Variable {
+impl Id for Variable {const ID: &'static str = "Variable";} 
+impl Value for Variable {
     fn id(&self) -> &'static str {return Self::ID}
-    fn info(&self) -> () {
-        crate::stdout::debug(&crate::format!("> name = {}", self.name));
-    }
+    fn info(&self) -> () {crate::stdout::debug(&crate::format!(
+        "{} > name = {}", 
+        self.id(), 
+        self.name
+    ))}
     fn ctrlcv(&self) -> crate::Box<dyn Value> {self.genlocale(0); return crate::Box::new(self.clone())}
-    fn equiv(&self, to: crate::Box<dyn Value>) -> bool {self.genlocale(1); return match to.id() {
-        "_Infinity" => to.equiv(self.ctrlcv()),
-        "_Nexists" => to.equiv(self.ctrlcv()),
-        "_Number" => to.equiv(self.ctrlcv()),
-        "_Undefined" => to.equiv(self.ctrlcv()),
-        "_Variable" => {
-            let value = crate::runtime::downcast::<crate::_Variable>(&*to);
+    fn equiv(&self, mut to: crate::Box<dyn Value>) -> bool {self.genlocale(1); return match to.id() {
+        "Infinite" => to.equiv(self.ctrlcv()),
+        "Nexists" => to.equiv(self.ctrlcv()),
+        "Number" => to.equiv(self.ctrlcv()),
+        "Undefined" => to.equiv(self.ctrlcv()),
+        "Variable" => {
+            let value = crate::runtime::mutcast::<crate::Variable>(&mut *to);
             &self.name == &value.name
         },
         other => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
@@ -39,11 +41,11 @@ impl Value for _Variable {
     fn summation(&mut self, mut to: crate::Box<dyn Value>, inverse: bool, selfinverse: bool) -> crate::Box<dyn Value> {
         self.genlocale(2);
         return match to.id() {
-            "_Infinity" => to.summation(self.ctrlcv(), false, inverse),
-            "_Nexists" => to.summation(self.ctrlcv(), false, inverse),
-            "_Number" => to.summation(self.ctrlcv(), false, inverse),
-            "_Undefined" => to.summation(self.ctrlcv(), false, inverse),
-            "_Variable" => crate::stdout::crash(crate::stdout::Code::UnexpectedValue),
+            "Infinite" => to.summation(self.ctrlcv(), false, inverse),
+            "Nexists" => to.summation(self.ctrlcv(), false, inverse),
+            "Number" => to.summation(self.ctrlcv(), false, inverse),
+            "Undefined" => to.summation(self.ctrlcv(), false, inverse),
+            "Variable" => crate::stdout::crash(crate::stdout::Code::UnexpectedValue),
             other => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
         }
     }
@@ -66,7 +68,7 @@ impl Value for _Variable {
         )),
         other => crate::stdout::crash(crate::stdout::Code::LocaleNotFound)
     }}
-} impl _Variable {
+} impl Variable {
     pub fn set(&self, value: crate::Box<dyn Value>, mutable: bool, context: &mut crate::runtime::Context) -> () {
         if mutable {self.locale(0)} else {self.locale(1)};
         for (key, data) in &context.immutable {
@@ -84,6 +86,6 @@ impl Value for _Variable {
         for (key, value) in &context.immutable {if key == &self.name {return value.ctrlcv()}}
         for (key, value) in &context.mutable {if key == &self.name {return value.ctrlcv()}}
         self.locale(3);
-        return crate::Box::new(crate::_Undefined {});
+        return crate::Box::new(crate::Undefined {});
     }
 }

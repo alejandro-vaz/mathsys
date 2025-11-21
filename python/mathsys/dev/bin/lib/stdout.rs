@@ -53,8 +53,7 @@ pub fn crash(code: Code) -> ! {
             5 => "Malformed Intermediate Representation",
             6 => "Unknown IR object code",
             7 => "Start object not found",
-            8 => "Attempted to downcast a different object type",
-            9 => "Invalid deallocation data",
+            8 => "Attempted to mutcast a different object type",
             255 => crate::stack::exit(255),
             other => loop {}
         }
@@ -72,8 +71,7 @@ pub enum Code {
     MalformedIR = 5,
     UnknownIRObject = 6,
     StartNotFound = 7,
-    FailedDowncast = 8,
-    FailedMutcast = 9,
+    FailedMutcast = 8,
     Fatal = 255
 }
 

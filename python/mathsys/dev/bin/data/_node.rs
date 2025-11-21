@@ -8,30 +8,31 @@ use crate::runtime::Value;
 
 
 //^
-//^ COMMENT
+//^ NODE
 //^
 
-//> COMMENT -> STRUCT
-pub struct Comment {
-    characters: crate::Box<str>,
+//> NODE -> STRUCT
+pub struct _Node {
+    pointer: u32
 }
 
-//> COMMENT -> IMPLEMENTATION
-impl crate::converter::Class for Comment {
-    fn name(&self) -> &'static str {"Comment"}
+//> NODE -> IMPLEMENTATION
+impl Class for _Node {
+    fn name(&self) -> &'static str {"_Node"}
     fn locale(&self, code: u8) -> () {match code {
         0 => crate::stdout::debug(&crate::format!(
-            "{}",
-            self.characters.clone()
+            "Expression to evaluate has an ID of {}",
+            self.pointer
         )),
         other => crate::stdout::crash(crate::stdout::Code::LocaleNotFound)
     }}
     fn evaluate(&self, context: &mut crate::runtime::Context) -> crate::Box<dyn Value> {
         self.locale(0);
-        return crate::Box::new(crate::_Nexists {});
+        context.process(self.pointer);
+        return crate::Box::new(crate::Undefined {});
     }
-} impl Comment {
-    pub fn new(characters: &str) -> Self {return Comment {
-        characters: characters.into()
+} impl _Node {
+    pub fn new(pointer: u32) -> Self {return _Node {
+        pointer: pointer
     }}
 }

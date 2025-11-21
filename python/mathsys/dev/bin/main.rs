@@ -17,30 +17,32 @@ extern crate alloc;
 
 //> HEAD -> CONTEXT
 mod context {
-    pub mod _infinity;
-    pub mod _nexists;
-    pub mod _number;
-    pub mod _undefined;
-    pub mod _variable;
+    pub mod infinite;
+    pub mod nexists;
+    pub mod number;
+    pub mod tensor;
+    pub mod undefined;
+    pub mod variable;
 }
 
 //> HEAD -> DATA
 mod data {
-    pub mod comment;
-    pub mod declaration;
-    pub mod definition;
-    pub mod equation;
-    pub mod expression;
-    pub mod factor;
-    pub mod infinite;
-    pub mod limit;
-    pub mod nest;
-    pub mod node;
-    pub mod number;
-    pub mod start;
-    pub mod term;
-    pub mod variable;
-    pub mod vector;
+    pub mod _annotation;
+    pub mod _comment;
+    pub mod _declaration;
+    pub mod _definition;
+    pub mod _equation;
+    pub mod _expression;
+    pub mod _factor;
+    pub mod _infinite;
+    pub mod _limit;
+    pub mod _nest;
+    pub mod _node;
+    pub mod _number;
+    pub mod _start;
+    pub mod _tensor;
+    pub mod _term;
+    pub mod _variable;
 }
 
 //> HEAD -> LIB
@@ -60,35 +62,36 @@ mod lib {
 //^
 
 //> PULLS -> CONTEXT
-use context::_infinity::_Infinity;
-use context::_nexists::_Nexists;
-use context::_number::_Number;
-use context::_undefined::_Undefined;
-use context::_variable::_Variable;
+use context::infinite::Infinite;
+use context::nexists::Nexists;
+use context::number::Number;
+use context::tensor::Tensor;
+use context::undefined::Undefined;
+use context::variable::Variable;
 
 //> PULLS -> DATA
-use data::comment::Comment;
-use data::declaration::Declaration;
-use data::definition::Definition;
-use data::equation::Equation;
-use data::expression::Expression;
-use data::factor::Factor;
-use data::infinite::Infinite;
-use data::limit::Limit;
-use data::nest::Nest;
-use data::node::Node;
-use data::number::Number;
-use data::start::Start;
-use data::term::Term;
-use data::variable::Variable;
-use data::vector::Vector;
+use data::_annotation::_Annotation;
+use data::_comment::_Comment;
+use data::_declaration::_Declaration;
+use data::_definition::_Definition;
+use data::_equation::_Equation;
+use data::_expression::_Expression;
+use data::_factor::_Factor;
+use data::_infinite::_Infinite;
+use data::_limit::_Limit;
+use data::_nest::_Nest;
+use data::_node::_Node;
+use data::_number::_Number;
+use data::_start::_Start;
+use data::_tensor::_Tensor;
+use data::_term::_Term;
+use data::_variable::_Variable;
 
 //> PULLS -> LIB
 use lib::*;
 
 //> PULLS -> ALLOC
 use alloc::vec::Vec;
-use alloc::vec;
 use alloc::boxed::Box;
 use alloc::format;
 use alloc::string::String;

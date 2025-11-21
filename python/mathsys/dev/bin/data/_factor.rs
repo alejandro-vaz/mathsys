@@ -12,22 +12,22 @@ use crate::runtime::Value;
 //^
 
 //> FACTOR -> STRUCT
-pub struct Factor {
+pub struct _Factor {
     pointer: u32,
     expression: u32
 }
 
 //> FACTOR -> IMPLEMENTATION
-impl crate::converter::Class for Factor {
-    fn name(&self) -> &'static str {"Factor"}
+impl Class for _Factor {
+    fn name(&self) -> &'static str {"_Factor"}
     fn locale(&self, code: u8) -> () {match code {
         other => crate::stdout::crash(crate::stdout::Code::LocaleNotFound)
     }}
     fn evaluate(&self, context: &mut crate::runtime::Context) -> crate::Box<dyn Value> {
-        return crate::Box::new(crate::_Undefined {});
+        return crate::Box::new(crate::Undefined {});
     }
-} impl Factor {
-    pub fn new(pointer: u32, expression: u32) -> Self {return Factor {
+} impl _Factor {
+    pub fn new(pointer: u32, expression: u32) -> Self {return _Factor {
         pointer: pointer,
         expression: expression
     }}

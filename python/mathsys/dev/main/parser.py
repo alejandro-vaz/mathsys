@@ -13,7 +13,7 @@ from lark import Lark, Transformer, Token
 #^
 
 #> START -> CLASS
-@dataclass(frozen = True)
+@dataclass
 class Start:
     statements: list[Level1]
 
@@ -26,30 +26,38 @@ class Start:
 class Level1: pass
 
 #> 1ºLEVEL -> DECLARATION
-@dataclass(frozen = True)
+@dataclass
 class Declaration(Level1):
+    objectType: str | None
     identifier: Variable
     expression: Expression
 
 #> 1ºLEVEL -> DEFINITION
-@dataclass(frozen = True)
+@dataclass
 class Definition(Level1):
+    objectType: str | None
     identifier: Variable
     expression: Expression
 
+#> 1ºLEVEL -> ANNOTATION
+@dataclass
+class Annotation(Level1):
+    objectType: str
+    identifier: Variable
+
 #> 1ºLEVEL -> NODE
-@dataclass(frozen = True)
+@dataclass
 class Node(Level1):
     value: Expression
 
 #> 1ºLEVEL -> EQUATION
-@dataclass(frozen = True)
+@dataclass
 class Equation(Level1):
     left: Expression
     right: Expression
 
 #> 1ºLEVEL -> COMMENT
-@dataclass(frozen = True)
+@dataclass
 class Comment(Level1):
     content: str
 
@@ -62,7 +70,7 @@ class Comment(Level1):
 class Level2: pass
 
 #> 2ºLEVEL -> EXPRESSION
-@dataclass(frozen = True)
+@dataclass
 class Expression(Level2):
     signs: list[str | None]
     terms: list[Level3]
@@ -76,7 +84,7 @@ class Expression(Level2):
 class Level3: pass
 
 #> 3ºLEVEL -> TERM
-@dataclass(frozen = True)
+@dataclass
 class Term(Level3):
     numerator: list[Level4]
     denominator: list[Level4]
@@ -90,13 +98,13 @@ class Term(Level3):
 class Level4: pass
 
 #> 4ºLEVEL -> FACTOR
-@dataclass(frozen = True)
+@dataclass
 class Factor(Level4):
     value: Level5
     exponent: Expression | None
 
 #> 4ºLEVEL -> LIMIT
-@dataclass(frozen = True)
+@dataclass
 class Limit(Level4):
     variable: Variable
     approach: Expression
@@ -113,26 +121,26 @@ class Limit(Level4):
 class Level5: pass
 
 #> 5ºLEVEL -> INFINITE
-@dataclass(frozen = True)
+@dataclass
 class Infinite(Level5): pass
 
 #> 5ºLEVEL -> VARIABLE
-@dataclass(frozen = True)
+@dataclass
 class Variable(Level5):
     representation: str
 
 #> 5ºLEVEL -> NEST
-@dataclass(frozen = True)
+@dataclass
 class Nest(Level5):
     expression: Expression | None
 
-#> 5ºLEVEL -> VECTOR
-@dataclass(frozen = True)
-class Vector(Level5):
+#> 5ºLEVEL -> TENSOR
+@dataclass
+class Tensor(Level5):
     values: list[Expression]
 
 #> 5ºLEVEL -> NUMBER
-@dataclass(frozen = True)
+@dataclass
 class Number(Level5):
     whole: str
     decimal: str | None
@@ -170,16 +178,24 @@ class Parser(Transformer):
             statements = items
         )
     #~ CLASS -> 1 DECLARATION CONSTRUCT
-    def declaration(self, items: list[Variable | Expression]) -> Declaration: 
+    def declaration(self, items: list[Token | Variable | Expression]) -> Declaration: 
         return Declaration(
-            identifier = items[0],
-            expression = items[1]
+            objectType = ñ(items[0]) if len(items) == 3 else None,
+            identifier = items[1] if len(items) == 3 else items[0],
+            expression = items[2] if len(items) == 3 else items[1]
         )
     #~ CLASS -> 1 DEFINITION CONSTRUCT
-    def definition(self, items: list[Variable | Expression]) -> Definition: 
+    def definition(self, items: list[Token | Variable | Expression]) -> Definition: 
         return Definition(
-            identifier = items[0],
-            expression = items[1]
+            objectType = ñ(items[0]) if len(items) == 3 else None,
+            identifier = items[1] if len(items) == 3 else items[0],
+            expression = items[2] if len(items) == 3 else items[1]
+        )
+    #~ CLASS -> 1 ANNOTATION CONSTRUCT
+    def annotation(self, items: list[Token | Variable]) -> Annotation:
+        return Annotation(
+            objectType = ñ(items[0]),
+            identifier = items[1]
         )
     #~ CLASS -> 1 NODE CONSTRUCT
     def node(self, items: list[Expression]) -> Node: 
@@ -248,9 +264,9 @@ class Parser(Transformer):
         return Nest(
             expression = items[0] if len(items) == 1 else None
         )
-    #~ CLASS -> 5 VECTOR CONSTRUCT
-    def vector(self, items: list[Expression]) -> Vector:
-        return Vector(
+    #~ CLASS -> 5 TENSOR CONSTRUCT
+    def tensor(self, items: list[Expression]) -> Tensor:
+        return Tensor(
             values = items
         )
     #~ CLASS -> 5 NUMBER CONSTRUCT
