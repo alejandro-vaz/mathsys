@@ -49,12 +49,12 @@ impl<'a> Context<'a> {
             mutable: crate::Vec::new(),
             immutable: crate::Vec::new()
         };
-        for index in 0..size {instance.cache.push(crate::Box::new(crate::_Nexists {}))};
+        for index in 0..size {instance.cache.push(crate::Box::new(crate::Nexists {}))};
         return instance;
     }
     fn set(&mut self, id: u32, value: crate::Box<dyn Value>) {self.cache[(id as usize) - 1] = value}
     fn get(&self, id: u32) -> &dyn Value {
-        if id == 0 {return &crate::_Nexists {}}
+        if id == 0 {return &crate::Nexists {}}
         crate::stdout::trace(&crate::format!(
             "Retrieving object with ID {}",
             id
@@ -62,7 +62,7 @@ impl<'a> Context<'a> {
         return &*self.cache[(id as usize) - 1]
     }
     pub fn read(&self, id: u32) -> crate::Box<dyn Value> {
-        if id == 0 {return (crate::_Nexists {}).ctrlcv()}
+        if id == 0 {return (crate::Nexists {}).ctrlcv()}
         crate::stdout::trace(&crate::format!(
             "Reading object with ID {}",
             id
@@ -81,7 +81,7 @@ impl<'a> Context<'a> {
     }
     pub fn quick(&mut self) -> &dyn Value {
         for element in self.memory.iter().rev().take(1) {
-            if element.as_ref().name() == "Start" {
+            if element.as_ref().name() == "_Start" {
                 let index = self.memory.len() as u32;
                 self.process(index);
                 return self.get(index);
@@ -95,17 +95,6 @@ impl<'a> Context<'a> {
 //^
 //^ DOWNCASTING
 //^
-
-//> DOWNCASTING -> IMMUTABLE FUNCTION
-pub fn downcast<Type: Id>(value: &dyn Value) -> &Type {
-    crate::stdout::trace(&crate::format!(
-        "Downcasting a {}",
-        Type::ID
-    ));
-    if value.id() != Type::ID {crate::stdout::crash(crate::stdout::Code::FailedDowncast)} else {
-        return unsafe {&*(value as *const dyn Value as *const Type)}
-    }
-}
 
 //> DOWNCASTING -> MUTABLE FUNCTION
 pub fn mutcast<Type: Id>(value: &mut dyn Value) -> &mut Type {

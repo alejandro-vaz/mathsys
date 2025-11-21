@@ -11,6 +11,7 @@ from .parser import (
     Level1,
     Declaration,
     Definition,
+    Annotation,
     Node,
     Equation,
     Comment, 
@@ -29,7 +30,7 @@ from .parser import (
     Infinite,
     Variable,
     Nest,
-    Vector,
+    Tensor,
     Number
 )
 
@@ -40,54 +41,54 @@ from .parser import (
 
 #> MAPPINGS -> VARIABLES
 VARIABLES = {
+    "epsilon": r"\epsilon ",
+    "Epsilon": r"E",
+    "omicron": r"\omicron ",
+    "Omicron": r"O",
+    "upsilon": r"\upsilon ",
+    "Upsilon": r"\Upsilon ",
+    "lambda": r"\lambda ",
+    "Lambda": r"\Lambda ",
     "alpha": r"\alpha ",
     "Alpha": r"A",
-    "beta": r"\beta ",
-    "Beta": r"B",
     "gamma": r"\gamma ",
     "Gamma": r"\Gamma ",
     "delta": r"\delta ",
     "Delta": r"\Delta ",
-    "epsilon": r"\epsilon ",
-    "Epsilon": r"E",
-    "zeta": r"\zeta ",
-    "Zeta": r"Z",
-    "eta": r"\eta ",
-    "Eta": r"H",
     "theta": r"\theta ",
     "Theta": r"\Theta ",
-    "iota": r"\iota ",
-    "Iota": r"I",
     "kappa": r"\kappa ",
     "Kappa": r"K",
-    "lambda": r"\lambda ",
-    "Lambda": r"\Lambda ",
-    "mu": r"\mu ",
-    "Mu": r"M",
-    "nu": r"\nu ",
-    "Nu": r"N",
-    "xi": r"\xi ",
-    "Xi": r"\Xi ",
-    "omicron": r"\omicron ",
-    "Omicron": r"O",
-    "pi": r"\pi ",
-    "Pi": r"\pi ",
-    "rho": r"\rho ",
-    "Rho": r"P",
     "sigma": r"\sigma ",
     "Sigma": r"\Sigma ",
+    "omega": r"\omega ",
+    "Omega": r"\Omega ",
+    "beta": r"\beta ",
+    "Beta": r"B",
+    "zeta": r"\zeta ",
+    "Zeta": r"Z",
+    "iota": r"\iota ",
+    "Iota": r"I",
+    "eta": r"\eta ",
+    "Eta": r"H",
+    "rho": r"\rho ",
+    "Rho": r"P",
     "tau": r"\tau ",
     "Tau": r"T",
-    "upsilon": r"\upsilon ",
-    "Upsilon": r"\Upsilon ",
     "phi": r"\phi ",
     "Phi": r"\Phi ",
     "chi": r"\chi ",
     "Chi": r"X",
     "psi": r"\psi ",
     "Psi": r"\Psi ",
-    "omega": r"\omega ",
-    "Omega": r"\Omega "
+    "mu": r"\mu ",
+    "Mu": r"M",
+    "nu": r"\nu ",
+    "Nu": r"N",
+    "xi": r"\xi ",
+    "Xi": r"\Xi ",
+    "pi": r"\pi ",
+    "Pi": r"\pi "
 }
 
 #> MAPPINGS -> SPECIAL
@@ -98,13 +99,27 @@ SPECIAL = {
     '$': r'\$'
 }
 
+#> MAPPINGS -> TYPE TABLE
+TYPES = {}
+
+#> MAPPINGS -> CONVERSION TABLE
+CONVERSION = {
+    None: lambda name: name,
+    "Infinite": lambda name: f"\overset{{\infty}}{{{name}}}",
+    "Nexists": lambda name: fr"\nexists\,{name}",
+    "Number": lambda name: name,
+    "Tensor": lambda name: f"\overline{{{name}}}",
+    "Undefined": lambda name: f"\overset{{?}}{{{name}}}",
+    "Variable": lambda name: f"{{^{{*}}{name}}}"
+}
+
 
 #^
 #^  START
 #^
 
 #> START -> CLASS
-@dataclass(frozen = True)
+@dataclass
 class LTXStart:
     statements: list[str]
     def __str__(self) -> str:
@@ -122,30 +137,43 @@ class LTXStart:
 #^
 
 #> 1ºLEVEL -> DECLARATION
-@dataclass(frozen = True)
+@dataclass
 class LTXDeclaration:
+    objectType: str | None
     identifier: str
     expression: str
     def __str__(self) -> str:
+        TYPES[self.identifier] = TYPES.get(self.identifier, self.objectType)
         return f"{self.identifier}={self.expression}"
 
 #> 1ºLEVEL -> DEFINITION
-@dataclass(frozen = True)
+@dataclass
 class LTXDefinition:
+    objectType: str | None
     identifier: str
     expression: str
     def __str__(self) -> str:
+        TYPES[self.identifier] = TYPES.get(self.identifier, self.objectType)
         return f"{self.identifier}\equiv {self.expression}"
 
+#> 1ºLEVEL -> ANNOTATION
+@dataclass
+class LTXAnnotation:
+    objectType: str
+    identifier: str
+    def __str__(self) -> str:
+        TYPES[self.identifier] = TYPES.get(self.identifier, self.objectType)
+        return fr"\textbf{{{TYPES[self.identifier]} }}{self.identifier}"
+
 #> 1ºLEVEL -> NODE
-@dataclass(frozen = True)
+@dataclass
 class LTXNode:
     value: str
     def __str__(self) -> str:
         return self.value
 
 #> 1ºLEVEL -> EQUATION
-@dataclass(frozen = True)
+@dataclass
 class LTXEquation:
     left: str
     right: str
@@ -153,7 +181,7 @@ class LTXEquation:
         return f"{self.left}={self.right}"
 
 #> 1ºLEVEL -> COMMENT
-@dataclass(frozen = True)
+@dataclass
 class LTXComment:
     text: str
     def __str__(self) -> str:
@@ -166,7 +194,7 @@ class LTXComment:
 #^
 
 #> 2ºLEVEL -> EXPRESSION
-@dataclass(frozen = True)
+@dataclass
 class LTXExpression:
     signs: list[str]
     terms: list[str]
@@ -180,7 +208,7 @@ class LTXExpression:
 #^
 
 #> 3ºLEVEL -> TERM
-@dataclass(frozen = True)
+@dataclass
 class LTXTerm:
     numerator: list[str]
     denominator: list[str]
@@ -196,7 +224,7 @@ class LTXTerm:
 #^
 
 #> 4ºLEVEL -> FACTOR
-@dataclass(frozen = True)
+@dataclass
 class LTXFactor:
     value: str
     exponent: str
@@ -205,7 +233,7 @@ class LTXFactor:
         return f"{self.value}{exponent}"
 
 #> 4ºLEVEL -> LIMIT
-@dataclass(frozen = True)
+@dataclass
 class LTXLimit:
     variable: str
     approach: str
@@ -223,38 +251,39 @@ class LTXLimit:
 #^
 
 #> 5ºLEVEL -> INFINITE
-@dataclass(frozen = True)
+@dataclass
 class LTXInfinite:
     def __str__(self) -> str:
         return r"\infty "
 
 #> 5ºLEVEL -> VARIABLE
-@dataclass(frozen = True)
+@dataclass
 class LTXVariable:
     name: str
     def __str__(self) -> str:
         curated = self.name
         for source, replace in VARIABLES.items(): curated = curated.replace(source, replace)
-        return curated
+        identifier = CONVERSION[TYPES[self.name] if self.name in TYPES else None](curated)
+        return identifier
 
 #> 5ºLEVEL -> NEST
-@dataclass(frozen = True)
+@dataclass
 class LTXNest:
     expression: str
     def __str__(self) -> str:
         inside = self.expression if self.expression else r"\, "
         return fr"\left( {inside}\right) "
 
-#> 5ºLEVEL -> VECTOR
-@dataclass(frozen = True)
-class LTXVector:
+#> 5ºLEVEL -> TENSOR
+@dataclass
+class LTXTensor:
     values: list[str]
     def __str__(self) -> str:
         inside = r"\; " if len(self.values) == 0 else r"\\ ".join(self.values)
         return fr"\begin{{bmatrix}}{inside}\end{{bmatrix}}"
 
 #> 5ºLEVEL -> NUMBER
-@dataclass(frozen = True)
+@dataclass
 class LTXNumber:
     whole: str
     decimal: str
@@ -272,7 +301,7 @@ class LaTeX:
     #~ GENERATOR -> INIT
     def __init__(self) -> None: pass
     #~ GENERATOR -> RUN
-    def run(self, start: Start) -> str: return self.start(start)
+    def run(self, start: Start) -> str: TYPES.clear(); return self.start(start)
     #~ GENERATOR -> START GENERATION
     def start(self, start: Start) -> str:
         return str(LTXStart(
@@ -283,20 +312,29 @@ class LaTeX:
         match level1:
             case Declaration(): return self.declaration(level1)
             case Definition(): return self.definition(level1)
+            case Annotation(): return self.annotation(level1)
             case Node(): return self.node(level1)
             case Equation(): return self.equation(level1)
             case Comment(): return self.comment(level1)
     #~ GENERATOR -> 1 DECLARATION GENERATION
     def declaration(self, declaration: Declaration) -> str:
         return str(LTXDeclaration(
+            objectType = declaration.objectType,
             identifier = self.variable(declaration.identifier),
             expression = self.expression(declaration.expression)
         ))
     #~ GENERATOR -> 1 DEFINITION GENERATION
     def definition(self, definition: Definition) -> str:
         return str(LTXDefinition(
+            objectType = definition.objectType,
             identifier = self.variable(definition.identifier),
             expression = self.expression(definition.expression)
+        ))
+    #~ GENERATOR -> 1 ANNOTATION GENERATION
+    def annotation(self, annotation: Annotation) -> str:
+        return str(LTXAnnotation(
+            objectType = annotation.objectType,
+            identifier = self.variable(annotation.identifier)
         ))
     #~ GENERATOR -> 1 NODE GENERATION
     def node(self, node: Node) -> str:
@@ -384,7 +422,7 @@ class LaTeX:
             case Infinite(): return self.infinite(level5)
             case Variable(): return self.variable(level5)
             case Nest(): return self.nest(level5)
-            case Vector(): return self.vector(level5)
+            case Tensor(): return self.tensor(level5)
             case Number(): return self.number(level5)
     #~ GENERATOR -> 5 INFINITE GENERATION
     def infinite(self, infinite: Infinite) -> str: 
@@ -399,9 +437,9 @@ class LaTeX:
         return str(LTXNest(
             expression = self.expression(nest.expression) if nest.expression is not None else ""
         ))
-    #~ GENERATOR -> 5 VECTOR GENERATION
-    def vector(self, vector: Vector) -> str:
-        return str(LTXVector(
+    #~ GENERATOR -> 5 TENSOR GENERATION
+    def tensor(self, vector: Tensor) -> str:
+        return str(LTXTensor(
             values = [self.expression(value) for value in vector.values]
         ))
     #~ GENERATOR -> 5 NUMBER GENERATION

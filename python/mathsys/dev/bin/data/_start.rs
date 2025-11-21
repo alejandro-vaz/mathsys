@@ -12,13 +12,13 @@ use crate::runtime::Value;
 //^
 
 //> START -> STRUCT
-pub struct Start {
+pub struct _Start {
     statements: crate::Box<[u32]>
 }
 
 //> START -> IMPLEMENTATION
-impl crate::converter::Class for Start {
-    fn name(&self) -> &'static str {"Start"}
+impl Class for _Start {
+    fn name(&self) -> &'static str {"_Start"}
     fn locale(&self, code: u8) -> () {match code {
         0 => crate::stdout::debug(&crate::format!(
             "There {} {} statement{}",
@@ -49,10 +49,10 @@ impl crate::converter::Class for Start {
         for &statement in &self.statements {context.process(statement);}
         self.locale(2);
         self.locale(3);
-        return crate::Box::new(crate::_Nexists {});
+        return crate::Box::new(crate::Nexists {});
     }
-} impl Start {
-    pub fn new(statements: &[u32]) -> Self {return Start {
+} impl _Start {
+    pub fn new(statements: &[u32]) -> Self {return _Start {
         statements: statements.into()
     }}
 }

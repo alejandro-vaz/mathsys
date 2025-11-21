@@ -12,14 +12,14 @@ use crate::runtime::Value;
 //^
 
 //> NUMBER -> STRUCT
-pub struct Number {
+pub struct _Number {
     value: u32,
     shift: u8
 }
 
 //> NUMBER -> IMPLEMENTATION
-impl crate::converter::Class for Number {
-    fn name(&self) -> &'static str {"Number"}
+impl Class for _Number {
+    fn name(&self) -> &'static str {"_Number"}
     fn locale(&self, code: u8) -> () {match code {
         0 => crate::stdout::debug(&crate::format!(
             "New number is of value {} and shift {}",
@@ -30,14 +30,14 @@ impl crate::converter::Class for Number {
     }}
     fn evaluate(&self, context: &mut crate::runtime::Context) -> crate::Box<dyn Value> {
         self.locale(0);
-        return crate::Box::new(crate::_Number {
+        return crate::Box::new(crate::Number {
             value: self.value,
             shift: self.shift,
             negative: false
         });
     }
-} impl Number {
-    pub fn new(value: u32, shift: u8) -> Self {return Number {
+} impl _Number {
+    pub fn new(value: u32, shift: u8) -> Self {return _Number {
         value: value,
         shift: shift
     }}

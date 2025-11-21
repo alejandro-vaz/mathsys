@@ -12,14 +12,15 @@ use crate::runtime::Value;
 //^
 
 //> DEFINITION -> STRUCT
-pub struct Definition {
+pub struct _Definition {
+    object: u8,
     variable: u32,
     pointer: u32
 }
 
 //> DEFINITION -> IMPLEMENTATION
-impl crate::converter::Class for Definition {
-    fn name(&self) -> &'static str {"Definition"}
+impl Class for _Definition {
+    fn name(&self) -> &'static str {"_Definition"}
     fn locale(&self, code: u8) -> () {match code {
         0 => crate::stdout::debug(&crate::format!(
             "Variable ID is {}",
@@ -42,16 +43,14 @@ impl crate::converter::Class for Definition {
         context.process(self.pointer);
         self.locale(2);
         let pointer = context.read(self.pointer);
-        let reference = context.read(self.variable);
-        let variable = match reference.id() {
-            "_Variable" => crate::runtime::downcast::<crate::_Variable>(&*reference),
-            other => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
-        };
+        let mut reference = context.read(self.variable);
+        let variable = crate::runtime::mutcast::<crate::Variable>(&mut *reference);
         variable.set(pointer, false, context);
-        return crate::Box::new(crate::_Nexists {});
+        return crate::Box::new(crate::Nexists {});
     }
-} impl Definition {
-    pub fn new(variable: u32, pointer: u32) -> Self {return Definition {
+} impl _Definition {
+    pub fn new(object: u8, variable: u32, pointer: u32) -> Self {return _Definition {
+        object: object,
         variable: variable,
         pointer: pointer
     }}

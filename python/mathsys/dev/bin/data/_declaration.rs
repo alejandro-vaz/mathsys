@@ -12,14 +12,15 @@ use crate::runtime::Value;
 //^
 
 //> DECLARATION -> STRUCT
-pub struct Declaration {
+pub struct _Declaration {
+    object: u8,
     variable: u32,
     pointer: u32
 }
 
 //> DECLARATION -> IMPLEMENTATION
-impl crate::converter::Class for Declaration {
-    fn name(&self) -> &'static str {"Declaration"}
+impl Class for _Declaration {
+    fn name(&self) -> &'static str {"_Declaration"}
     fn locale(&self, code: u8) -> () {match code {
         0 => crate::stdout::debug(&crate::format!(
             "Variable ID is {}",
@@ -42,13 +43,14 @@ impl crate::converter::Class for Declaration {
         context.process(self.pointer);
         self.locale(2);
         let pointer = context.read(self.pointer);
-        let reference = context.read(self.variable);
-        let variable = crate::runtime::downcast::<crate::_Variable>(&*reference);
+        let mut reference = context.read(self.variable);
+        let variable = crate::runtime::mutcast::<crate::Variable>(&mut *reference);
         variable.set(pointer, true, context);
-        return crate::Box::new(crate::_Nexists {});
+        return crate::Box::new(crate::Nexists {});
     }
-} impl Declaration {
-    pub fn new(variable: u32, pointer: u32) -> Self {return Declaration {
+} impl _Declaration {
+    pub fn new(object: u8, variable: u32, pointer: u32) -> Self {return _Declaration {
+        object: object,
         variable: variable,
         pointer: pointer
     }}
