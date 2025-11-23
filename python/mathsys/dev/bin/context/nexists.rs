@@ -43,6 +43,7 @@ impl Value for Nexists {
                 if inverse {value.negate()}
                 value.ctrlcv()
             },
+            "Tensor" => to,
             "Undefined" => to,
             "Variable" => crate::stdout::crash(crate::stdout::Code::UnexpectedValue),
             other => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)

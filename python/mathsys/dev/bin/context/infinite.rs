@@ -50,6 +50,7 @@ impl Value for Infinite {
             },
             "Nexists" => self.ctrlcv(),
             "Number" => self.ctrlcv(),
+            "Tensor" => self.ctrlcv(),
             "Undefined" => to,
             "Variable" => crate::stdout::crash(crate::stdout::Code::UnexpectedValue),
             other => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
@@ -65,5 +66,5 @@ impl Value for Infinite {
     }}
 } impl Infinite {
     pub fn negate(&mut self) -> () {self.locale(0); self.negative = !self.negative}
-    pub fn abs(&mut self) -> () {self.locale(1); self.negative = false}
+    pub fn absolute(&mut self) -> () {self.locale(1); self.negative = false}
 }

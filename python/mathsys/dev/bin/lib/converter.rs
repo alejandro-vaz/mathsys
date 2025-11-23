@@ -5,8 +5,14 @@
 //> CLASS -> TRAIT
 pub trait Class {
     fn name(&self) -> &'static str;
-    fn evaluate(&self, context: &mut crate::runtime::Context) -> crate::Box<dyn crate::runtime::Value>;
-    fn locale(&self, code: u8) -> ();
+    fn space(&self, message: &str, id: u32) -> () {crate::stdout::space(&crate::format!(
+        "{{{}{}}} {}",
+        id,
+        self.name(),
+        message
+    )); self.info()}
+    fn info(&self) -> ();
+    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32) -> crate::Box<dyn crate::runtime::Value>;
 }
 
 
@@ -23,138 +29,146 @@ pub struct Converter {
 //> CONVERTER -> IMPLEMENTATION
 impl Converter {
     pub fn run(&mut self) -> &crate::Vec<crate::Box <dyn Class>> {
-        crate::stdout::space("[CONVERTER] Processing IR");
+        crate::stdout::space("{CONVERTER} Processing IR");
         while self.locus < crate::SETTINGS.ir.len() {
-            let object = match self.use8() {
-                0x01 => self.start(),
-                0x02 => self.declaration(),
-                0x03 => self.definition(),
-                0x04 => self.annotation(),
-                0x05 => self.node(),
-                0x06 => self.equation(),
-                0x07 => self.comment(),
-                0x08 => self.expression(),
-                0x09 => self.term(),
-                0x0A => self.factor(),
-                0x0B => self.limit(),
-                0x0C => self.infinite(),
-                0x0D => self.variable(),
-                0x0E => self.nest(),
-                0x0F => self.tensor(),
-                0x10 => self.number(),
+            let object = match self.take8() {
+                0x01 => self.Start(),
+                0x02 => self.Declaration(),
+                0x03 => self.Definition(),
+                0x04 => self.Annotation(),
+                0x05 => self.Node(),
+                0x06 => self.Equation(),
+                0x07 => self.Comment(),
+                0x08 => self.Use(),
+                0x09 => self.Expression(),
+                0x0A => self.Term(),
+                0x0B => self.Factor(),
+                0x0C => self.Limit(),
+                0x0D => self.Infinite(),
+                0x0E => self.Variable(),
+                0x0F => self.Nest(),
+                0x10 => self.Tensor(),
+                0x11 => self.Number(),
                 other => crate::stdout::crash(crate::stdout::Code::UnknownIRObject)
             };
             self.memory.push(object);
         };
         return &self.memory;
     }
-    fn annotation(&mut self) -> crate::Box<dyn Class> {
+    fn Annotation(&mut self) -> crate::Box<dyn Class> {
         crate::stdout::trace("Creating _Annotation data structure");
-        return crate::Box::new(crate::_Annotation::new(
-            self.use8(),
-            self.use32()
-        ));
+        return crate::Box::new(crate::_Annotation {
+            object: self.take8(),
+            variable: self.take32()
+        })
     }
-    fn comment(&mut self) -> crate::Box<dyn Class> {
+    fn Comment(&mut self) -> crate::Box<dyn Class> {
         crate::stdout::trace("Creating _Comment data structure");
-        return crate::Box::new(crate::_Comment::new(
-            &self.listchar()
-        ));
+        return crate::Box::new(crate::_Comment {
+            characters: (&*self.listchar()).into()
+        })
     }
-    fn declaration(&mut self) -> crate::Box<dyn Class> {
+    fn Declaration(&mut self) -> crate::Box<dyn Class> {
         crate::stdout::trace("Creating _Declaration data structure");
-        return crate::Box::new(crate::_Declaration::new(
-            self.use8(),
-            self.use32(),
-            self.use32()
-        ));
+        return crate::Box::new(crate::_Declaration {
+            object: self.take8(),
+            variable: self.take32(),
+            pointer: self.take32()
+        });
     }
-    fn definition(&mut self) -> crate::Box<dyn Class> {
+    fn Definition(&mut self) -> crate::Box<dyn Class> {
         crate::stdout::trace("Creating _Definition data structure");
-        return crate::Box::new(crate::_Definition::new(
-            self.use8(),
-            self.use32(),
-            self.use32()
-        ));
+        return crate::Box::new(crate::_Definition {
+            object: self.take8(),
+            variable: self.take32(),
+            pointer: self.take32()
+        });
     }
-    fn equation(&mut self) -> crate::Box<dyn Class> {
+    fn Equation(&mut self) -> crate::Box<dyn Class> {
         crate::stdout::trace("Creating _Equation data structure");
-        return crate::Box::new(crate::_Equation::new(
-            self.use32(), 
-            self.use32()
-        ));
+        return crate::Box::new(crate::_Equation {
+            left: self.take32(),
+            right: self.take32()
+        });
     }
-    fn expression(&mut self) -> crate::Box<dyn Class> {
+    fn Expression(&mut self) -> crate::Box<dyn Class> {
         crate::stdout::trace("Creating _Expression data structure");
-        return crate::Box::new(crate::_Expression::new(
-            &self.list32(), 
-            &self.list8()
-        ));
+        return crate::Box::new(crate::_Expression {
+            terms: (&*self.list32()).into(),
+            signs: (&*self.list8()).into()
+        });
     }
-    fn factor(&mut self) -> crate::Box<dyn Class> {
+    fn Factor(&mut self) -> crate::Box<dyn Class> {
         crate::stdout::trace("Creating _Factor data structure");
-        return crate::Box::new(crate::_Factor::new(
-            self.use32(), 
-            self.use32()
-        ));
+        return crate::Box::new(crate::_Factor {
+            pointer: self.take32(),
+            expression: self.take32()
+        });
     }
-    fn infinite(&mut self) -> crate::Box<dyn Class> {
+    fn Infinite(&mut self) -> crate::Box<dyn Class> {
         crate::stdout::trace("Creating _Infinite data structure");
-        return crate::Box::new(crate::_Infinite::new());
+        return crate::Box::new(crate::_Infinite {});
     }
-    fn limit(&mut self) -> crate::Box<dyn Class> {
+    fn Limit(&mut self) -> crate::Box<dyn Class> {
         crate::stdout::trace("Creating _Limit data structure");
-        return crate::Box::new(crate::_Limit::new(
-            self.use32(), 
-            self.use32(), 
-            self.use8(), 
-            self.use32(), 
-            self.use32()
-        ));
+        return crate::Box::new(crate::_Limit {
+            variable: self.take32(),
+            approach: self.take32(),
+            direction: self.take8(),
+            pointer: self.take32(),
+            exponent: self.take32()
+        });
     }
-    fn nest(&mut self) -> crate::Box<dyn Class> {
+    fn Nest(&mut self) -> crate::Box<dyn Class> {
         crate::stdout::trace("Creating _Nest data structure");
-        return crate::Box::new(crate::_Nest::new(
-            self.use32()
-        ));
+        return crate::Box::new(crate::_Nest {
+            pointer: self.take32()
+        });
     }
-    fn node(&mut self) -> crate::Box<dyn Class> {
+    fn Node(&mut self) -> crate::Box<dyn Class> {
         crate::stdout::trace("Creating _Node data structure");
-        return crate::Box::new(crate::_Node::new(
-            self.use32()
-        ));
+        return crate::Box::new(crate::_Node {
+            pointer: self.take32()
+        });
     }
-    fn number(&mut self) -> crate::Box<dyn Class> {
+    fn Number(&mut self) -> crate::Box<dyn Class> {
         crate::stdout::trace("Creating _Number data structure");
-        return crate::Box::new(crate::_Number::new(
-            self.use32(),
-            self.use8()
-        ));
+        return crate::Box::new(crate::_Number {
+            value: self.take32(),
+            shift: self.take8()
+        });
     }
-    fn start(&mut self) -> crate::Box<dyn Class> {
+    fn Start(&mut self) -> crate::Box<dyn Class> {
         crate::stdout::trace("Creating _Start data structure");
-        return crate::Box::new(crate::_Start::new(
-            &self.list32()
-        ));
+        return crate::Box::new(crate::_Start {
+            statements: (&*self.list32()).into()
+        });
     }
-    fn tensor(&mut self) -> crate::Box<dyn Class> {
+    fn Tensor(&mut self) -> crate::Box<dyn Class> {
         crate::stdout::trace("Creating _Tensor data structure");
-        return crate::Box::new(crate::_Tensor::new(
-            &self.list32()
-        ));
+        return crate::Box::new(crate::_Tensor {
+            values: (&*self.list32()).into()
+        });
     }
-    fn term(&mut self) -> crate::Box<dyn Class> {
+    fn Term(&mut self) -> crate::Box<dyn Class> {
         crate::stdout::trace("Creating _Term data structure");
-        return crate::Box::new(crate::_Term::new(
-            &self.list32(), 
-            &self.list32()
-        ));
+        return crate::Box::new(crate::_Term {
+            numerator: (&*self.list32()).into(),
+            denominator: (&*self.list32()).into()
+        });
     }
-    fn variable(&mut self) -> crate::Box<dyn Class> {
+    fn Use(&mut self) -> crate::Box<dyn Class> {
+        crate::stdout::trace("Creating _Use data structure");
+        return crate::Box::new(crate::_Use {
+            name: (&*self.listchar()).into(),
+            module: self.take32()
+        });
+    }
+    fn Variable(&mut self) -> crate::Box<dyn Class> {
         crate::stdout::trace("Creating _Variable data structure");
-        return crate::Box::new(crate::_Variable::new(
-            &self.listchar()
-        ));
+        return crate::Box::new(crate::_Variable {
+            characters: (&*self.listchar()).into()
+        });
     }
 }
 
@@ -166,29 +180,29 @@ impl Converter {
             memory: crate::Vec::<crate::Box <dyn Class>>::new()
         }
     }
-    fn use8(&mut self) -> u8 {
+    fn take8(&mut self) -> u8 {
         self.check(1);
         let value = crate::SETTINGS.ir[self.locus];
-        self.inc(1);
+        self.locus += 1;
         return value;
     }
-    fn use32(&mut self) -> u32 {
+    fn take32(&mut self) -> u32 {
         self.check(4);
         let value = &crate::SETTINGS.ir[self.locus..self.locus + 4];
-        self.inc(4);
+        self.locus += 4;
         return u32::from_le_bytes([value[0], value[1], value[2], value[3]]);
     }
-    fn list8(&mut self) -> crate::Vec::<u8> {
+    fn list8(&mut self) -> crate::Vec<u8> {
         let mut values = crate::Vec::<u8>::new();
-        loop {match self.use8() {
+        loop {match self.take8() {
             0 => break,
             value => values.push(value)
         }}
         return values;
     }
-    fn list32(&mut self) -> crate::Vec::<u32> {
+    fn list32(&mut self) -> crate::Vec<u32> {
         let mut values = crate::Vec::<u32>::new();
-        loop {match self.use32() {
+        loop {match self.take32() {
             0 => break,
             value => values.push(value)
         }}
@@ -196,17 +210,12 @@ impl Converter {
     }
     fn listchar(&mut self) -> crate::String {
         let mut values = crate::String::new();
-        loop {match self.use8() {
+        loop {match self.take8() {
             0 => break,
             value => values.push(value as char)
         }}
         return values;
     }
-    #[inline(always)]
-    fn inc(&mut self, sum: usize) -> () {
-        self.locus += sum;
-    }
-    #[inline(always)]
     fn check(&self, distance: usize) -> () {
         if self.locus + distance > crate::SETTINGS.ir.len() {
             crate::stdout::crash(crate::stdout::Code::MalformedIR);

@@ -28,6 +28,7 @@ impl Value for Undefined {
         "Infinite" => to.equiv(self.ctrlcv()),
         "Nexists" => to.equiv(self.ctrlcv()),
         "Number" => to.equiv(self.ctrlcv()),
+        "Tensor" => to.equiv(self.ctrlcv()),
         "Undefined" => false,
         "Variable" => false,
         other => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
@@ -38,6 +39,7 @@ impl Value for Undefined {
             "Infinite" => to.summation(self.ctrlcv(), false, inverse),
             "Nexists" => to.summation(self.ctrlcv(), false, inverse),
             "Number" => to.summation(self.ctrlcv(), false, inverse),
+            "Tensor" => to.summation(self.ctrlcv(), false, inverse),
             "Undefined" => self.ctrlcv(),
             "Variable" => crate::stdout::crash(crate::stdout::Code::UnexpectedValue),
             other => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)

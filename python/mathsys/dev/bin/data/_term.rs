@@ -13,24 +13,20 @@ use crate::runtime::Value;
 
 //> TERM -> STRUCT
 pub struct _Term {
-    numerator: crate::Box<[u32]>,
-    denominator: crate::Box<[u32]>
+    pub numerator: crate::Box<[u32]>,
+    pub denominator: crate::Box<[u32]>
 }
 
 //> TERM -> IMPLEMENTATION
 impl Class for _Term {
     fn name(&self) -> &'static str {"_Term"}
-    fn locale(&self, code: u8) -> () {match code {
-        0 => crate::stdout::alert("To be developed, returning undefined meanwhile"),
-        other => crate::stdout::crash(crate::stdout::Code::LocaleNotFound)
-    }}
-    fn evaluate(&self, context: &mut crate::runtime::Context) -> crate::Box<dyn Value> {
-        self.locale(0);
+    fn info(&self) -> () {crate::stdout::debug(&crate::format!(
+        "{} > numerator = [{}], denominator = [{}]",
+        self.name(),
+        self.numerator.iter().map(|id| crate::format!("{}", id)).collect::<crate::Vec<_>>().join(", "),
+        self.denominator.iter().map(|id| crate::format!("{}", id)).collect::<crate::Vec<_>>().join(", ")
+    ))}
+    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32) -> crate::Box<dyn Value> {
         return crate::Box::new(crate::Undefined {})
     }
-} impl _Term {
-    pub fn new(numerator: &[u32], denominator: &[u32]) -> Self {return _Term {
-        numerator: numerator.into(),
-        denominator: denominator.into()
-    }}
 }

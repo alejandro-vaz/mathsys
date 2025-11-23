@@ -8,25 +8,27 @@ use crate::runtime::Value;
 
 
 //^
-//^ START
+//^ USE
 //^
 
-//> START -> STRUCT
-pub struct _Start {
-    pub statements: crate::Box<[u32]>
+//> USE -> STRUCT
+pub struct _Use {
+    pub name: crate::Box<str>,
+    pub module: u32
 }
 
-//> START -> IMPLEMENTATION
-impl Class for _Start {
-    fn name(&self) -> &'static str {"_Start"}
+//> USE -> IMPLEMENTATION
+impl Class for _Use {
+    fn name(&self) -> &'static str {"_Use"}
     fn info(&self) -> () {crate::stdout::debug(&crate::format!(
-        "{} > statements = [{}]",
+        "{} > name = \"{}\", module = {}",
         self.name(),
-        self.statements.iter().map(|id| crate::format!("{}", id)).collect::<crate::Vec<_>>().join(", ")
+        &self.name,
+        self.module
     ))}
     fn evaluate(&self, context: &mut crate::runtime::Context, id: u32) -> crate::Box<dyn Value> {
         self.space("Processing", id);
-        for &statement in &self.statements {context.process(statement);}
+        if self.module != 0 {context.process(self.module)}
         return crate::Box::new(crate::Nexists {});
     }
 }

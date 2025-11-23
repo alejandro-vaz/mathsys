@@ -51,12 +51,8 @@ pub fn rust_eh_personality() -> () {}
 
 //> RUSTC -> UNWIND RESUME
 #[no_mangle]
-pub extern "C" fn _Unwind_Resume() -> ! {
-    loop {}
-}
+pub extern "C" fn _Unwind_Resume() -> ! {loop {}}
 
 //> RUSTC -> PANIC HANDLER
 #[panic_handler]
-fn panic(info: &crate::PanicInfo) -> ! {
-    crate::stdout::crash(crate::stdout::Code::Fatal);
-}
+fn panic(info: &crate::PanicInfo) -> ! {crate::stdout::crash(crate::stdout::Code::Fatal)}

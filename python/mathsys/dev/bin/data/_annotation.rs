@@ -13,23 +13,26 @@ use crate::runtime::Value;
 
 //> ANNOTATION -> STRUCT
 pub struct _Annotation {
-    object: u8,
-    variable: u32
+    pub object: u8,
+    pub variable: u32
 }
 
 //> ANNOTATION -> IMPLEMENTATION
 impl Class for _Annotation {
     fn name(&self) -> &'static str {"_Annotation"}
-    fn locale(&self, code: u8) -> () {match code {
-        other => crate::stdout::crash(crate::stdout::Code::LocaleNotFound)
-    }}
-    fn evaluate(&self, context: &mut crate::runtime::Context) -> crate::Box<dyn Value> {
+    fn info(&self) -> () {crate::stdout::debug(&crate::format!(
+        "{} > object = {}, variable = {}",
+        self.name(),
+        self.object,
+        self.variable
+    ))}
+    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32) -> crate::Box<dyn Value> {
+        self.space("Processing", id);
         context.process(self.variable);
+        self.space("Setting class of variable", id);
+        let mut value = context.read(self.variable);
+        let instance = crate::runtime::mutcast::<crate::Variable>(&mut *value);
+        instance.setType(self.object, context);
         return crate::Box::new(crate::Nexists {});
     }
-} impl _Annotation {
-    pub fn new(object: u8, variable: u32) -> Self {return _Annotation {
-        object: object,
-        variable: variable
-    }}
 }

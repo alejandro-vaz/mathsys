@@ -15,6 +15,7 @@ from .parser import (
     Node,
     Equation,
     Comment, 
+    Use,
     #~ DATACLASSES -> 2ºLEVEL
     Level2,
     Expression,
@@ -105,6 +106,7 @@ TYPES = {}
 #> MAPPINGS -> CONVERSION TABLE
 CONVERSION = {
     None: lambda name: name,
+    "Any": lambda name: name,
     "Infinite": lambda name: f"\overset{{\infty}}{{{name}}}",
     "Nexists": lambda name: fr"\nexists\,{name}",
     "Number": lambda name: name,
@@ -139,31 +141,25 @@ class LTXStart:
 #> 1ºLEVEL -> DECLARATION
 @dataclass
 class LTXDeclaration:
-    objectType: str | None
     identifier: str
     expression: str
     def __str__(self) -> str:
-        TYPES[self.identifier] = TYPES.get(self.identifier, self.objectType)
         return f"{self.identifier}={self.expression}"
 
 #> 1ºLEVEL -> DEFINITION
 @dataclass
 class LTXDefinition:
-    objectType: str | None
     identifier: str
     expression: str
     def __str__(self) -> str:
-        TYPES[self.identifier] = TYPES.get(self.identifier, self.objectType)
         return f"{self.identifier}\equiv {self.expression}"
 
 #> 1ºLEVEL -> ANNOTATION
 @dataclass
 class LTXAnnotation:
-    objectType: str
     identifier: str
     def __str__(self) -> str:
-        TYPES[self.identifier] = TYPES.get(self.identifier, self.objectType)
-        return fr"\textbf{{{TYPES[self.identifier]} }}{self.identifier}"
+        return ""
 
 #> 1ºLEVEL -> NODE
 @dataclass
@@ -187,6 +183,15 @@ class LTXComment:
     def __str__(self) -> str:
         curated = "".join(SPECIAL.get(character, character) for character in self.text)
         return fr"\\\text{{{curated}}}"
+
+#> 1ºLEVEL -> USE
+@dataclass
+class LTXUse:
+    name: str
+    module: str
+    def __str__(self) -> str:
+        first = "" if self.module else r"\color{brown}"
+        return fr"{first}\textbf{{use {self.name}}}"
 
 
 #^
@@ -316,24 +321,25 @@ class LaTeX:
             case Node(): return self.node(level1)
             case Equation(): return self.equation(level1)
             case Comment(): return self.comment(level1)
+            case Use(): return self.use(level1)
     #~ GENERATOR -> 1 DECLARATION GENERATION
     def declaration(self, declaration: Declaration) -> str:
+        TYPES[declaration.identifier.representation] = TYPES.get(declaration.identifier.representation, declaration.objectType)
         return str(LTXDeclaration(
-            objectType = declaration.objectType,
             identifier = self.variable(declaration.identifier),
             expression = self.expression(declaration.expression)
         ))
     #~ GENERATOR -> 1 DEFINITION GENERATION
     def definition(self, definition: Definition) -> str:
+        TYPES[definition.identifier.representation] = TYPES.get(definition.identifier.representation, definition.objectType)
         return str(LTXDefinition(
-            objectType = definition.objectType,
             identifier = self.variable(definition.identifier),
             expression = self.expression(definition.expression)
         ))
     #~ GENERATOR -> 1 ANNOTATION GENERATION
     def annotation(self, annotation: Annotation) -> str:
+        TYPES[annotation.identifier.representation] = TYPES.get(annotation.identifier.representation, annotation.objectType)
         return str(LTXAnnotation(
-            objectType = annotation.objectType,
             identifier = self.variable(annotation.identifier)
         ))
     #~ GENERATOR -> 1 NODE GENERATION
@@ -351,6 +357,12 @@ class LaTeX:
     def comment(self, comment: Comment) -> str:
         return str(LTXComment(
             text = comment.content
+        ))
+    #~ GENERATOR -> 1 USE GENERATION
+    def use(self, use: Use) -> str:
+        return str(LTXUse(
+            name = use.name,
+            module = self.start(use.module) if use.module is not None else ""
         ))
     #~ GENERATOR -> 2 LEVEL GENERATION
     def level2(self, level2: Level2) -> str:

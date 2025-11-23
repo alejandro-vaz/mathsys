@@ -42,6 +42,7 @@ mod data {
     pub mod _start;
     pub mod _tensor;
     pub mod _term;
+    pub mod _use;
     pub mod _variable;
 }
 
@@ -85,6 +86,7 @@ use data::_number::_Number;
 use data::_start::_Start;
 use data::_tensor::_Tensor;
 use data::_term::_Term;
+use data::_use::_Use;
 use data::_variable::_Variable;
 
 //> PULLS -> LIB
@@ -114,8 +116,7 @@ struct Settings {
     version: [&'static str; 3],
     memsize: usize,
     block: usize,
-    precision: u8,
-    width: u8
+    precision: u8
 }
 
 //> GLOBALS -> SETTINGS
@@ -139,8 +140,7 @@ static SETTINGS: Settings = Settings {
         "reduced" => 2,
         "standard" => if usize::BITS == 64 {3} else {2},
         other => if usize::BITS == 64 {3} else {2}
-    },
-    width: 100
+    }
 };
 
 
@@ -158,12 +158,12 @@ pub extern "C" fn _start() -> ! {
     stdout::login();
     stdout::debug(&format!(
         "Total heap size is {}B",
-        formatting::scientific(SETTINGS.memsize).trim_start()
+        formatting::scientific(SETTINGS.memsize).trim_end()
     ));
     stdout::debug(&format!(
         "There are {} memory blocks, each of {}B",
-        formatting::scientific(SETTINGS.memsize / SETTINGS.block).trim_start(),
-        formatting::scientific(SETTINGS.block).trim_start()
+        formatting::scientific(SETTINGS.memsize / SETTINGS.block).trim_end(),
+        formatting::scientific(SETTINGS.block).trim_end()
     ));
     stdout::debug(&format!(
         "Precision is set to {}",
@@ -177,6 +177,6 @@ pub extern "C" fn _start() -> ! {
 fn run() -> () {
     let mut converter = converter::Converter::new();
     let memory = converter.run();
-    let mut context = runtime::Context::new(memory.len(), memory);
+    let mut context = runtime::Context::new(memory);
     let output = context.quick();
 }

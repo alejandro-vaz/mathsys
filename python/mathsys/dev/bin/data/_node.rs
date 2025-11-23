@@ -13,26 +13,20 @@ use crate::runtime::Value;
 
 //> NODE -> STRUCT
 pub struct _Node {
-    pointer: u32
+    pub pointer: u32
 }
 
 //> NODE -> IMPLEMENTATION
 impl Class for _Node {
     fn name(&self) -> &'static str {"_Node"}
-    fn locale(&self, code: u8) -> () {match code {
-        0 => crate::stdout::debug(&crate::format!(
-            "Expression to evaluate has an ID of {}",
-            self.pointer
-        )),
-        other => crate::stdout::crash(crate::stdout::Code::LocaleNotFound)
-    }}
-    fn evaluate(&self, context: &mut crate::runtime::Context) -> crate::Box<dyn Value> {
-        self.locale(0);
+    fn info(&self) -> () {crate::stdout::debug(&crate::format!(
+        "{} > pointer = {}",
+        self.name(),
+        self.pointer
+    ))}
+    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32) -> crate::Box<dyn Value> {
+        self.space("Processing", id);
         context.process(self.pointer);
         return crate::Box::new(crate::Undefined {});
     }
-} impl _Node {
-    pub fn new(pointer: u32) -> Self {return _Node {
-        pointer: pointer
-    }}
 }
