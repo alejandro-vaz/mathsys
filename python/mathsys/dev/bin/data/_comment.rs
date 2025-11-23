@@ -13,25 +13,18 @@ use crate::runtime::Value;
 
 //> COMMENT -> STRUCT
 pub struct _Comment {
-    characters: crate::Box<str>,
+    pub characters: crate::Box<str>,
 }
 
 //> COMMENT -> IMPLEMENTATION
 impl Class for _Comment {
     fn name(&self) -> &'static str {"_Comment"}
-    fn locale(&self, code: u8) -> () {match code {
-        0 => crate::stdout::debug(&crate::format!(
-            "{}",
-            self.characters.clone()
-        )),
-        other => crate::stdout::crash(crate::stdout::Code::LocaleNotFound)
-    }}
-    fn evaluate(&self, context: &mut crate::runtime::Context) -> crate::Box<dyn Value> {
-        self.locale(0);
+    fn info(&self) -> () {crate::stdout::debug(&crate::format!(
+        "{} > characters = \"{}\"",
+        self.name(),
+        &self.characters
+    ))}
+    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32) -> crate::Box<dyn Value> {
         return crate::Box::new(crate::Nexists {});
     }
-} impl _Comment {
-    pub fn new(characters: &str) -> Self {return _Comment {
-        characters: characters.into()
-    }}
 }

@@ -22,7 +22,7 @@ impl Id for Variable {const ID: &'static str = "Variable";}
 impl Value for Variable {
     fn id(&self) -> &'static str {return Self::ID}
     fn info(&self) -> () {crate::stdout::debug(&crate::format!(
-        "{} > name = {}", 
+        "{} > name = \"{}\"", 
         self.id(), 
         self.name
     ))}
@@ -31,6 +31,7 @@ impl Value for Variable {
         "Infinite" => to.equiv(self.ctrlcv()),
         "Nexists" => to.equiv(self.ctrlcv()),
         "Number" => to.equiv(self.ctrlcv()),
+        "Tensor" => to.equiv(self.ctrlcv()),
         "Undefined" => to.equiv(self.ctrlcv()),
         "Variable" => {
             let value = crate::runtime::mutcast::<crate::Variable>(&mut *to);
@@ -44,6 +45,7 @@ impl Value for Variable {
             "Infinite" => to.summation(self.ctrlcv(), false, inverse),
             "Nexists" => to.summation(self.ctrlcv(), false, inverse),
             "Number" => to.summation(self.ctrlcv(), false, inverse),
+            "Tensor" => to.summation(self.ctrlcv(), false, inverse),
             "Undefined" => to.summation(self.ctrlcv(), false, inverse),
             "Variable" => crate::stdout::crash(crate::stdout::Code::UnexpectedValue),
             other => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
@@ -66,11 +68,27 @@ impl Value for Variable {
             "Value of variable \"{}\" is not defined",
             &self.name
         )),
+        4 => crate::stdout::trace(&crate::format!(
+            "Narrowing class of variable \"{}\"",
+            &self.name
+        )),
+        5 => crate::stdout::trace(&crate::format!(
+            "Getting class of variable \"{}\"",
+            &self.name
+        )),
+        6 => crate::stdout::alert(&crate::format!(
+            "\"{}\" has no class associated to it",
+            &self.name
+        )),
         other => crate::stdout::crash(crate::stdout::Code::LocaleNotFound)
     }}
 } impl Variable {
-    pub fn set(&self, value: crate::Box<dyn Value>, mutable: bool, context: &mut crate::runtime::Context) -> () {
-        if mutable {self.locale(0)} else {self.locale(1)};
+    pub fn set(&self, value: crate::Box<dyn Value>, mutable: bool, context: &mut crate::runtime::Context, constraint: u8) -> () {
+        self.locale(if mutable {0} else {1});
+        self.setType(constraint, context);
+        if !self.compatible(constraint, value.id()) {
+            crate::stdout::crash(crate::stdout::Code::RuntimeTypeMismatch)
+        }
         for (key, data) in &context.immutable {
             if key == &self.name {crate::stdout::crash(crate::stdout::Code::ImmutableModification)}
         }
@@ -81,11 +99,33 @@ impl Value for Variable {
             context.immutable.push((self.name.clone(), value));
         }
     }
+    pub fn setType(&self, code: u8, context: &mut crate::runtime::Context) -> () {
+        if code == 0 || self.getType(context) == code {return}
+        if self.getType(context) != 0 {crate::stdout::crash(crate::stdout::Code::DoubleAnnotation)}
+        context.types.push((self.name.clone(), code));
+    }
     pub fn get(&self, context: &crate::runtime::Context) -> crate::Box<dyn Value> {
         self.locale(2);
         for (key, value) in &context.immutable {if key == &self.name {return value.ctrlcv()}}
         for (key, value) in &context.mutable {if key == &self.name {return value.ctrlcv()}}
         self.locale(3);
         return crate::Box::new(crate::Undefined {});
+    }
+    fn compatible(&self, code: u8, output: &str) -> bool {
+        if code == 0 {return true} else {
+            return output == match code {
+                1 => "Infinite",
+                2 => "Nexists",
+                3 => "Number",
+                4 => "Tensor",
+                5 => "Undefined",
+                6 => "Variable",
+                other => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
+            }
+        }
+    }
+    fn getType(&self, context: &crate::runtime::Context) -> u8 {
+        for (key, value) in &context.types {if key == &self.name {return *value}}
+        return 0;
     }
 }

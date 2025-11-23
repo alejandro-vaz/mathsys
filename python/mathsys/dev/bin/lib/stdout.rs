@@ -6,21 +6,15 @@
 fn print(string: &str, append: &[u8]) -> () {
     let mut bytes = crate::Vec::new();
     bytes.extend_from_slice(append);
-    let mut characters = string.chars();
-    for count in 0..crate::SETTINGS.width {
-        if let Some(character) = characters.next() {
-            let mut buffer = [0u8; 4];
-            bytes.extend_from_slice(character.encode_utf8(&mut buffer).as_bytes());
-        } else {bytes.push(b' ')}
-    }
     bytes.extend_from_slice(signature().as_bytes());
+    bytes.extend_from_slice(string.as_bytes());
     bytes.extend_from_slice(&[0x1B, 0x5B, 0x30, 0x6D, 0x0A, 0x00]);
     crate::stack::write(bytes.as_ptr());
 }
 
 //> FORMATTING -> MEMORY SIGNATURE
 fn signature() -> crate::String {return crate::format!(
-    "    {}",
+    "{}  ~  ",
     crate::formatting::scientific(crate::allocator::mark())
 )}
 
@@ -54,6 +48,8 @@ pub fn crash(code: Code) -> ! {
             6 => "Unknown IR object code",
             7 => "Start object not found",
             8 => "Attempted to mutcast a different object type",
+            9 => "Attempted a double annotation of a variable",
+            10 => "Mismatched variable type and type of its value",
             255 => crate::stack::exit(255),
             other => loop {}
         }
@@ -72,6 +68,8 @@ pub enum Code {
     UnknownIRObject = 6,
     StartNotFound = 7,
     FailedMutcast = 8,
+    DoubleAnnotation = 9,
+    RuntimeTypeMismatch = 10,
     Fatal = 255
 }
 

@@ -17,14 +17,14 @@ pub struct _Infinite {}
 //> INFINITE -> IMPLEMENTATION
 impl Class for _Infinite {
     fn name(&self) -> &'static str {"_Infinite"}
-    fn locale(&self, code: u8) -> () {match code {
-        other => crate::stdout::crash(crate::stdout::Code::LocaleNotFound)
-    }}
-    fn evaluate(&self, context: &mut crate::runtime::Context) -> crate::Box<dyn Value> {
+    fn info(&self) -> () {crate::stdout::debug(&crate::format!(
+        "{} > ",
+        self.name()
+    ))}
+    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32) -> crate::Box<dyn Value> {
+        self.space("Processing", id);
         return crate::Box::new(crate::Infinite {
             negative: false
         });
     }
-} impl _Infinite {
-    pub fn new() -> Self {return _Infinite {}}
 }

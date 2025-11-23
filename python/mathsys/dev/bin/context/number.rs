@@ -73,6 +73,7 @@ impl Value for Number {
                     negative: negative
                 })
             },
+            "Tensor" => self.ctrlcv(),
             "Undefined" => to,
             "Variable" => crate::stdout::crash(crate::stdout::Code::UnexpectedValue),
             other => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
@@ -102,5 +103,5 @@ impl Value for Number {
             self.shift += 1;
         }
     }
-    pub fn abs(&mut self) -> () {self.locale(3); self.negative = false}
+    pub fn absolute(&mut self) -> () {self.locale(3); self.negative = false}
 }

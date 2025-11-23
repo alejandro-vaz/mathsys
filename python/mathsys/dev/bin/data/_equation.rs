@@ -13,40 +13,27 @@ use crate::runtime::Value;
 
 //> EQUATION -> STRUCT
 pub struct _Equation {
-    left: u32,
-    right: u32
+    pub left: u32,
+    pub right: u32
 }
 
 //> EQUATION -> IMPLEMENTATION
 impl Class for _Equation {
     fn name(&self) -> &'static str {"_Equation"}
-    fn locale(&self, code: u8) -> () {match code {
-        0 => crate::stdout::debug(&crate::format!(
-            "Sides of the equation have IDs {} and {}",
-            self.left,
-            self.right
-        )),
-        1 => crate::stdout::space(&crate::format!(
-            "[{}] Verifying equality of both sides",
-            self.name()
-        )),
-        2 => crate::stdout::debug("Sides of the equation are equal"),
-        3 => crate::stdout::alert("Sides of the equation are not equal"),
-        other => crate::stdout::crash(crate::stdout::Code::LocaleNotFound)
-    }}
-    fn evaluate(&self, context: &mut crate::runtime::Context) -> crate::Box<dyn Value> {
-        self.locale(0);
+    fn info(&self) -> () {crate::stdout::debug(&crate::format!(
+        "{} > left = {}, right = {}",
+        self.name(),
+        self.left,
+        self.right
+    ))}
+    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32) -> crate::Box<dyn Value> {
+        self.space("Processing", id);
         context.process(self.left);
         context.process(self.right);
-        self.locale(1);
+        self.space("Checking if both sides are equal", id);
         let left = context.read(self.left);
         let right = context.read(self.right);
-        if left.equiv(right) {self.locale(2)} else {self.locale(3)}
+        left.equiv(right);
         return crate::Box::new(crate::Nexists {});
     }
-} impl _Equation {
-    pub fn new(left: u32, right: u32) -> Self {return _Equation {
-        left: left,
-        right: right
-    }}
 }

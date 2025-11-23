@@ -15,6 +15,7 @@ from .parser import (
     Node,
     Equation,
     Comment, 
+    Use,
     #~ DATACLASSES -> 2ºLEVEL
     Level2,
     Expression,
@@ -80,6 +81,7 @@ def join(binary: list[bytes]) -> bytes:
 #> MAPPINGS -> OBJECTTYPE
 OBJECTTYPE = {
     None: null8(),
+    "Any": null8(),
     "Infinite": u8(1),
     "Nexists": u8(2),
     "Number": u8(3),
@@ -160,6 +162,15 @@ class IRComment(Sequence):
     def __bytes__(self) -> bytes:
         return self.code + (join(self.characters) + null8())
 
+#> 1ºLEVEL -> USE
+@dataclass
+class IRUse(Sequence):
+    code = u8(0x08)
+    name: list[u8]
+    module: u32 | null32
+    def __bytes__(self) -> bytes:
+        return self.code + (join(self.name) + null8()) + self.module
+
 
 #^
 #^  2ºLEVEL
@@ -168,7 +179,7 @@ class IRComment(Sequence):
 #> 2ºLEVEL -> EXPRESSION
 @dataclass
 class IRExpression(Sequence):
-    code = u8(0x08)
+    code = u8(0x09)
     terms: list[u32]
     signs: list[u8]
     def __bytes__(self) -> bytes:
@@ -182,7 +193,7 @@ class IRExpression(Sequence):
 #> 3ºLEVEL -> TERM
 @dataclass
 class IRTerm(Sequence):
-    code = u8(0x09)
+    code = u8(0x0A)
     numerator: list[u32]
     denominator: list[u32]
     def __bytes__(self) -> bytes:
@@ -196,7 +207,7 @@ class IRTerm(Sequence):
 #> 4ºLEVEL -> FACTOR
 @dataclass
 class IRFactor(Sequence):
-    code = u8(0x0A)
+    code = u8(0x0B)
     pointer: u32
     expression: u32 | null32
     def __bytes__(self) -> bytes:
@@ -205,7 +216,7 @@ class IRFactor(Sequence):
 #> 4ºLEVEL -> LIMIT
 @dataclass
 class IRLimit(Sequence):
-    code = u8(0x0B)
+    code = u8(0x0C)
     variable: u32
     approach: u32
     direction: u8 | null8
@@ -222,14 +233,14 @@ class IRLimit(Sequence):
 #> 5ºLEVEL -> INFINITE
 @dataclass
 class IRInfinite(Sequence):
-    code = u8(0x0C)
+    code = u8(0x0D)
     def __bytes__(self) -> bytes:
         return self.code
 
 #> 5ºLEVEL -> VARIABLE
 @dataclass
 class IRVariable(Sequence):
-    code = u8(0x0D)
+    code = u8(0x0E)
     characters: list[u8]
     def __bytes__(self) -> bytes:
         return self.code + (join(self.characters) + null8())
@@ -237,7 +248,7 @@ class IRVariable(Sequence):
 #> 5ºLEVEL -> NEST
 @dataclass
 class IRNest(Sequence):
-    code = u8(0x0E)
+    code = u8(0x0F)
     pointer: u32 | null32
     def __bytes__(self) -> bytes:
         return self.code + self.pointer
@@ -245,7 +256,7 @@ class IRNest(Sequence):
 #> 5ºLEVEL -> TENSOR
 @dataclass
 class IRTensor(Sequence):
-    code = u8(0x0F)
+    code = u8(0x10)
     values: list[u32]
     def __bytes__(self) -> bytes:
         return self.code + (join(self.values) + null32())
@@ -253,7 +264,7 @@ class IRTensor(Sequence):
 #> 5ºLEVEL -> NUMBER
 @dataclass
 class IRNumber(Sequence):
-    code = u8(0x10)
+    code = u8(0x11)
     value: u32 | null32
     shift: u8 | null8
     def __bytes__(self) -> bytes:
@@ -298,6 +309,7 @@ class IR:
             case Node(): return self.node(level1)
             case Equation(): return self.equation(level1)
             case Comment(): return self.comment(level1)
+            case Use(): return self.use(level1)
     #~ IR -> 1 DECLARATION GENERATION
     def declaration(self, declaration: Declaration) -> u32:
         self.ir.append(IRDeclaration(
@@ -338,6 +350,13 @@ class IR:
     def comment(self, comment: Comment) -> u32:
         self.ir.append(IRComment(
             characters = [comment.content.encode()]
+        ))
+        return self.new()
+    #~ IR -> 1 USE GENERATION
+    def use(self, use: Use) -> u32:
+        self.ir.append(IRUse(
+            name = [use.name.encode()],
+            module = self.start(use.module) if use.module else null32()
         ))
         return self.new()
     #~ IR -> 2 LEVEL GENERATION

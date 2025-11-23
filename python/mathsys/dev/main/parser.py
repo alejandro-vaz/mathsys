@@ -61,6 +61,12 @@ class Equation(Level1):
 class Comment(Level1):
     content: str
 
+#> 1ºLEVEL -> USE
+@dataclass
+class Use(Level1):
+    name: str
+    module: Start | None
+
 
 #^
 #^  2ºLEVEL
@@ -150,6 +156,14 @@ class Number(Level5):
 #^  PARSER
 #^
 
+#> PARSER -> LIBRARY
+from ..common import (
+    standard
+)
+MODULES = {
+    "standard": standard.data
+}
+
 #> PARSER -> TOKEN TRIMMER
 def ñ(token: Token) -> str: return token.value.replace(" ", "")
 
@@ -212,6 +226,12 @@ class Parser(Transformer):
     def comment(self, items: list[Token]) -> Comment:
         return Comment(
             content = items[0].value if items else ""
+        )
+    #~ CLASS -> 1 USE CONSTRUCT
+    def use(self, items: list[Token]) -> Use:
+        return Use(
+            name = ñ(items[0]),
+            module = MODULES.get(ñ(items[0]), None)
         )
     #~ CLASS -> 2 EXPRESSION CONSTRUCT
     def expression(self, items: list[Token | Level3]) -> Expression:

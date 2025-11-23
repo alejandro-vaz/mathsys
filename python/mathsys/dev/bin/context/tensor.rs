@@ -48,4 +48,12 @@ impl Value for Tensor {
     fn locale(&self, code: u8) -> () {match code {
         other => crate::stdout::crash(crate::stdout::Code::LocaleNotFound)
     }}
+} impl Tensor {
+    pub fn modulus(&self) -> crate::Box<dyn Value> {
+        return crate::Box::new(crate::Number {
+            value: 0,
+            shift: 0,
+            negative: false
+        })
+    }
 }
