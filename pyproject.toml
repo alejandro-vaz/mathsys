@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mathsys"
-version = "3.12.1"
+version = "4.2.0"
 description = "The Domain Specific Language for math."
 readme = "README.md"
 license = {text = "SEE LICENSE IN https://docs.abscissa.eu"}
