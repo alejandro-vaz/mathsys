@@ -5,6 +5,8 @@
 //> HEAD -> CROSS-SCOPE TRAIT
 use crate::runtime::Value;
 use crate::runtime::Id;
+use crate::Display;
+use crate::Debug;
 
 
 //^
@@ -19,79 +21,71 @@ pub struct Variable {
 
 //> VARIABLE -> IMPLEMENTATION
 impl Id for Variable {const ID: &'static str = "Variable";} 
-impl Value for Variable {
+impl Display for Variable {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "{}", self.id())}}
+impl Debug for Variable {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
+    "name = \"{}\"",
+    self.name
+)}} impl Value for Variable {
     fn id(&self) -> &'static str {return Self::ID}
-    fn info(&self) -> () {crate::stdout::debug(&crate::format!(
-        "{} > name = \"{}\"", 
-        self.id(), 
-        self.name
-    ))}
-    fn ctrlcv(&self) -> crate::Box<dyn Value> {self.genlocale(0); return crate::Box::new(self.clone())}
-    fn equiv(&self, mut to: crate::Box<dyn Value>) -> bool {self.genlocale(1); return match to.id() {
-        "Infinite" => to.equiv(self.ctrlcv()),
-        "Nexists" => to.equiv(self.ctrlcv()),
-        "Number" => to.equiv(self.ctrlcv()),
-        "Tensor" => to.equiv(self.ctrlcv()),
-        "Undefined" => to.equiv(self.ctrlcv()),
+    fn ctrlcv(&self) -> crate::Box<dyn Value> {return crate::Box::new(self.clone())}
+    fn unequivalency(&self, to: &crate::Box<dyn Value>) -> bool {self.genlocale0(to); return match to.id() {
+        "Infinite" => return to.unequivalency(&self.ctrlcv()),
+        "Nexists" => return to.unequivalency(&self.ctrlcv()),
+        "Number" => return to.unequivalency(&self.ctrlcv()),
+        "Tensor" => return to.unequivalency(&self.ctrlcv()),
+        "Undefined" => return to.unequivalency(&self.ctrlcv()),
+        "Variable" => !self.equivalency(to),
+        other => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
+    }}
+    fn equivalency(&self, to: &crate::Box<dyn Value>) -> bool {self.genlocale1(to); return match to.id() {
+        "Infinite" => return to.equivalency(&self.ctrlcv()),
+        "Nexists" => return to.equivalency(&self.ctrlcv()),
+        "Number" => return to.equivalency(&self.ctrlcv()),
+        "Tensor" => return to.equivalency(&self.ctrlcv()),
+        "Undefined" => return to.equivalency(&self.ctrlcv()),
         "Variable" => {
-            let value = crate::runtime::mutcast::<crate::Variable>(&mut *to);
+            let value = crate::runtime::downcast::<crate::Variable>(&**to);
             &self.name == &value.name
         },
         other => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
     }}
-    fn summation(&mut self, mut to: crate::Box<dyn Value>, inverse: bool, selfinverse: bool) -> crate::Box<dyn Value> {
-        self.genlocale(2);
-        return match to.id() {
-            "Infinite" => to.summation(self.ctrlcv(), false, inverse),
-            "Nexists" => to.summation(self.ctrlcv(), false, inverse),
-            "Number" => to.summation(self.ctrlcv(), false, inverse),
-            "Tensor" => to.summation(self.ctrlcv(), false, inverse),
-            "Undefined" => to.summation(self.ctrlcv(), false, inverse),
-            "Variable" => crate::stdout::crash(crate::stdout::Code::UnexpectedValue),
-            other => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
-        }
-    }
-    fn locale(&self, code: u8) -> () {match code {
-        0 => crate::stdout::trace(&crate::format!(
-            "Setting mutable value for variable \"{}\"",
-            &self.name
-        )),
-        1 => crate::stdout::trace(&crate::format!(
-            "Setting immutable value for variable \"{}\"",
-            &self.name
-        )),
-        2 => crate::stdout::trace(&crate::format!(
-            "Obtaining value of variable \"{}\"",
-            &self.name
-        )),
-        3 => crate::stdout::alert(&crate::format!(
-            "Value of variable \"{}\" is not defined",
-            &self.name
-        )),
-        4 => crate::stdout::trace(&crate::format!(
-            "Narrowing class of variable \"{}\"",
-            &self.name
-        )),
-        5 => crate::stdout::trace(&crate::format!(
-            "Getting class of variable \"{}\"",
-            &self.name
-        )),
-        6 => crate::stdout::alert(&crate::format!(
-            "\"{}\" has no class associated to it",
-            &self.name
-        )),
-        other => crate::stdout::crash(crate::stdout::Code::LocaleNotFound)
-    }}
+    fn negate(&self) -> crate::Box<dyn Value> {self.genlocale2(); return self.partial(crate::Box::new(crate::Variable {
+        name: self.name.clone()
+    }))}
+    fn summation(&self, to: &crate::Box<dyn Value>) -> crate::Box<dyn Value> {self.genlocale3(to); return self.partial(match to.id() {
+        "Infinite" => return to.summation(&self.ctrlcv()),
+        "Nexists" => return to.summation(&self.ctrlcv()),
+        "Number" => return to.summation(&self.ctrlcv()),
+        "Tensor" => return to.summation(&self.ctrlcv()),
+        "Undefined" => return to.summation(&self.ctrlcv()),
+        "Variable" => crate::stdout::crash(crate::stdout::Code::UnexpectedValue),
+        other => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
+    })}
+    fn invert(&self) -> crate::Box<dyn Value> {self.genlocale4(); return self.partial(crate::Box::new(crate::Variable {
+        name: self.name.clone()
+    }))}
+    fn multiplication(&self, to: &crate::Box<dyn Value>) -> crate::Box<dyn Value> {self.genlocale5(to); return self.partial(match to.id() {
+        "Infinite" => return to.multiplication(&self.ctrlcv()),
+        "Nexists" => return to.multiplication(&self.ctrlcv()),
+        "Number" => return to.multiplication(&self.ctrlcv()),
+        "Tensor" => return to.multiplication(&self.ctrlcv()),
+        "Undefined" => return to.multiplication(&self.ctrlcv()),
+        "Variable" => crate::stdout::crash(crate::stdout::Code::UnexpectedValue),
+        other => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
+    })}
 } impl Variable {
+    fn locale1(&self, mutable: bool) -> () {crate::stdout::trace(crate::format!("Setting {}mutable value for {}", if mutable {""} else {"im"}, self))}
+    fn locale2(&self, class: u8) -> () {crate::stdout::trace(crate::format!("Setting group of {} to {}", self, class))}
+    fn locale3(&self) -> () {crate::stdout::trace(crate::format!("Retrieving {} value", self))}
+    fn locale4(&self) -> () {crate::stdout::alert(crate::format!("Value of {} is not stored", self))}
+    fn locale5(&self, class: u8, string: &str) -> () {crate::stdout::trace(crate::format!("Checking if {} group code {} is compatible with {}", self, class, string))}
+    fn locale6(&self) -> () {crate::stdout::trace(crate::format!("Getting stored value of {}", self))}
     pub fn set(&self, value: crate::Box<dyn Value>, mutable: bool, context: &mut crate::runtime::Context, constraint: u8) -> () {
-        self.locale(if mutable {0} else {1});
-        self.setType(constraint, context);
-        if !self.compatible(constraint, value.id()) {
-            crate::stdout::crash(crate::stdout::Code::RuntimeTypeMismatch)
-        }
-        for (key, data) in &context.immutable {
-            if key == &self.name {crate::stdout::crash(crate::stdout::Code::ImmutableModification)}
-        }
+        self.locale1(mutable);
+        self.setGroup(constraint, context);
+        if !self.compatible(constraint, value.id()) {crate::stdout::crash(crate::stdout::Code::RuntimeTypeMismatch)}
+        for (key, data) in &context.immutable {if key == &self.name {crate::stdout::crash(crate::stdout::Code::ImmutableModification)}}
+        self.partial(value.ctrlcv());
         if mutable {
             for (key, data) in &mut context.mutable {if *key == self.name {*data = value; return}}
             context.mutable.push((self.name.clone(), value));
@@ -99,19 +93,22 @@ impl Value for Variable {
             context.immutable.push((self.name.clone(), value));
         }
     }
-    pub fn setType(&self, code: u8, context: &mut crate::runtime::Context) -> () {
-        if code == 0 || self.getType(context) == code {return}
-        if self.getType(context) != 0 {crate::stdout::crash(crate::stdout::Code::DoubleAnnotation)}
+    pub fn setGroup(&self, code: u8, context: &mut crate::runtime::Context) -> () {
+        let current = self.getGroup(context);
+        if code == 0 || current == code {return}
+        self.locale2(code);
+        if current != 0 {crate::stdout::crash(crate::stdout::Code::DoubleAnnotation)}
         context.types.push((self.name.clone(), code));
     }
     pub fn get(&self, context: &crate::runtime::Context) -> crate::Box<dyn Value> {
-        self.locale(2);
-        for (key, value) in &context.immutable {if key == &self.name {return value.ctrlcv()}}
-        for (key, value) in &context.mutable {if key == &self.name {return value.ctrlcv()}}
-        self.locale(3);
-        return crate::Box::new(crate::Undefined {});
+        self.locale3();
+        for (key, value) in &context.immutable {if key == &self.name {return self.partial(value.ctrlcv())}}
+        for (key, value) in &context.mutable {if key == &self.name {return self.partial(value.ctrlcv())}}
+        self.locale4();
+        return self.partial(crate::Box::new(crate::Undefined {}));
     }
     fn compatible(&self, code: u8, output: &str) -> bool {
+        self.locale5(code, output);
         if code == 0 {return true} else {
             return output == match code {
                 1 => "Infinite",
@@ -124,7 +121,8 @@ impl Value for Variable {
             }
         }
     }
-    fn getType(&self, context: &crate::runtime::Context) -> u8 {
+    fn getGroup(&self, context: &crate::runtime::Context) -> u8 {
+        self.locale6();
         for (key, value) in &context.types {if key == &self.name {return *value}}
         return 0;
     }

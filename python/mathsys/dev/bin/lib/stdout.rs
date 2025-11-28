@@ -4,19 +4,14 @@
 
 //> FORMATTING -> FUNCTION
 fn print(string: &str, append: &[u8]) -> () {
-    let mut bytes = crate::Vec::new();
+    let mut bytes = crate::Vec::with_capacity(
+        append.len() + string.len() + 6
+    );
     bytes.extend_from_slice(append);
-    bytes.extend_from_slice(signature().as_bytes());
     bytes.extend_from_slice(string.as_bytes());
     bytes.extend_from_slice(&[0x1B, 0x5B, 0x30, 0x6D, 0x0A, 0x00]);
     crate::stack::write(bytes.as_ptr());
 }
-
-//> FORMATTING -> MEMORY SIGNATURE
-fn signature() -> crate::String {return crate::format!(
-    "{}  ~  ",
-    crate::formatting::scientific(crate::allocator::mark())
-)}
 
 
 //^
@@ -36,21 +31,19 @@ pub fn login() -> () {print(&crate::format!(
 pub fn crash(code: Code) -> ! {
     let value = code as u8;
     print(&crate::format!(
-        "CRASH: {} {}.",
+        "CRASH: {{{}}} {}.",
         value,
         match value {
             0 => "Run finished successfully",
             1 => "Tried to modify value of immutable variable",
             2 => "Found unexpected value type",
             3 => "Locale not found",
-            4 => "Out of memory bounds",
-            5 => "Malformed Intermediate Representation",
-            6 => "Unknown IR object code",
-            7 => "Start object not found",
-            8 => "Attempted to mutcast a different object type",
-            9 => "Attempted a double annotation of a variable",
-            10 => "Mismatched variable type and type of its value",
-            255 => crate::stack::exit(255),
+            4 => "Malformed Intermediate Representation",
+            5 => "Unknown IR object code",
+            6 => "Attempted to mutcast a different object type",
+            7 => "Attempted a double annotation of a variable",
+            8 => "Mismatched variable type and type of its value",
+            9 => "Attempted to downcast a different object type",
             other => loop {}
         }
     ), &[0x0A, 0x1B, 0x5B, 0x31, 0x3B, 0x39, 0x31, 0x3B, 0x34, 0x39, 0x6D]);
@@ -63,14 +56,12 @@ pub enum Code {
     ImmutableModification = 1,
     UnexpectedValue = 2,
     LocaleNotFound = 3,
-    OutOfMemory = 4,
-    MalformedIR = 5,
-    UnknownIRObject = 6,
-    StartNotFound = 7,
-    FailedMutcast = 8,
-    DoubleAnnotation = 9,
-    RuntimeTypeMismatch = 10,
-    Fatal = 255
+    MalformedIR = 4,
+    UnknownIRObject = 5,
+    FailedMutcast = 6,
+    DoubleAnnotation = 7,
+    RuntimeTypeMismatch = 8,
+    FailedDowncast = 9
 }
 
 
@@ -79,16 +70,10 @@ pub enum Code {
 //^
 
 //> DETAIL -> SPACE
-pub fn space(message: &str) -> () {print(&crate::format!(
+pub fn space<Type: crate::Display>(message: Type) -> () {print(&crate::format!(
     "SPACE: {}.",
     message
-), &[0x0A, 0x1B, 0x5B, 0x30, 0x3B, 0x33, 0x33, 0x3B, 0x34, 0x39, 0x6D])}
-
-//> DETAIL -> ISSUE
-pub fn issue(message: &str) -> () {print(&crate::format!(
-    "ISSUE: {}.",
-    message
-), &[0x0A, 0x1B, 0x5B, 0x30, 0x3B, 0x33, 0x31, 0x3B, 0x34, 0x39, 0x6D])}
+), &[0x0A, 0x1B, 0x5B, 0x30, 0x3B, 0x33, 0x33, 0x3B, 0x34, 0x39, 0x6D]); drop(message)}
 
 
 //^
@@ -96,19 +81,31 @@ pub fn issue(message: &str) -> () {print(&crate::format!(
 //^
 
 //> LOOKUP -> DEBUG
-pub fn debug(message: &str) -> () {print(&crate::format!(
+pub fn debug<Type: crate::Display>(message: Type) -> () {print(&crate::format!(
     "    DEBUG: {}.",
     message
-), &[0x1B, 0x5B, 0x32, 0x3B, 0x33, 0x35, 0x3B, 0x34, 0x39, 0x6D])}
+), &[0x1B, 0x5B, 0x32, 0x3B, 0x33, 0x35, 0x3B, 0x34, 0x39, 0x6D]); drop(message)}
 
 //> LOOKUP -> ALERT
-pub fn alert(message: &str) -> () {print(&crate::format!(
+pub fn alert<Type: crate::Display>(message: Type) -> () {print(&crate::format!(
     "    ALERT: {}.",
     message
-), &[0x1B, 0x5B, 0x32, 0x3B, 0x33, 0x38, 0x3B, 0x35, 0x3B, 0x32, 0x30, 0x38, 0x3B, 0x34, 0x39, 0x6D])}
+), &[0x1B, 0x5B, 0x32, 0x3B, 0x33, 0x38, 0x3B, 0x35, 0x3B, 0x32, 0x30, 0x38, 0x3B, 0x34, 0x39, 0x6D]); drop(message)}
 
 //> LOOKUP -> TRACE
-pub fn trace(message: &str) -> () {print(&crate::format!(
+pub fn trace<Type: crate::Display>(message: Type) -> () {print(&crate::format!(
     "    TRACE: {}.",
     message
-), &[0x1B, 0x5B, 0x32, 0x3B, 0x33, 0x36, 0x3B, 0x34, 0x39, 0x6D])}
+), &[0x1B, 0x5B, 0x32, 0x3B, 0x33, 0x36, 0x3B, 0x34, 0x39, 0x6D]); drop(message)}
+
+//> LOOKUP -> CLASS
+pub fn chore<Type: crate::Display>(message: Type) -> () {print(&crate::format!(
+    "    CHORE: {}.",
+    message
+), &[0x1B, 0x5B, 0x32, 0x3B, 0x33, 0x33, 0x3B, 0x34, 0x39, 0x6D]); drop(message)}
+
+//> LOOKUP -> CHORE
+pub fn class<Type: crate::Display>(message: Type) -> () {print(&crate::format!(
+    "    CLASS: {}.",
+    message
+), &[0x1B, 0x5B, 0x32, 0x3B, 0x33, 0x32, 0x6D])}

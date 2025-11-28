@@ -4,19 +4,18 @@
 
 #> HEAD -> MODULES
 import sys
-import time
+
+#> HEAD -> TIME
+from time import time
 
 #> HEAD -> CACHE
 from functools import lru_cache
 
 #> HEAD -> COMPILER
-from .main.parser import Parser
-from .main.latex import LaTeX
-from .main.ir import IR
-from .main.builder import Builder
-
-#> HEAD -> SYNTAX
-from .main.syntax import syntax
+from .parser.code import Parser
+from .latex.code import LaTeX
+from .ir.code import IR
+from .builder.code import Builder
 
 
 #^
@@ -24,7 +23,7 @@ from .main.syntax import syntax
 #^
 
 #> MAIN -> CLASSES
-_parser = Parser(syntax)
+_parser = Parser()
 _latex = LaTeX()
 _ir = IR()
 _builder = Builder()
@@ -32,9 +31,9 @@ _builder = Builder()
 #> MAIN -> TIME WRAPPER
 def timeWrapper(function):
     def wrapper(*args, **kwargs):
-        start = time.time()
+        start = time()
         state = function(*args, **kwargs)
-        print(f"[INFO] Compiled to {function.__name__} in {(time.time() - start):.3f}s.")
+        print(f"[INFO] Compiled to {function.__name__} in {(time() - start):.3f}s.")
         return state
     return wrapper
 
@@ -61,6 +60,11 @@ def validate(content: str) -> bool:
     try: _parser.run(content); return True
     except: return False
 
+#> MAIN -> TOKENS
+@lru_cache(maxsize = None)
+@timeWrapper
+def tokens(content: str) -> int: return len(_ir.run(_parser.run(content)))
+
 #> MAIN -> LATEX
 @lru_cache(maxsize = None)
 @timeWrapper
@@ -84,6 +88,7 @@ def wrapper(*arguments: str) -> None:
     #~ TARGET -> MATCHING
     match arguments[0]:
         case "validate": print(validate(content))
+        case "tokens": print(tokens(content))
         case "latex": 
             components[-1] = "ltx"
             with open(".".join(components), "w") as destination:
@@ -99,4 +104,4 @@ def wrapper(*arguments: str) -> None:
             with open(".".join(components), "wb") as destination:
                 try: destination.write(unix_x86_64(content))
                 except Exception as error: print(str(error)); exit(1)
-        case other: sys.exit("[ENTRY ISSUE] Unknown command. Available commands: validate, latex, web, unix-x86-64.")
+        case other: sys.exit("[ENTRY ISSUE] Unknown command. Available commands: validate, tokens, latex, web, unix-x86-64.")

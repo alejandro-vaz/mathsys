@@ -5,6 +5,8 @@
 //> HEAD -> CROSS-SCOPE TRAIT
 use crate::converter::Class;
 use crate::runtime::Value;
+use crate::Display;
+use crate::Debug;
 
 
 //^
@@ -12,28 +14,28 @@ use crate::runtime::Value;
 //^
 
 //> EQUATION -> STRUCT
+#[derive(Clone)]
 pub struct _Equation {
-    pub left: u32,
-    pub right: u32
+    pub leftexpression: u32,
+    pub rightexpression: u32
 }
 
 //> EQUATION -> IMPLEMENTATION
-impl Class for _Equation {
+impl Display for _Equation {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "{}", self.name())}}
+impl Debug for _Equation {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
+    "leftexpression = {}, rightexpression = {}",
+    self.leftexpression, self.rightexpression
+)}} impl Class for _Equation {
     fn name(&self) -> &'static str {"_Equation"}
-    fn info(&self) -> () {crate::stdout::debug(&crate::format!(
-        "{} > left = {}, right = {}",
-        self.name(),
-        self.left,
-        self.right
-    ))}
-    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32) -> crate::Box<dyn Value> {
-        self.space("Processing", id);
-        context.process(self.left);
-        context.process(self.right);
+    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32, memory: &crate::Vec<crate::Box<dyn Class>>) -> crate::Box<dyn Value> {
+        context.process(self.leftexpression, memory);
+        context.process(self.rightexpression, memory);
         self.space("Checking if both sides are equal", id);
-        let left = context.read(self.left);
-        let right = context.read(self.right);
-        left.equiv(right);
+        let leftexpression = context.read(self.leftexpression);
+        let rightexpression = context.read(self.rightexpression);
+        let equal = leftexpression.equivalency(&rightexpression);
+        let unequal = leftexpression.unequivalency(&rightexpression);
+        let determinable = equal == !unequal;
         return crate::Box::new(crate::Nexists {});
     }
 }

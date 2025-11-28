@@ -5,6 +5,8 @@
 //> HEAD -> CROSS-SCOPE TRAIT
 use crate::converter::Class;
 use crate::runtime::Value;
+use crate::Display;
+use crate::Debug;
 
 
 //^
@@ -12,23 +14,21 @@ use crate::runtime::Value;
 //^
 
 //> USE -> STRUCT
+#[derive(Clone)]
 pub struct _Use {
     pub name: crate::Box<str>,
-    pub module: u32
+    pub start: u32
 }
 
 //> USE -> IMPLEMENTATION
-impl Class for _Use {
+impl Display for _Use {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "{}", self.name())}}
+impl Debug for _Use {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
+    "name = \"{}\", start = {}",
+    self.name, self.start
+)}} impl Class for _Use {
     fn name(&self) -> &'static str {"_Use"}
-    fn info(&self) -> () {crate::stdout::debug(&crate::format!(
-        "{} > name = \"{}\", module = {}",
-        self.name(),
-        &self.name,
-        self.module
-    ))}
-    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32) -> crate::Box<dyn Value> {
-        self.space("Processing", id);
-        if self.module != 0 {context.process(self.module)}
+    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32, memory: &crate::Vec<crate::Box<dyn Class>>) -> crate::Box<dyn Value> {
+        if self.start != 0 {context.process(self.start, memory)}
         return crate::Box::new(crate::Nexists {});
     }
 }

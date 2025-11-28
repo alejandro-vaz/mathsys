@@ -5,6 +5,8 @@
 //> HEAD -> CROSS-SCOPE TRAIT
 use crate::converter::Class;
 use crate::runtime::Value;
+use crate::Display;
+use crate::Debug;
 
 
 //^
@@ -12,27 +14,27 @@ use crate::runtime::Value;
 //^
 
 //> ANNOTATION -> STRUCT
+#[derive(Clone)]
 pub struct _Annotation {
-    pub object: u8,
-    pub variable: u32
+    pub group: u8,
+    pub variables: crate::Box<[u32]>
 }
 
 //> ANNOTATION -> IMPLEMENTATION
-impl Class for _Annotation {
+impl Display for _Annotation {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "{}", self.name())}}
+impl Debug for _Annotation {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
+    "group = {}, variables = {:?}",
+    self.group, self.variables
+)}} impl Class for _Annotation {
     fn name(&self) -> &'static str {"_Annotation"}
-    fn info(&self) -> () {crate::stdout::debug(&crate::format!(
-        "{} > object = {}, variable = {}",
-        self.name(),
-        self.object,
-        self.variable
-    ))}
-    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32) -> crate::Box<dyn Value> {
-        self.space("Processing", id);
-        context.process(self.variable);
-        self.space("Setting class of variable", id);
-        let mut value = context.read(self.variable);
-        let instance = crate::runtime::mutcast::<crate::Variable>(&mut *value);
-        instance.setType(self.object, context);
-        return crate::Box::new(crate::Nexists {});
+    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32, memory: &crate::Vec<crate::Box<dyn Class>>) -> crate::Box<dyn Value> {
+        for &variable in &self.variables {context.process(variable, memory)}
+        self.space("Setting class of variables", id);
+        for &variable in &self.variables {
+            let mut value = context.read(variable);
+            let instance = crate::runtime::mutcast::<crate::Variable>(&mut *value);
+            instance.setGroup(self.group, context);
+        }
+        return crate::Box::new(crate::Nexists {})
     }
 }

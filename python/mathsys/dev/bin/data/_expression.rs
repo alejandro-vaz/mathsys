@@ -5,6 +5,8 @@
 //> HEAD -> CROSS-SCOPE TRAIT
 use crate::converter::Class;
 use crate::runtime::Value;
+use crate::Display;
+use crate::Debug;
 
 
 //^
@@ -12,30 +14,28 @@ use crate::runtime::Value;
 //^
 
 //> EXPRESSION -> STRUCT
+#[derive(Clone)]
 pub struct _Expression {
-    pub terms: crate::Box<[u32]>,
-    pub signs: crate::Box<[u8]>
+    pub signs: crate::Box<[u8]>,
+    pub terms: crate::Box<[u32]>
 }
 
 //> EXPRESSION -> IMPLEMENTATION
-impl Class for _Expression {
+impl Display for _Expression {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "{}", self.name())}}
+impl Debug for _Expression {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
+    "signs = {:?}, terms = {:?}",
+    self.signs, self.terms
+)}} impl Class for _Expression {
     fn name(&self) -> &'static str {"_Expression"}
-    fn info(&self) -> () {crate::stdout::debug(&crate::format!(
-        "{} > terms = [{}], signs = [{}]",
-        self.name(),
-        self.terms.iter().map(|id| crate::format!("{}", id)).collect::<crate::Vec<_>>().join(", "),
-        self.signs.iter().map(|id| crate::format!("{}", id)).collect::<crate::Vec<_>>().join(", ")
-    ))}
-    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32) -> crate::Box<dyn Value> {
-        self.space("Processing", id);
+    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32, memory: &crate::Vec<crate::Box<dyn Class>>) -> crate::Box<dyn Value> {
+        for &term in &self.terms {context.process(term, memory)}
+        self.space("Summing up all terms", id);
         let mut current = crate::Box::new(crate::Nexists {}) as crate::Box<dyn Value>;
         for (index, term) in self.terms.iter().enumerate() {
-            context.process(self.terms[index]);
-            self.space("Adding term to sum", id);
-            let next = context.read(self.terms[index]);
-            let negative = self.signs[index] % 2 == 0;
-            current = current.summation(next, negative, false);
+            let next = context.read(*term);
+            let value = if self.signs[index] % 2 == 0 {next.negate()} else {next};
+            current = current.summation(&value);
         }
-        return current;
+        return self.result(current);
     }
 }

@@ -5,6 +5,8 @@
 //> HEAD -> CROSS-SCOPE TRAIT
 use crate::converter::Class;
 use crate::runtime::Value;
+use crate::Display;
+use crate::Debug;
 
 
 //^
@@ -12,17 +14,16 @@ use crate::runtime::Value;
 //^
 
 //> INFINITE -> STRUCT
+#[derive(Clone)]
 pub struct _Infinite {}
 
 //> INFINITE -> IMPLEMENTATION
-impl Class for _Infinite {
+impl Display for _Infinite {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "{}", self.name())}}
+impl Debug for _Infinite {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
+    ""
+)}} impl Class for _Infinite {
     fn name(&self) -> &'static str {"_Infinite"}
-    fn info(&self) -> () {crate::stdout::debug(&crate::format!(
-        "{} > ",
-        self.name()
-    ))}
-    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32) -> crate::Box<dyn Value> {
-        self.space("Processing", id);
+    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32, memory: &crate::Vec<crate::Box<dyn Class>>) -> crate::Box<dyn Value> {
         return crate::Box::new(crate::Infinite {
             negative: false
         });
