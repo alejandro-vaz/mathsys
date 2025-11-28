@@ -5,6 +5,8 @@
 //> HEAD -> CROSS-SCOPE TRAIT
 use crate::runtime::Value;
 use crate::runtime::Id;
+use crate::Display;
+use crate::Debug;
 
 
 //^
@@ -21,21 +23,27 @@ pub struct Number {
 
 //> NUMBER -> IMPLEMENTATION
 impl Id for Number {const ID: &'static str = "Number";} 
-impl Value for Number {
+impl Display for Number {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "{}", self.id())}}
+impl Debug for Number {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
+    "value = {}, shift = {}, negative = {}",
+    self.value, self.shift, self.negative
+)}} impl Value for Number {
     fn id(&self) -> &'static str {return Self::ID}
-    fn info(&self) -> () {crate::stdout::debug(&crate::format!(
-        "{} > value = {}, shift = {}, negative = {}", 
-        self.id(), 
-        self.value, 
-        self.shift, 
-        self.negative
-    ))}
-    fn ctrlcv(&self) -> crate::Box<dyn Value> {self.genlocale(0); return crate::Box::new(self.clone())}
-    fn equiv(&self, mut to: crate::Box<dyn Value>) -> bool {self.genlocale(1); return match to.id() {
-        "Infinite" => to.equiv(self.ctrlcv()),
-        "Nexists" => to.equiv(self.ctrlcv()),
+    fn ctrlcv(&self) -> crate::Box<dyn Value> {return crate::Box::new(self.clone())}
+    fn unequivalency(&self, to: &crate::Box<dyn Value>) -> bool {self.genlocale0(to); return match to.id() {
+        "Infinite" => return to.unequivalency(&self.ctrlcv()),
+        "Nexists" => return to.unequivalency(&self.ctrlcv()),
+        "Number" => !self.equivalency(to),
+        "Tensor" => true,
+        "Undefined" => false,
+        "Variable" => true,
+        other => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
+    }}
+    fn equivalency(&self, to: &crate::Box<dyn Value>) -> bool {self.genlocale1(to); return match to.id() {
+        "Infinite" => return to.equivalency(&self.ctrlcv()),
+        "Nexists" => return to.equivalency(&self.ctrlcv()),
         "Number" => {
-            let value = crate::runtime::mutcast::<crate::Number>(&mut *to);
+            let value = crate::runtime::downcast::<crate::Number>(&**to);
             self.value == value.value && self.shift == value.shift && self.negative == value.negative
         },
         "Tensor" => false,
@@ -43,65 +51,59 @@ impl Value for Number {
         "Variable" => false,
         other => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
     }}
-    fn summation(&mut self, mut to: crate::Box<dyn Value>, inverse: bool, selfinverse: bool) -> crate::Box<dyn Value> {
-        self.genlocale(2);
-        if selfinverse {self.negate()}; 
-        return match to.id() {
-            "Infinite" => to.summation(self.ctrlcv(), false, inverse),
-            "Nexists" => to.summation(self.ctrlcv(), false, inverse),
-            "Number" => {
-                let value = crate::runtime::mutcast::<crate::Number>(&mut *to);
-                if inverse {value.negate()}
-                self.reduce(); value.reduce();
-                let shift = crate::max(self.shift, value.shift);
-                self.setShift(shift); value.setShift(shift);
-                let total = {
-                    if self.negative == value.negative {
-                        self.value + value.value
+    fn negate(&self) -> crate::Box<dyn Value> {self.genlocale2(); return self.partial(crate::Box::new(crate::Number {
+        value: self.value,
+        shift: self.shift,
+        negative: !self.negative
+    }))}
+    fn summation(&self, to: &crate::Box<dyn Value>) -> crate::Box<dyn Value> {self.genlocale3(to); return self.partial(match to.id() {
+        "Infinite" => return to.summation(&self.ctrlcv()),
+        "Nexists" => return to.summation(&self.ctrlcv()),
+        "Number" => {
+            let value = crate::runtime::downcast::<crate::Number>(&**to);
+            let shift = crate::max(self.shift, value.shift);
+            let negative = if self.value >= value.value {self.negative} else {value.negative};
+            crate::Box::new(crate::Number {
+                value: if self.negative == value.negative {
+                    self.value*10u32.pow((shift - self.shift) as u32) + value.value*10u32.pow((shift - value.shift) as u32)
+                } else {
+                    if self.value >= value.value {
+                        self.value*10u32.pow((shift - self.shift) as u32) - value.value*10u32.pow((shift - value.shift) as u32)
                     } else {
-                        if self.value >= value.value {self.value - value.value}
-                        else {value.value - self.value}
+                        value.value*10u32.pow((shift - value.shift) as u32) - self.value*10u32.pow((shift - self.shift) as u32)
                     }
-                };
-                let negative = {
-                    if self.value >= value.value {self.negative}
-                    else {value.negative}
-                };
-                crate::Box::new(crate::Number {
-                    value: total,
-                    shift: shift,
-                    negative: negative
-                })
-            },
-            "Tensor" => self.ctrlcv(),
-            "Undefined" => to,
-            "Variable" => crate::stdout::crash(crate::stdout::Code::UnexpectedValue),
-            other => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
-        }
-    }
-    fn locale(&self, code: u8) -> () {match code {
-        0 => crate::stdout::trace(&crate::format!(
-            "Inverting sign of the number to be {}",
-            if !self.negative {"positive"} else {"negative"}
-        )),
-        1 => crate::stdout::trace("Reducing the number minimum decimal places without losing precision"),
-        2 => crate::stdout::trace("Adequating number to shift requirements"),
-        3 => crate::stdout::trace("Calculating number absolute value"),
-        other => crate::stdout::crash(crate::stdout::Code::LocaleNotFound)
-    }}
+                },
+                shift: shift,
+                negative: negative
+            })
+        },
+        "Tensor" => self.ctrlcv(),
+        "Undefined" => to.ctrlcv(),
+        "Variable" => crate::stdout::crash(crate::stdout::Code::UnexpectedValue),
+        other => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
+    })}
+    fn invert(&self) -> crate::Box<dyn Value> {self.genlocale4(); return self.partial(crate::Box::new(crate::Number {
+        value: 10u32.pow(6 + self.shift as u32) / self.value,
+        shift: 6,
+        negative: self.negative
+    }))}
+    fn multiplication(&self, to: &crate::Box<dyn Value>) -> crate::Box<dyn Value> {self.genlocale5(to); return self.partial(match to.id() {
+        "Infinite" => return to.multiplication(&self.ctrlcv()),
+        "Nexists" => return to.multiplication(&self.ctrlcv()),
+        "Number" => {
+            let value = crate::runtime::downcast::<crate::Number>(&**to);
+            crate::Box::new(crate::Number {
+                value: self.value * value.value,
+                shift: self.shift + value.shift,
+                negative: self.negative ^ value.negative
+            })
+        },
+        "Tensor" => to.ctrlcv(),
+        "Undefined" => to.ctrlcv(),
+        "Variable" => crate::stdout::crash(crate::stdout::Code::UnexpectedValue),
+        other => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
+    })}
 } impl Number {
-    pub fn negate(&mut self) -> () {self.locale(0); self.negative = !self.negative}
-    pub fn reduce(&mut self) -> () {self.locale(1); while self.value % 10 == 0 && self.shift != 0 {
-        self.value = self.value / 10;
-        self.shift -= 1;
-    }}
-    pub fn setShift(&mut self, shift: u8) -> () {
-        self.locale(2);
-        self.reduce();
-        for each in 0..(shift - self.shift) {
-            self.value = self.value * 10;
-            self.shift += 1;
-        }
-    }
-    pub fn absolute(&mut self) -> () {self.locale(3); self.negative = false}
+    fn locale1(&self) -> () {crate::stdout::trace(crate::format!("Taking absolute value of {}", self))}
+    pub fn absolute(&mut self) -> () {self.locale1(); self.negative = false; self.partial(self.ctrlcv());}
 }

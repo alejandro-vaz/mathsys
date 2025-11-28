@@ -5,6 +5,8 @@
 //> HEAD -> CROSS-SCOPE TRAIT
 use crate::converter::Class;
 use crate::runtime::Value;
+use crate::Display;
+use crate::Debug;
 
 
 //^
@@ -12,22 +14,21 @@ use crate::runtime::Value;
 //^
 
 //> VARIABLE -> STRUCT
+#[derive(Clone)]
 pub struct _Variable {
-    pub characters: crate::Box<str>
+    pub representation: crate::Box<str>
 }
 
 //> VARIABLE -> IMPLEMENTATION
-impl Class for _Variable {
+impl Display for _Variable {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "{}", self.name())}}
+impl Debug for _Variable {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
+    "representation = \"{}\"",
+    self.representation
+)}} impl Class for _Variable {
     fn name(&self) -> &'static str {"_Variable"}
-    fn info(&self) -> () {crate::stdout::debug(&crate::format!(
-        "{} > characters = \"{}\"",
-        self.name(),
-        &self.characters
-    ))}
-    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32) -> crate::Box<dyn Value> {
-        self.space("Processing", id);
+    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32, memory: &crate::Vec<crate::Box<dyn Class>>) -> crate::Box<dyn Value> {
         return crate::Box::new(crate::Variable {
-            name: self.characters.clone().into_string()
+            name: self.representation.clone().into_string()
         });
     }
 }

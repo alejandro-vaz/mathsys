@@ -5,6 +5,8 @@
 //> HEAD -> CROSS-SCOPE TRAIT
 use crate::converter::Class;
 use crate::runtime::Value;
+use crate::Display;
+use crate::Debug;
 
 
 //^
@@ -12,21 +14,20 @@ use crate::runtime::Value;
 //^
 
 //> START -> STRUCT
+#[derive(Clone)]
 pub struct _Start {
     pub statements: crate::Box<[u32]>
 }
 
 //> START -> IMPLEMENTATION
-impl Class for _Start {
+impl Display for _Start {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "{}", self.name())}}
+impl Debug for _Start {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
+    "statements = {:?}",
+    self.statements
+)}} impl Class for _Start {
     fn name(&self) -> &'static str {"_Start"}
-    fn info(&self) -> () {crate::stdout::debug(&crate::format!(
-        "{} > statements = [{}]",
-        self.name(),
-        self.statements.iter().map(|id| crate::format!("{}", id)).collect::<crate::Vec<_>>().join(", ")
-    ))}
-    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32) -> crate::Box<dyn Value> {
-        self.space("Processing", id);
-        for &statement in &self.statements {context.process(statement);}
+    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32, memory: &crate::Vec<crate::Box<dyn Class>>) -> crate::Box<dyn Value> {
+        for &statement in &self.statements {context.process(statement, memory);}
         return crate::Box::new(crate::Nexists {});
     }
 }

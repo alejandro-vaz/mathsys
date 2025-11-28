@@ -3,23 +3,15 @@
 #^
 
 #> HEAD -> MODULES
-import subprocess
 import os
+import subprocess
 import tempfile
 
 #> HEAD -> VERSION
 from mathsys import __version_info__
 
-
-#^
-#^  STATIC
-#^
-
-#> STATIC -> TARGETS
-TARGETS = {
-    "unix-x86-64": "x86_64-unknown-linux-gnu",
-    "web": "wasm32-unknown-unknown"
-}
+#> HEAD -> DATA
+from .local import TARGETS
 
 
 #^
@@ -37,7 +29,6 @@ class Builder:
         os.close(descriptor)
         environment = os.environ.copy()
         environment["MathsysSource"] = ir
-        environment["MathsysOptimization"] = "default"
         environment["MathsysPrecision"] = "standard"
         environment["MathsysMajor"] = str(__version_info__[0])
         environment["MathsysMinor"] = str(__version_info__[1])

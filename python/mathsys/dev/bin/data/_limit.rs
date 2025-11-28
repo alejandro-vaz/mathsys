@@ -5,6 +5,8 @@
 //> HEAD -> CROSS-SCOPE TRAIT
 use crate::converter::Class;
 use crate::runtime::Value;
+use crate::Display;
+use crate::Debug;
 
 
 //^
@@ -12,27 +14,23 @@ use crate::runtime::Value;
 //^
 
 //> LIMIT -> STRUCT
+#[derive(Clone)]
 pub struct _Limit {
     pub variable: u32,
     pub approach: u32,
     pub direction: u8,
-    pub pointer: u32,
+    pub nest: u32,
     pub exponent: u32
 }
 
 //> LIMIT -> IMPLEMENTATION
-impl Class for _Limit {
+impl Display for _Limit {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "{}", self.name())}}
+impl Debug for _Limit {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
+    "variable = {}, approach = {}, direction = {}, nest = {}, exponent = {}",
+    self.variable, self.approach, self.direction, self.nest, self.exponent
+)}} impl Class for _Limit {
     fn name(&self) -> &'static str {"_Limit"}
-    fn info(&self) -> () {crate::stdout::debug(&crate::format!(
-        "{} > variable = {}, approach = {}, direction = {}, pointer = {}, exponent = {}",
-        self.name(),
-        self.variable,
-        self.approach,
-        self.direction,
-        self.pointer,
-        self.exponent
-    ))}
-    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32) -> crate::Box<dyn Value> {
+    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32, memory: &crate::Vec<crate::Box<dyn Class>>) -> crate::Box<dyn Value> {
         return crate::Box::new(crate::Undefined {});
     }
 }

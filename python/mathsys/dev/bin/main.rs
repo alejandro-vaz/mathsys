@@ -3,17 +3,15 @@
 //^
 
 //> HEAD -> FLAGS
-#![no_std]
 #![no_main]
 #![allow(unused_variables)]
 #![allow(static_mut_refs)]
 #![allow(non_snake_case)]
+#![allow(unused_mut)]
+#![allow(unreachable_code)]
 #![feature(const_cmp)]
 #![feature(const_trait_impl)]
 #![feature(allocator_api)]
-
-//> HEAD -> SYSTEM CRATES
-extern crate alloc;
 
 //> HEAD -> CONTEXT
 mod context {
@@ -48,9 +46,7 @@ mod data {
 
 //> HEAD -> LIB
 mod lib {
-    pub mod allocator;
     pub mod converter;
-    pub mod formatting;
     pub mod runtime;
     pub mod rustc;
     pub mod stack;
@@ -92,18 +88,16 @@ use data::_variable::_Variable;
 //> PULLS -> LIB
 use lib::*;
 
-//> PULLS -> ALLOC
-use alloc::vec::Vec;
-use alloc::boxed::Box;
-use alloc::format;
-use alloc::string::String;
-use alloc::alloc::Layout;
-
-//> PULLS -> CORE
-use core::sync::atomic::{Ordering, AtomicBool};
-use core::alloc::GlobalAlloc;
-use core::panic::PanicInfo;
-use core::cmp::max;
+//> PULLS -> STD
+use std::fmt::Display;
+use std::fmt::Debug;
+use std::fmt::Formatter;
+use std::fmt::Result;
+use std::vec::Vec;
+use std::boxed::Box;
+use std::format;
+use std::string::String;
+use std::cmp::max;
 
 
 //^
@@ -114,8 +108,6 @@ use core::cmp::max;
 struct Settings {
     ir: &'static [u8],
     version: [&'static str; 3],
-    memsize: usize,
-    block: usize,
     precision: u8
 }
 
@@ -127,15 +119,6 @@ static SETTINGS: Settings = Settings {
         env!("MathsysMinor"), 
         env!("MathsysPatch")
     ],
-    memsize: 4096,
-    block: match env!("MathsysOptimization") {
-        "very low" => 2usize.pow(7),
-        "low" => 2usize.pow(6),
-        "default" => 2usize.pow(5),
-        "high" => 2usize.pow(4),
-        "very high" => 2usize.pow(3),
-        other => 2usize.pow(5)
-    },
     precision: match env!("MathsysPrecision") {
         "reduced" => 2,
         "standard" => if usize::BITS == 64 {3} else {2},
@@ -148,24 +131,11 @@ static SETTINGS: Settings = Settings {
 //^ ENTRY
 //^
 
-//> ENTRY -> ALLOCATOR
-#[global_allocator]
-static ALLOCATOR: allocator::Allocator = allocator::Allocator::new();
-
 //> ENTRY -> POINT
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
     stdout::login();
-    stdout::debug(&format!(
-        "Total heap size is {}B",
-        formatting::scientific(SETTINGS.memsize).trim_end()
-    ));
-    stdout::debug(&format!(
-        "There are {} memory blocks, each of {}B",
-        formatting::scientific(SETTINGS.memsize / SETTINGS.block).trim_end(),
-        formatting::scientific(SETTINGS.block).trim_end()
-    ));
-    stdout::debug(&format!(
+    stdout::debug(format!(
         "Precision is set to {}",
         SETTINGS.precision
     ));
@@ -175,8 +145,9 @@ pub extern "C" fn _start() -> ! {
 
 //> RUNTIME -> FUNCTION
 fn run() -> () {
+    crate::stdout::alert(crate::format!("{:?}", SETTINGS.ir));
     let mut converter = converter::Converter::new();
     let memory = converter.run();
-    let mut context = runtime::Context::new(memory);
-    let output = context.quick();
+    let mut context = runtime::Context::new(memory.len());
+    context.quick(memory);
 }

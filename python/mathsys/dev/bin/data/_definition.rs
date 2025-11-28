@@ -5,6 +5,8 @@
 //> HEAD -> CROSS-SCOPE TRAIT
 use crate::converter::Class;
 use crate::runtime::Value;
+use crate::Display;
+use crate::Debug;
 
 
 //^
@@ -12,31 +14,28 @@ use crate::runtime::Value;
 //^
 
 //> DEFINITION -> STRUCT
+#[derive(Clone)]
 pub struct _Definition {
-    pub object: u8,
+    pub group: u8,
     pub variable: u32,
-    pub pointer: u32
+    pub expression: u32
 }
 
 //> DEFINITION -> IMPLEMENTATION
-impl Class for _Definition {
+impl Display for _Definition {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "{}", self.name())}}
+impl Debug for _Definition {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
+    "group = {}, variable = {}, expression = {}",
+    self.group, self.variable, self.expression
+)}} impl Class for _Definition {
     fn name(&self) -> &'static str {"_Definition"}
-    fn info(&self) -> () {crate::stdout::debug(&crate::format!(
-        "{} > object = {}, variable = {}, pointer = {}",
-        self.name(),
-        self.object,
-        self.variable,
-        self.pointer
-    ))}
-    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32) -> crate::Box<dyn Value> {
-        self.space("Processing", id);
-        context.process(self.variable);
-        context.process(self.pointer);
+    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32, memory: &crate::Vec<crate::Box<dyn Class>>) -> crate::Box<dyn Value> {
+        context.process(self.variable, memory);
+        context.process(self.expression, memory);
         self.space("Setting immutable variable", id);
-        let pointer = context.read(self.pointer);
+        let expression = self.result(context.read(self.expression));
         let mut reference = context.read(self.variable);
         let variable = crate::runtime::mutcast::<crate::Variable>(&mut *reference);
-        variable.set(pointer, false, context, self.object);
+        variable.set(expression, false, context, self.group);
         return crate::Box::new(crate::Nexists {});
     }
 }

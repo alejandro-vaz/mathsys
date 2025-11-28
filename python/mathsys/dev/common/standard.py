@@ -2,11 +2,11 @@
 #^  HEAD
 #^
 
-#> HEAD -> DATACLASSES
-from ..main.parser import (
-    #~ DATACLASSES -> START
+#> HEAD -> PARSER
+from ..parser.dataclasses import (
+    #~ PARSER -> START
     Start,
-    #~ DATACLASSES -> 1ºLEVEL
+    #~ PARSER -> 1ºLEVEL
     Level1,
     Declaration,
     Definition,
@@ -14,17 +14,17 @@ from ..main.parser import (
     Node,
     Equation,
     Comment, 
-    #~ DATACLASSES -> 2ºLEVEL
+    #~ PARSER -> 2ºLEVEL
     Level2,
     Expression,
-    #~ DATACLASSES -> 3ºLEVEL
+    #~ PARSER -> 3ºLEVEL
     Level3,
     Term,
-    #~ DATACLASSES -> 4ºLEVEL
+    #~ PARSER -> 4ºLEVEL
     Level4,
     Factor,
     Limit,
-    #~ DATACLASSES -> 5ºLEVEL
+    #~ PARSER -> 5ºLEVEL
     Level5,
     Infinite,
     Variable,
@@ -39,20 +39,77 @@ from ..main.parser import (
 #^
 
 #> DATA -> LIBRARY
-data = Start(statements = [Definition(
-    objectType = "Number",
-    identifier = Variable(representation = "pi"),
-    expression = Expression(
-        signs = [None],
-        terms = [Term(
-            numerator = [Factor(
-                value = Number(
-                    whole = "3",
-                    decimal = "14"
-                ),
-                exponent = None
-            )],
-            denominator = []
-        )]
+data = Start(statements = [
+    #~ LIBRARY -> PI
+    Definition(
+        group = "Number",
+        variable = Variable(representation = "pi"),
+        expression = Expression(
+            signs = [None],
+            terms = [Term(
+                numerator = [Factor(
+                    value = Number(whole = "3", decimal = "141592653"),
+                    exponent = None
+                )],
+                denominator = []
+            )]
+        )
+    ),
+    #~ LIBRARY -> E
+    Definition(
+        group = "Number",
+        variable = Variable(representation = "e"),
+        expression = Expression(
+            signs = [None],
+            terms = [Term(
+                numerator = [Limit(
+                    variable = Variable(representation = "n"),
+                    approach = Expression(
+                        terms = [Term(
+                            numerator = [Factor(
+                                value = Infinite(),
+                                exponent = None
+                            )],
+                            denominator = []
+                        )],
+                        signs = [None]
+                    ),
+                    direction = None,
+                    nest = Nest(expression = Expression(
+                        terms = [
+                            Term(
+                                numerator = [Factor(
+                                    value = Number(whole = "1", decimal = None),
+                                    exponent = None
+                                )],
+                                denominator = []
+                            ),
+                            Term(
+                                numerator = [Factor(
+                                    value = Number(whole = "1", decimal = None),
+                                    exponent = None
+                                )],
+                                denominator = [Factor(
+                                    value = Variable(representation = "n"),
+                                    exponent = None
+                                )]
+                            )
+                        ],
+                        signs = [None, "+"]
+                    )),
+                    exponent = Expression(
+                        terms = [Term(
+                            numerator = [Factor(
+                                value = Variable(representation = "n"),
+                                exponent = None
+                            )],
+                            denominator = []
+                        )],
+                        signs = [None]
+                    )
+                )],
+                denominator = []
+            )]
+        )
     )
-)])
+])
