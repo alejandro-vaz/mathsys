@@ -6,7 +6,7 @@ Thank you for considering contributing! Here’s how you can help:
 - Provide clear steps to reproduce
 
 ## Submitting Pull Requests
-- Fork the repository
+- Fork the repository `dead-end` branch
 - Create a new branch for your feature or bugfix
 - Write clear commit messages
 - Include tests if possible
