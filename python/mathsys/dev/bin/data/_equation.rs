@@ -3,7 +3,7 @@
 //^
 
 //> HEAD -> CROSS-SCOPE TRAIT
-use crate::converter::Class;
+use crate::reparser::Class;
 use crate::runtime::Value;
 use crate::Display;
 use crate::Debug;
@@ -27,7 +27,7 @@ impl Debug for _Equation {fn fmt(&self, formatter: &mut crate::Formatter<'_>) ->
     self.leftexpression, self.rightexpression
 )}} impl Class for _Equation {
     fn name(&self) -> &'static str {"_Equation"}
-    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32, memory: &crate::Vec<crate::Box<dyn Class>>) -> crate::Box<dyn Value> {
+    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32, memory: &Vec<Box<dyn Class>>) -> Box<dyn Value> {
         context.process(self.leftexpression, memory);
         context.process(self.rightexpression, memory);
         self.space("Checking if both sides are equal", id);
@@ -36,6 +36,6 @@ impl Debug for _Equation {fn fmt(&self, formatter: &mut crate::Formatter<'_>) ->
         let equal = leftexpression.equivalency(&rightexpression);
         let unequal = leftexpression.unequivalency(&rightexpression);
         let determinable = equal == !unequal;
-        return crate::Box::new(crate::Nexists {});
+        return Box::new(crate::Nexists {});
     }
 }

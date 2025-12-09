@@ -16,9 +16,9 @@ EOF
         cat exit/exit.wat
         cat write/write.wat
         echo ")"
-    } > web.wat
-    wat2wasm web.wat -r -o web.wasm
-    rm web.wat
-    wasm-ld -flavor wasm -r web.wasm -o all.o
-    rm web.wasm
+    } > wasm.wat
+    wat2wasm wasm.wat -r -o wasm.wasm
+    rm wasm.wat
+    wasm-ld -flavor wasm -r wasm.wasm -o wasm.o
+    rm wasm.wasm
 )

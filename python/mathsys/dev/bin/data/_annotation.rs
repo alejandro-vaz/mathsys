@@ -3,7 +3,7 @@
 //^
 
 //> HEAD -> CROSS-SCOPE TRAIT
-use crate::converter::Class;
+use crate::reparser::Class;
 use crate::runtime::Value;
 use crate::Display;
 use crate::Debug;
@@ -17,7 +17,7 @@ use crate::Debug;
 #[derive(Clone)]
 pub struct _Annotation {
     pub group: u8,
-    pub variables: crate::Box<[u32]>
+    pub variables: Box<[u32]>
 }
 
 //> ANNOTATION -> IMPLEMENTATION
@@ -27,7 +27,7 @@ impl Debug for _Annotation {fn fmt(&self, formatter: &mut crate::Formatter<'_>) 
     self.group, self.variables
 )}} impl Class for _Annotation {
     fn name(&self) -> &'static str {"_Annotation"}
-    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32, memory: &crate::Vec<crate::Box<dyn Class>>) -> crate::Box<dyn Value> {
+    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32, memory: &Vec<Box<dyn Class>>) -> Box<dyn Value> {
         for &variable in &self.variables {context.process(variable, memory)}
         self.space("Setting class of variables", id);
         for &variable in &self.variables {
@@ -35,6 +35,6 @@ impl Debug for _Annotation {fn fmt(&self, formatter: &mut crate::Formatter<'_>) 
             let instance = crate::runtime::mutcast::<crate::Variable>(&mut *value);
             instance.setGroup(self.group, context);
         }
-        return crate::Box::new(crate::Nexists {})
+        return Box::new(crate::Nexists {})
     }
 }

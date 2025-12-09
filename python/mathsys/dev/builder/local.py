@@ -5,5 +5,10 @@
 #> STATIC -> TARGETS
 TARGETS = {
     "unix-x86-64": "x86_64-unknown-linux-gnu",
-    "web": "wasm32-unknown-unknown"
+    "wasm": "wasm32-unknown-unknown"
+}
+
+EXTENSIONS = {
+    "unix-x86-64": "",
+    "wasm": ".wasm"
 }

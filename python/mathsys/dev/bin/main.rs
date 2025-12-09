@@ -3,15 +3,11 @@
 //^
 
 //> HEAD -> FLAGS
-#![no_main]
 #![allow(unused_variables)]
-#![allow(static_mut_refs)]
 #![allow(non_snake_case)]
-#![allow(unused_mut)]
 #![allow(unreachable_code)]
 #![feature(const_cmp)]
 #![feature(const_trait_impl)]
-#![feature(allocator_api)]
 
 //> HEAD -> CONTEXT
 mod context {
@@ -46,9 +42,8 @@ mod data {
 
 //> HEAD -> LIB
 mod lib {
-    pub mod converter;
+    pub mod reparser;
     pub mod runtime;
-    pub mod rustc;
     pub mod stack;
     pub mod stdout;
 }
@@ -89,15 +84,13 @@ use data::_variable::_Variable;
 use lib::*;
 
 //> PULLS -> STD
+use std::collections::HashMap;
 use std::fmt::Display;
 use std::fmt::Debug;
 use std::fmt::Formatter;
 use std::fmt::Result;
-use std::vec::Vec;
-use std::boxed::Box;
-use std::format;
-use std::string::String;
 use std::cmp::max;
+use std::any::Any;
 
 
 //^
@@ -132,8 +125,7 @@ static SETTINGS: Settings = Settings {
 //^
 
 //> ENTRY -> POINT
-#[no_mangle]
-pub extern "C" fn _start() -> ! {
+fn main() -> ! {
     stdout::login();
     stdout::debug(format!(
         "Precision is set to {}",
@@ -145,9 +137,8 @@ pub extern "C" fn _start() -> ! {
 
 //> RUNTIME -> FUNCTION
 fn run() -> () {
-    crate::stdout::alert(crate::format!("{:?}", SETTINGS.ir));
-    let mut converter = converter::Converter::new();
-    let memory = converter.run();
+    let mut reparser = reparser::Reparser::new();
+    let memory = reparser.run();
     let mut context = runtime::Context::new(memory.len());
     context.quick(memory);
 }

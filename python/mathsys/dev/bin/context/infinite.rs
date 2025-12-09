@@ -27,8 +27,8 @@ impl Debug for Infinite {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> 
     self.negative
 )}} impl Value for Infinite {
     fn id(&self) -> &'static str {return Self::ID}
-    fn ctrlcv(&self) -> crate::Box<dyn Value> {return crate::Box::new(self.clone())}
-    fn unequivalency(&self, to: &crate::Box<dyn Value>) -> bool {self.genlocale0(to); return match to.id() {
+    fn ctrlcv(&self) -> Box<dyn Value> {return Box::new(self.clone())}
+    fn unequivalency(&self, to: &Box<dyn Value>) -> bool {self.genlocale0(to); return match to.id() {
         "Infinite" => !self.equivalency(to),
         "Nexists" => true,
         "Number" => true,
@@ -37,7 +37,7 @@ impl Debug for Infinite {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> 
         "Variable" => true,
         other => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
     }}
-    fn equivalency(&self, to: &crate::Box<dyn Value>) -> bool {self.genlocale1(to); return match to.id() {
+    fn equivalency(&self, to: &Box<dyn Value>) -> bool {self.genlocale1(to); return match to.id() {
         "Infinite" => {
             let value = crate::runtime::downcast::<crate::Infinite>(&**to);
             self.negative == value.negative
@@ -49,13 +49,13 @@ impl Debug for Infinite {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> 
         "Variable" => false,
         other => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
     }}
-    fn negate(&self) -> crate::Box<dyn Value> {self.genlocale2(); return self.partial(crate::Box::new(crate::Infinite {
+    fn negate(&self) -> Box<dyn Value> {self.genlocale2(); return self.partial(Box::new(crate::Infinite {
         negative: !self.negative
     }))}
-    fn summation(&self, to: &crate::Box<dyn Value>) -> crate::Box<dyn Value> {self.genlocale3(to); return self.partial(match to.id() {
+    fn summation(&self, to: &Box<dyn Value>) -> Box<dyn Value> {self.genlocale3(to); return self.partial(match to.id() {
         "Infinite" => {
             let value = crate::runtime::downcast::<crate::Infinite>(&**to);
-            if self.negative != value.negative {crate::Box::new(crate::Undefined {})} else {self.ctrlcv()}
+            if self.negative != value.negative {Box::new(crate::Undefined {})} else {self.ctrlcv()}
         },
         "Nexists" => self.ctrlcv(),
         "Number" => self.ctrlcv(),
@@ -64,22 +64,22 @@ impl Debug for Infinite {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> 
         "Variable" => crate::stdout::crash(crate::stdout::Code::UnexpectedValue),
         other => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
     })}
-    fn invert(&self) -> crate::Box<dyn Value> {self.genlocale4(); return self.partial(crate::Box::new(crate::Number {
+    fn invert(&self) -> Box<dyn Value> {self.genlocale4(); return self.partial(Box::new(crate::Number {
         value: 0,
         shift: 0,
         negative: false
     }))}
-    fn multiplication(&self, to: &crate::Box<dyn Value>) -> crate::Box<dyn Value> {self.genlocale5(to); return self.partial(match to.id() {
+    fn multiplication(&self, to: &Box<dyn Value>) -> Box<dyn Value> {self.genlocale5(to); return self.partial(match to.id() {
         "Infinite" => {
             let value = crate::runtime::downcast::<crate::Infinite>(&**to);
-            crate::Box::new(crate::Infinite {
+            Box::new(crate::Infinite {
                 negative: self.negative != value.negative
             })
         },
         "Nexists" => self.ctrlcv(),
         "Number" => {
             let value = crate::runtime::downcast::<crate::Number>(&**to);
-            if value.value == 0 {crate::Box::new(crate::Undefined {})} else {crate::Box::new(crate::Infinite {
+            if value.value == 0 {Box::new(crate::Undefined {})} else {Box::new(crate::Infinite {
                 negative: self.negative != value.negative
             })}
         },
@@ -88,7 +88,4 @@ impl Debug for Infinite {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> 
         "Variable" => crate::stdout::crash(crate::stdout::Code::UnexpectedValue),
         other => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
     })}
-} impl Infinite {
-    fn locale1(&self) -> () {crate::stdout::trace(crate::format!("Taking absolute value of {}", self))}
-    pub fn absolute(&mut self) -> () {self.locale1(); self.negative = false; self.partial(self.ctrlcv());}
-}
+} impl Infinite {}

@@ -147,5 +147,5 @@ class Tensor(Level5):
 #> 5ºLEVEL -> NUMBER
 @dataclass
 class Number(Level5):
-    whole: str
-    decimal: str | None
+    value: int
+    shift: int

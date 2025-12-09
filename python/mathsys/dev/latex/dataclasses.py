@@ -47,7 +47,7 @@ class Definition:
     variable: str
     expression: str
     def __str__(self) -> str:
-        return f"{self.variable}\equiv {self.expression}"
+        return fr"{self.variable}\equiv {self.expression}"
 
 #> 1ºLEVEL -> ANNOTATION
 @dataclass
@@ -86,10 +86,7 @@ class Use:
     name: str
     start: bool
     def __str__(self) -> str:
-        delimiters = [
-            "" if self.start else r"\color{brown}",
-            "" if self.start else r"\color{black}"
-        ]
+        delimiters = ["", ""] if self.start else [r"\color{brown}", r"\color{black}"]
         return fr"{delimiters[0]}\textbf{{use {self.name}}}{delimiters[1]}"
 
 
@@ -131,9 +128,9 @@ class Term:
 @dataclass
 class Factor:
     value: str
-    exponent: str
+    exponent: str | None
     def __str__(self) -> str:
-        exponent = f"^{{{self.exponent}}}" if self.exponent else ""
+        exponent = f"^{{{self.exponent}}}" if self.exponent is not None else ""
         return f"{self.value}{exponent}"
 
 #> 4ºLEVEL -> LIMIT
@@ -141,12 +138,12 @@ class Factor:
 class Limit:
     variable: str
     approach: str
-    direction: str
+    direction: bool | None
     nest: str
-    exponent: str
+    exponent: str | None
     def __str__(self) -> str:
-        direction = f"^{{{self.direction}}}" if self.direction else ""
-        exponent = f"^{{{self.exponent}}}" if self.exponent else ""
+        direction = f"^{{{"+" if self.direction else "-"}}}" if self.direction is not None else ""
+        exponent = f"^{{{self.exponent}}}" if self.exponent is not None else ""
         return fr"\lim_{{\substack{{{self.variable}\to {self.approach}{direction}}}}}{self.nest}{exponent}"
 
 
@@ -189,8 +186,8 @@ class Tensor:
 #> 5ºLEVEL -> NUMBER
 @dataclass
 class Number:
-    whole: str
-    decimal: str
+    value: int
+    shift: int
     def __str__(self) -> str:
-        decimal = f".{self.decimal}" if self.decimal else ""
-        return f"{self.whole}{decimal}"
+        each = list(str(self.value))
+        return f"{str().join(each[:-self.shift])}.{str().join(each[-self.shift:])}"

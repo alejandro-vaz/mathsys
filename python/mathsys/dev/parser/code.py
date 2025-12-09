@@ -77,7 +77,7 @@ class Parser(Transformer):
     def use(self, items: list[Token]) -> parser.Use:
         return parser.Use(
             name = ñ(items[0]),
-            start = MODULES.get(ñ(items[0]), None)
+            start = self.run(MODULES.get(ñ(items[0]), None)) if MODULES.get(ñ(items[0]), None) is not None else None
         )
     #~ CLASS -> 2 EXPRESSION CONSTRUCT
     def expression(self, items: list[Token | parser.Level3]) -> parser.Expression:
@@ -138,6 +138,6 @@ class Parser(Transformer):
     #~ CLASS -> 5 NUMBER CONSTRUCT
     def number(self, items: list[Token]) -> parser.Number:
         return parser.Number(
-            whole = ñ(items[0]),
-            decimal = ñ(items[-1]) if len(items) == 2 else None
+            value = int(ñ(items[0]) + (ñ(items[1]) if len(items) == 2 else "0")),
+            shift = len(str(int((ñ(items[1]) if len(items) == 2 else "0")[::-1])))
         )

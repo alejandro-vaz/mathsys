@@ -9,8 +9,9 @@
     "install/py": "pip install -e . --break-system-packages",
     "test/py": "python3 -m unittest python.testing",
     "upload/py": "twine upload dist/*",
+    "upload/rs": "cd python/mathsys/dev/ && cargo publish && cd ../../../",
     "upload/ts": "npm publish",
-    "compile": "bash ./python/mathsys/dev/source/unix-x86-64.sh && bash ./python/mathsys/dev/source/web.sh"
+    "compile": "bash ./python/mathsys/dev/source/unix-x86-64.sh && bash ./python/mathsys/dev/source/wasm.sh"
   },
   "repository": {
     "type": "git",

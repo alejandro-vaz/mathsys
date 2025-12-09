@@ -133,16 +133,16 @@ class LaTeX:
     def factor(self, factor: parser.Factor) -> str:
         return str(latex.Factor(
             value = self.level5(factor.value),
-            exponent = self.expression(factor.exponent) if factor.exponent is not None else ""
+            exponent = self.expression(factor.exponent) if factor.exponent is not None else None
         ))
     #~ GENERATOR -> 4 LIMIT GENERATION
     def limit(self, limit: parser.Limit) -> str:
         return str(latex.Limit(
             variable = self.variable(limit.variable),
             approach = self.expression(limit.approach),
-            direction = "+" if limit.direction else "-" if limit.direction is not None else "",
+            direction = limit.direction,
             nest = self.nest(limit.nest),
-            exponent = self.expression(limit.exponent) if limit.exponent is not None else ""
+            exponent = self.expression(limit.exponent) if limit.exponent is not None else None
         ))
     #~ GENERATOR -> 5 LEVEL GENERATION
     def level5(self, level5: parser.Level5) -> str:
@@ -173,6 +173,6 @@ class LaTeX:
     #~ GENERATOR -> 5 NUMBER GENERATION
     def number(self, number: parser.Number) -> str:
         return str(latex.Number(
-            whole = number.whole,
-            decimal = number.decimal if number.decimal is not None else ""
+            value = number.value,
+            shift = number.shift
         ))

@@ -9,7 +9,7 @@ import sys
 from time import time
 
 #> HEAD -> CACHE
-from functools import lru_cache
+from functools import lru_cache, cache
 
 #> HEAD -> COMPILER
 from .parser.code import Parser
@@ -42,7 +42,7 @@ def statistics() -> list:
     return [
         validate.cache_info(),
         latex.cache_info(),
-        web.cache_info(),
+        wasm.cache_info(),
         unix_x86_64.cache_info()
     ]
 
@@ -50,33 +50,33 @@ def statistics() -> list:
 def clear() -> None:
     validate.cache_clear()
     latex.cache_clear()
-    web.cache_clear()
+    wasm.cache_clear()
     unix_x86_64.cache_clear()
 
 #> MAIN -> VALIDATE
-@lru_cache(maxsize = None)
+@cache
 @timeWrapper
 def validate(content: str) -> bool:
     try: _parser.run(content); return True
     except: return False
 
 #> MAIN -> TOKENS
-@lru_cache(maxsize = None)
+@cache
 @timeWrapper
 def tokens(content: str) -> int: return len(_ir.run(_parser.run(content)))
 
 #> MAIN -> LATEX
-@lru_cache(maxsize = None)
+@cache
 @timeWrapper
 def latex(content: str) -> str: return _latex.run(_parser.run(content))
 
 #> MAIN -> WEB
-@lru_cache(maxsize = 256)
+@lru_cache(maxsize = 8192)
 @timeWrapper
-def web(content: str) -> bytes: return _builder.run(_ir.run(_parser.run(content)), "web")
+def wasm(content: str) -> bytes: return _builder.run(_ir.run(_parser.run(content)), "wasm")
 
 #> MAIN -> UNIX_X86_X64
-@lru_cache(maxsize = 256)
+@lru_cache(maxsize = 1024)
 @timeWrapper
 def unix_x86_64(content: str) -> bytes: return _builder.run(_ir.run(_parser.run(content)), "unix-x86-64")
 
@@ -94,14 +94,14 @@ def wrapper(*arguments: str) -> None:
             with open(".".join(components), "w") as destination:
                 try: destination.write(latex(content))
                 except Exception as error: print(str(error)); exit(1)
-        case "web": 
+        case "wasm": 
             components[-1] = "wasm"
             with open(".".join(components), "wb") as destination:
-                try: destination.write(web(content))
+                try: destination.write(wasm(content))
                 except Exception as error: print(str(error)); exit(1)
         case "unix-x86-64": 
             components.pop()
             with open(".".join(components), "wb") as destination:
                 try: destination.write(unix_x86_64(content))
                 except Exception as error: print(str(error)); exit(1)
-        case other: sys.exit("[ENTRY ISSUE] Unknown command. Available commands: validate, tokens, latex, web, unix-x86-64.")
+        case other: sys.exit("[ENTRY ISSUE] Unknown command. Available commands: validate, tokens, latex, wasm, unix-x86-64.")

@@ -1,0 +1,40 @@
+[package]
+name = "mathsys"
+version = "4.2.0"
+edition = "2024"
+authors = ["Alejandro Vaz <support@abscissa.eu>"]
+description = "The Domain Specific Language for math."
+license = "MIT"
+repository = "https://github.com/alejandro-vaz/mathsys"
+homepage = "https://abscissa.eu"
+documentation = "https://docs.abscissa.eu"
+keywords = [
+    "dsl",
+    "math",
+    "mathsys",
+    "compiler",
+    "language"
+]
+categories = [
+    "dsl",
+    "math",
+    "mathsys",
+    "compiler",
+    "language"
+]
+publish = true
+
+[[bin]]
+name = "mathsys"
+path = "bin/main.rs"
+
+[profile.release]
+opt-level = 3
+panic = "abort"
+lto = "fat"
+codegen-units = 1
+strip = true
+debug = false
+incremental = false
+
+[dependencies]

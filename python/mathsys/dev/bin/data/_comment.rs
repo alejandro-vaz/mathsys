@@ -3,7 +3,7 @@
 //^
 
 //> HEAD -> CROSS-SCOPE TRAIT
-use crate::converter::Class;
+use crate::reparser::Class;
 use crate::runtime::Value;
 use crate::Display;
 use crate::Debug;
@@ -16,7 +16,7 @@ use crate::Debug;
 //> COMMENT -> STRUCT
 #[derive(Clone)]
 pub struct _Comment {
-    pub text: crate::Box<str>,
+    pub text: Box<str>,
 }
 
 //> COMMENT -> IMPLEMENTATION
@@ -27,8 +27,8 @@ impl Debug for _Comment {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> 
 )}} 
 impl Class for _Comment {
     fn name(&self) -> &'static str {"_Comment"}
-    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32, memory: &crate::Vec<crate::Box<dyn Class>>) -> crate::Box<dyn Value> {
+    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32, memory: &Vec<Box<dyn Class>>) -> Box<dyn Value> {
         self.space("Comment data", id);
-        return crate::Box::new(crate::Nexists {});
+        return Box::new(crate::Nexists {});
     }
 }

@@ -3,7 +3,7 @@
 //^
 
 //> HEAD -> CROSS-SCOPE TRAIT
-use crate::converter::Class;
+use crate::reparser::Class;
 use crate::runtime::Value;
 use crate::Display;
 use crate::Debug;
@@ -16,8 +16,8 @@ use crate::Debug;
 //> EXPRESSION -> STRUCT
 #[derive(Clone)]
 pub struct _Expression {
-    pub signs: crate::Box<[u8]>,
-    pub terms: crate::Box<[u32]>
+    pub signs: Box<[u8]>,
+    pub terms: Box<[u32]>
 }
 
 //> EXPRESSION -> IMPLEMENTATION
@@ -27,10 +27,10 @@ impl Debug for _Expression {fn fmt(&self, formatter: &mut crate::Formatter<'_>) 
     self.signs, self.terms
 )}} impl Class for _Expression {
     fn name(&self) -> &'static str {"_Expression"}
-    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32, memory: &crate::Vec<crate::Box<dyn Class>>) -> crate::Box<dyn Value> {
+    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32, memory: &Vec<Box<dyn Class>>) -> Box<dyn Value> {
         for &term in &self.terms {context.process(term, memory)}
         self.space("Summing up all terms", id);
-        let mut current = crate::Box::new(crate::Nexists {}) as crate::Box<dyn Value>;
+        let mut current = Box::new(crate::Nexists {}) as Box<dyn Value>;
         for (index, term) in self.terms.iter().enumerate() {
             let next = context.read(*term);
             let value = if self.signs[index] % 2 == 0 {next.negate()} else {next};

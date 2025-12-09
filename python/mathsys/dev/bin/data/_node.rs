@@ -3,7 +3,7 @@
 //^
 
 //> HEAD -> CROSS-SCOPE TRAIT
-use crate::converter::Class;
+use crate::reparser::Class;
 use crate::runtime::Value;
 use crate::Display;
 use crate::Debug;
@@ -26,8 +26,8 @@ impl Debug for _Node {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> cra
     self.expression
 )}} impl Class for _Node {
     fn name(&self) -> &'static str {"_Node"}
-    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32, memory: &crate::Vec<crate::Box<dyn Class>>) -> crate::Box<dyn Value> {
+    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32, memory: &Vec<Box<dyn Class>>) -> Box<dyn Value> {
         context.process(self.expression, memory);
-        return crate::Box::new(crate::Undefined {});
+        return Box::new(crate::Undefined {});
     }
 }

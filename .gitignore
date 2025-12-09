@@ -13,3 +13,6 @@ dist/
 
 # IGNORE -> PYCACHE
 **/__pycache__/
+
+# IGNORE -> CARGO
+python/mathsys/*/target/

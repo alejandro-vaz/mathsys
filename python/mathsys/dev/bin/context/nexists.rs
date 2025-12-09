@@ -24,8 +24,8 @@ impl Debug for Nexists {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> c
     ""
 )}} impl Value for Nexists {
     fn id(&self) -> &'static str {return Self::ID}
-    fn ctrlcv(&self) -> crate::Box<dyn Value> {return crate::Box::new(self.clone())}
-    fn unequivalency(&self, to: &crate::Box<dyn Value>) -> bool {self.genlocale0(to); return match to.id() {
+    fn ctrlcv(&self) -> Box<dyn Value> {return Box::new(self.clone())}
+    fn unequivalency(&self, to: &Box<dyn Value>) -> bool {self.genlocale0(to); return match to.id() {
         "Infinite" => return to.unequivalency(&self.ctrlcv()),
         "Nexists" => true,
         "Number" => true,
@@ -34,7 +34,7 @@ impl Debug for Nexists {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> c
         "Variable" => true,
         other => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
     }}
-    fn equivalency(&self, to: &crate::Box<dyn Value>) -> bool {self.genlocale1(to); return match to.id() {
+    fn equivalency(&self, to: &Box<dyn Value>) -> bool {self.genlocale1(to); return match to.id() {
         "Infinite" => return to.equivalency(&self.ctrlcv()),
         "Nexists" => false,
         "Number" => false,
@@ -43,8 +43,8 @@ impl Debug for Nexists {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> c
         "Variable" => false,
         other => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
     }}
-    fn negate(&self) -> crate::Box<dyn Value> {self.genlocale2(); return self.partial(crate::Box::new(crate::Nexists {}))}
-    fn summation(&self, to: &crate::Box<dyn Value>) -> crate::Box<dyn Value> {self.genlocale3(to); return self.partial(match to.id() {
+    fn negate(&self) -> Box<dyn Value> {self.genlocale2(); return self.partial(Box::new(crate::Nexists {}))}
+    fn summation(&self, to: &Box<dyn Value>) -> Box<dyn Value> {self.genlocale3(to); return self.partial(match to.id() {
         "Infinite" => return to.summation(&self.ctrlcv()),
         "Nexists" => to.ctrlcv(),
         "Number" => to.ctrlcv(),
@@ -53,8 +53,8 @@ impl Debug for Nexists {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> c
         "Variable" => crate::stdout::crash(crate::stdout::Code::UnexpectedValue),
         other => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
     })}
-    fn invert(&self) -> crate::Box<dyn Value> {self.genlocale4(); return self.partial(crate::Box::new(crate::Nexists {}))}
-    fn multiplication(&self, to: &crate::Box<dyn Value>) -> crate::Box<dyn Value> {self.genlocale5(to); return self.partial(match to.id() {
+    fn invert(&self) -> Box<dyn Value> {self.genlocale4(); return self.partial(Box::new(crate::Nexists {}))}
+    fn multiplication(&self, to: &Box<dyn Value>) -> Box<dyn Value> {self.genlocale5(to); return self.partial(match to.id() {
         "Infinite" => return to.multiplication(&self.ctrlcv()),
         "Nexists" => to.ctrlcv(),
         "Number" => to.ctrlcv(),
