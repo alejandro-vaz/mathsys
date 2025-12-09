@@ -50,5 +50,5 @@ If you want to get involved in the project, [learn how to contribute](https://do
 - **Parser:** A [lark parser](https://github.com/lark-parser/lark) based on *Earley* that tokenizes the source and builds the *AST.*
 - **LaTeX:** Our custom *LaTeX* generator that traverses the *AST* and outputs easy-to-read *LaTeX.*
 - **IR:** A fully binary *Intermediate Representation.*
-- **Runtime:** *Rust* based `no_std` runtime which interprets the *IR* embedded into it and implements control-flow for low-level operations.
-- **Assembly:** For low-level operations that require speed and don't need memory safety.
+- **Runtime:** *Rust* based runtime which interprets the *IR* embedded into it and implements control-flow for low-level operations.
+- **Assembly:** For system interactions
