@@ -16,7 +16,7 @@ from ..common import (
 #^
 
 #> SYNTAX -> VARIABLE
-syntax = r"""
+SYNTAX = r"""
 start: (_S | _L)* (level1 _S? (_L+ level1 _S?)*)? (_S | _L)*
 
 declaration: (OBJECT _S)? variable _S? _EQUALITY _S?  expression

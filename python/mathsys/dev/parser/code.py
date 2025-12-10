@@ -6,7 +6,7 @@
 from lark import Lark, Transformer, Token
 
 #> HEAD -> DATA
-from .local import MODULES, ñ, syntax
+from .local import MODULES, ñ, SYNTAX
 from . import dataclasses as parser
 
 
@@ -19,7 +19,7 @@ class Parser(Transformer):
     #~ CLASS -> VARIABLES
     lark: Lark
     #~ CLASS -> INIT
-    def __init__(self) -> None: super(); self.lark = Lark(syntax, parser="earley")
+    def __init__(self) -> None: super(); self.lark = Lark(SYNTAX, parser="earley")
     #~ CLASS -> RUN
     def run(self, content: str) -> parser.Start: return self.transform(self.lark.parse(content))
     #~ CLASS -> LEVEL 1

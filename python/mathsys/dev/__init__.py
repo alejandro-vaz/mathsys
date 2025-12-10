@@ -9,7 +9,7 @@ import sys
 from time import time
 
 #> HEAD -> CACHE
-from functools import lru_cache, cache
+from functools import lru_cache, cache, wraps
 
 #> HEAD -> COMPILER
 from .parser.code import Parser
@@ -19,17 +19,28 @@ from .builder.code import Builder
 
 
 #^
-#^  MAIN
+#^  PRELUDE
 #^
 
-#> MAIN -> CLASSES
+#> PRELUDE -> CLASSES
 _parser = Parser()
 _latex = LaTeX()
 _ir = IR()
 _builder = Builder()
 
-#> MAIN -> TIME WRAPPER
+#> PRELUDE -> FUNCTIONS
+def functions() -> list:
+    return [
+        validate,
+        tokens,
+        latex,
+        wasm,
+        unix_x86_64
+    ]
+
+#> PRELUDE -> TIME WRAPPER
 def timeWrapper(function):
+    @wraps(function)
     def wrapper(*args, **kwargs):
         start = time()
         state = function(*args, **kwargs)
@@ -37,71 +48,76 @@ def timeWrapper(function):
         return state
     return wrapper
 
-#> MAIN -> STATISTICS
-def statistics() -> list:
-    return [
-        validate.cache_info(),
-        latex.cache_info(),
-        wasm.cache_info(),
-        unix_x86_64.cache_info()
-    ]
+#> PRELUDE -> STATISTICS
+def statistics() -> list: return [function.cache_info() for function in functions()]
 
-#> MAIN -> CLEAR
-def clear() -> None:
-    validate.cache_clear()
-    latex.cache_clear()
-    wasm.cache_clear()
-    unix_x86_64.cache_clear()
+#> PRELUDE -> CLEAR
+def clear() -> None: 
+    for function in functions(): function.cache_clear()
+
+
+#^
+#^  MAIN
+#^
 
 #> MAIN -> VALIDATE
 @cache
 @timeWrapper
-def validate(content: str) -> bool:
+async def validate(content: str) -> bool:
     try: _parser.run(content); return True
     except: return False
 
 #> MAIN -> TOKENS
 @cache
 @timeWrapper
-def tokens(content: str) -> int: return len(_ir.run(_parser.run(content)))
+async def tokens(content: str) -> int: return len(_ir.run(_parser.run(content)))
 
 #> MAIN -> LATEX
 @cache
 @timeWrapper
-def latex(content: str) -> str: return _latex.run(_parser.run(content))
+async def latex(content: str) -> str: return _latex.run(_parser.run(content))
 
 #> MAIN -> WEB
 @lru_cache(maxsize = 8192)
 @timeWrapper
-def wasm(content: str) -> bytes: return _builder.run(_ir.run(_parser.run(content)), "wasm")
+async def wasm(content: str, optimize: bool) -> bytes: return _builder.run(_ir.run(_parser.run(content)), "wasm", optimize)
 
 #> MAIN -> UNIX_X86_X64
 @lru_cache(maxsize = 1024)
 @timeWrapper
-def unix_x86_64(content: str) -> bytes: return _builder.run(_ir.run(_parser.run(content)), "unix-x86-64")
+async def unix_x86_64(content: str, optimize: bool) -> bytes: return _builder.run(_ir.run(_parser.run(content)), "unix-x86-64", optimize)
 
-#> MAIN -> TARGET
-def wrapper(*arguments: str) -> None: 
+
+#^
+#^  TARGETS
+#^
+
+#> TARGETS -> FORMAT
+def targets() -> str: return ", ".join([value.__name__.replace("_", "-") for value in functions()])
+
+#> TARGETS -> WRAPPER
+async def wrapper(*arguments: str) -> None: 
     #~ TARGET -> PREPROCESSING
     components = arguments[1].split(".")
     with open(arguments[1]) as origin: content = origin.read()
     #~ TARGET -> MATCHING
     match arguments[0]:
-        case "validate": print(validate(content))
-        case "tokens": print(tokens(content))
+        case "validate": print(await validate(content))
+        case "tokens": print(await tokens(content))
         case "latex": 
             components[-1] = "ltx"
             with open(".".join(components), "w") as destination:
-                try: destination.write(latex(content))
-                except Exception as error: print(str(error)); exit(1)
+                try: destination.write(await latex(content))
+                except Exception as error: print(str(error))
         case "wasm": 
             components[-1] = "wasm"
             with open(".".join(components), "wb") as destination:
-                try: destination.write(wasm(content))
-                except Exception as error: print(str(error)); exit(1)
+                try: destination.write(await wasm(content, True))
+                except Exception as error: print(str(error))
         case "unix-x86-64": 
             components.pop()
             with open(".".join(components), "wb") as destination:
-                try: destination.write(unix_x86_64(content))
-                except Exception as error: print(str(error)); exit(1)
-        case other: sys.exit("[ENTRY ISSUE] Unknown command. Available commands: validate, tokens, latex, wasm, unix-x86-64.")
+                try: destination.write(await unix_x86_64(content, True))
+                except Exception as error: print(str(error))
+        case "targets": print(f"Available targets: {targets()}.")
+        case other: sys.exit(f"[ENTRY ISSUE] Unknown target. Available targets: {targets()}.")

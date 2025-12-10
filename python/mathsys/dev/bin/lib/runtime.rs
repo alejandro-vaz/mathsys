@@ -49,9 +49,14 @@ pub trait Value: crate::Display + crate::Debug + crate::Any {
     )); self.info(); to.info()}
 }
 
-//> CONTEXT -> ID
-pub trait Id {
-    const ID: &'static str;
+//> CONTEXT -> OBJECT
+enum Object {
+    Infinite(crate::Infinite),
+    Nexists(crate::Nexists),
+    Number(crate::Number),
+    Tensor(crate::Tensor),
+    Undefined(crate::Undefined),
+    Variable(crate::Variable)
 }
 
 //> CONTEXT -> STRUCT

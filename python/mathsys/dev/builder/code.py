@@ -21,7 +21,7 @@ from .local import TARGETS, EXTENSIONS
 #> BUILDER -> CLASS
 class Builder:
     #~ CLASS -> RUN
-    def run(self, data: bytes, target: str) -> bytes:
+    def run(self, data: bytes, target: str, optimize: bool) -> bytes:
         self.checks()
         descriptor, ir = tempfile.mkstemp(dir = "/tmp", suffix = ".ir")
         with os.fdopen(descriptor, "wb") as file: file.write(data)
@@ -33,14 +33,14 @@ class Builder:
         environment["MathsysPatch"] = str(__version_info__[2])
         try: 
             subprocess.run(
-                self.command(target),
+                self.command(target, optimize),
                 cwd = os.path.dirname(os.path.abspath(__file__)),
                 env = environment,
                 capture_output = False,
                 text = True,
                 check = True
             )
-            if target == "wasm": subprocess.run(
+            if target == "wasm" and optimize: subprocess.run(
                 self.postwasm(),
                 cwd = os.path.dirname(os.path.abspath(__file__)),
                 env = environment,
@@ -52,12 +52,12 @@ class Builder:
         except: raise
         finally: os.remove(ir)
     #~ CLASS -> COMMAND CREATOR HELPER
-    def command(self, target: str) -> list[str]:
+    def command(self, target: str, optimize: bool) -> list[str]:
         return [
             "cargo",
             "+nightly",
             "build",
-            "--release",
+            *(["--release"] if optimize else []),
             "--target", TARGETS[target]
         ]
     #~ CLASS -> POSTWASM

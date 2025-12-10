@@ -4,7 +4,6 @@
 
 //> HEAD -> CROSS-SCOPE TRAIT
 use crate::runtime::Value;
-use crate::runtime::Id;
 use crate::Display;
 use crate::Debug;
 
@@ -22,13 +21,12 @@ pub struct Number {
 }
 
 //> NUMBER -> IMPLEMENTATION
-impl Id for Number {const ID: &'static str = "Number";} 
 impl Display for Number {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "{}", self.id())}}
 impl Debug for Number {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
     "value = {}, shift = {}, negative = {}",
     self.value, self.shift, self.negative
 )}} impl Value for Number {
-    fn id(&self) -> &'static str {return Self::ID}
+    fn id(&self) -> &'static str {return "Number"}
     fn ctrlcv(&self) -> Box<dyn Value> {return Box::new(self.clone())}
     fn unequivalency(&self, to: &Box<dyn Value>) -> bool {self.genlocale0(to); return match to.id() {
         "Infinite" => return to.unequivalency(&self.ctrlcv()),
@@ -62,12 +60,12 @@ impl Debug for Number {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> cr
         "Number" => {
             let value = crate::runtime::downcast::<crate::Number>(&**to);
             let shift = crate::max(self.shift, value.shift);
-            let negative = if self.value >= value.value {self.negative} else {value.negative};
+            let negative = if self.value.pow((shift - self.shift) as u32) >= value.value.pow((shift - value.shift) as u32) {self.negative} else {value.negative};
             Box::new(crate::Number {
                 value: if self.negative == value.negative {
                     self.value*10u32.pow((shift - self.shift) as u32) + value.value*10u32.pow((shift - value.shift) as u32)
                 } else {
-                    if self.value >= value.value {
+                    if self.value.pow((shift - self.shift) as u32) >= value.value.pow((shift - value.shift) as u32) {
                         self.value*10u32.pow((shift - self.shift) as u32) - value.value*10u32.pow((shift - value.shift) as u32)
                     } else {
                         value.value*10u32.pow((shift - value.shift) as u32) - self.value*10u32.pow((shift - self.shift) as u32)

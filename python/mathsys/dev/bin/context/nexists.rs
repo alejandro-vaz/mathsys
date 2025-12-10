@@ -4,7 +4,6 @@
 
 //> HEAD -> CROSS-SCOPE TRAIT
 use crate::runtime::Value;
-use crate::runtime::Id;
 use crate::Display;
 use crate::Debug;
 
@@ -18,12 +17,11 @@ use crate::Debug;
 pub struct Nexists {}
 
 //> NEXISTS -> IMPLEMENTATION
-impl Id for Nexists {const ID: &'static str = "Nexists";} 
 impl Display for Nexists {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "{}", self.id())}}
 impl Debug for Nexists {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
     ""
 )}} impl Value for Nexists {
-    fn id(&self) -> &'static str {return Self::ID}
+    fn id(&self) -> &'static str {return "Nexists"}
     fn ctrlcv(&self) -> Box<dyn Value> {return Box::new(self.clone())}
     fn unequivalency(&self, to: &Box<dyn Value>) -> bool {self.genlocale0(to); return match to.id() {
         "Infinite" => return to.unequivalency(&self.ctrlcv()),

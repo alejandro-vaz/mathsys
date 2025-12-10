@@ -4,7 +4,6 @@
 
 //> HEAD -> CROSS-SCOPE TRAIT
 use crate::runtime::Value;
-use crate::runtime::Id;
 use crate::Display;
 use crate::Debug;
 
@@ -20,13 +19,12 @@ pub struct Infinite {
 }
 
 //> INFINITE -> IMPLEMENTATION
-impl Id for Infinite {const ID: &'static str = "Infinite";} 
 impl Display for Infinite {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "{}", self.id())}}
 impl Debug for Infinite {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
     "negative = {}",
     self.negative
 )}} impl Value for Infinite {
-    fn id(&self) -> &'static str {return Self::ID}
+    fn id(&self) -> &'static str {return "Infinite"}
     fn ctrlcv(&self) -> Box<dyn Value> {return Box::new(self.clone())}
     fn unequivalency(&self, to: &Box<dyn Value>) -> bool {self.genlocale0(to); return match to.id() {
         "Infinite" => !self.equivalency(to),
