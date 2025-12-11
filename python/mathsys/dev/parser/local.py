@@ -56,7 +56,7 @@ _COMMAND: /\#/
 QUOTE: /[^\n]+/
 MODULE: /[a-z]+/
 OBJECT: /\b(Any|Infinite|Nexists|Number|Tensor|Undefined|Variable)\b/
-IDENTIFIER: /(?i)(?!\b(?:inf|of|use|lim|Any|Infinite|Nexists|Number|Tensor|Undefined|Variable)\b)[A-Za-zº$%]+/
+IDENTIFIER: /(?!\b(?:inf|of|use|lim|Any|Infinite|Nexists|Number|Tensor|Undefined|Variable)\b)[A-Za-zº$%]+/
 _INF: /\binf\b/
 _EXPONENTIATION: /\^/
 NUMBER: /[0-9]+/
