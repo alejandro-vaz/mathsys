@@ -3,10 +3,10 @@
 //^
 
 //> HEAD -> CROSS-SCOPE TRAIT
-use crate::reparser::Class;
-use crate::runtime::Object;
-use crate::Display;
-use crate::Debug;
+use crate::class::Class;
+use crate::object::Object;
+use crate::runtime::Context;
+use crate::tip::Tip;
 
 
 //^
@@ -20,14 +20,20 @@ pub struct _Factor {
     pub exponent: u32
 }
 
-//> FACTOR -> IMPLEMENTATION
-impl Display for _Factor {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "{}", self.name())}}
-impl Debug for _Factor {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
-    "value = {}, exponent = {}",
-    self.value, self.exponent
-)}} impl Class for _Factor {
-    fn name(&self) -> &'static str {"_Factor"}
-    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32, memory: &Vec<Box<dyn Class>>) -> Object {
-        return Object::Undefined(crate::Undefined {});
-    }
+//> FACTOR -> EVALUATE
+impl _Factor {pub fn evaluate(&self, context: &mut Context, id: u32, memory: &Vec<Class>) -> Object {
+    return Object::Undefined(crate::Undefined {});
+}}
+
+//> FACTOR -> REPRESENTATION
+impl crate::Display for _Factor {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.display(formatter)}}
+impl crate::Debug for _Factor {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.debug(formatter)}} 
+
+//> FACTOR -> COMMON
+impl Tip for _Factor {} impl _Factor {
+    pub fn display(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "_Factor")}
+    pub fn debug(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
+        "value = {}, exponent = {}",
+        self.value, self.exponent
+    )}
 }

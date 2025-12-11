@@ -42,10 +42,14 @@ mod data {
 
 //> HEAD -> LIB
 mod lib {
+    pub mod class;
+    pub mod object;
     pub mod reparser;
     pub mod runtime;
     pub mod stack;
     pub mod stdout;
+    pub mod tip;
+    pub mod value;
 }
 
 

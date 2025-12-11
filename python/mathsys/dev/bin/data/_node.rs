@@ -3,10 +3,10 @@
 //^
 
 //> HEAD -> CROSS-SCOPE TRAIT
-use crate::reparser::Class;
-use crate::runtime::Object;
-use crate::Display;
-use crate::Debug;
+use crate::class::Class;
+use crate::object::Object;
+use crate::runtime::Context;
+use crate::tip::Tip;
 
 
 //^
@@ -19,15 +19,21 @@ pub struct _Node {
     pub expression: u32
 }
 
-//> NODE -> IMPLEMENTATION
-impl Display for _Node {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "{}", self.name())}}
-impl Debug for _Node {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
-    "expression = {}",
-    self.expression
-)}} impl Class for _Node {
-    fn name(&self) -> &'static str {"_Node"}
-    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32, memory: &Vec<Box<dyn Class>>) -> Object {
-        context.process(self.expression, memory);
-        return Object::Undefined(crate::Undefined {});
-    }
+//> NODE -> EVALUATE
+impl _Node {pub fn evaluate(&self, context: &mut Context, id: u32, memory: &Vec<Class>) -> Object {
+    context.process(self.expression, memory);
+    return Object::Undefined(crate::Undefined {});
+}}
+
+//> NODE -> REPRESENTATION
+impl crate::Display for _Node {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.display(formatter)}}
+impl crate::Debug for _Node {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.debug(formatter)}} 
+
+//> NODE -> COMMON
+impl Tip for _Node {} impl _Node {
+    pub fn display(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "_Node")}
+    pub fn debug(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
+        "expression = {}",
+        self.expression
+    )}
 }

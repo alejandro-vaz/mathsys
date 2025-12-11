@@ -3,10 +3,10 @@
 //^
 
 //> HEAD -> CROSS-SCOPE TRAIT
-use crate::reparser::Class;
-use crate::runtime::Object;
-use crate::Display;
-use crate::Debug;
+use crate::class::Class;
+use crate::object::Object;
+use crate::runtime::Context;
+use crate::tip::Tip;
 
 
 //^
@@ -19,15 +19,21 @@ pub struct _Start {
     pub statements: Box<[u32]>
 }
 
-//> START -> IMPLEMENTATION
-impl Display for _Start {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "{}", self.name())}}
-impl Debug for _Start {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
-    "statements = {:?}",
-    self.statements
-)}} impl Class for _Start {
-    fn name(&self) -> &'static str {"_Start"}
-    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32, memory: &Vec<Box<dyn Class>>) -> Object {
-        for &statement in &self.statements {context.process(statement, memory);}
-        return Object::Nexists(crate::Nexists {});
-    }
+//> START -> EVALUATE
+impl _Start {pub fn evaluate(&self, context: &mut Context, id: u32, memory: &Vec<Class>) -> Object {
+    for &statement in &self.statements {context.process(statement, memory);}
+    return Object::Nexists(crate::Nexists {});
+}}
+
+//> START -> REPRESENTATION
+impl crate::Display for _Start {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.display(formatter)}}
+impl crate::Debug for _Start {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.debug(formatter)}} 
+
+//> START -> COMMON
+impl Tip for _Start {} impl _Start {
+    pub fn display(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "_Start")}
+    pub fn debug(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
+        "statements = {:?}",
+        self.statements
+    )}
 }

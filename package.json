@@ -25,7 +25,7 @@
     "language"
   ],
   "author": "alejandro-vaz",
-  "license": "SEE LICENSE IN https://docs.abscissa.eu",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/abscissa-math/mathsys/issues"
   },

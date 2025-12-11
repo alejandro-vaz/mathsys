@@ -3,10 +3,10 @@
 //^
 
 //> HEAD -> CROSS-SCOPE TRAIT
-use crate::reparser::Class;
-use crate::runtime::Object;
-use crate::Display;
-use crate::Debug;
+use crate::class::Class;
+use crate::object::Object;
+use crate::runtime::Context;
+use crate::tip::Tip;
 
 
 //^
@@ -20,15 +20,21 @@ pub struct _Use {
     pub start: u32
 }
 
-//> USE -> IMPLEMENTATION
-impl Display for _Use {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "{}", self.name())}}
-impl Debug for _Use {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
-    "name = \"{}\", start = {}",
-    self.name, self.start
-)}} impl Class for _Use {
-    fn name(&self) -> &'static str {"_Use"}
-    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32, memory: &Vec<Box<dyn Class>>) -> Object {
-        if self.start != 0 {context.process(self.start, memory)}
-        return Object::Nexists(crate::Nexists {});
-    }
+//> USE -> EVALUATE
+impl _Use {pub fn evaluate(&self, context: &mut Context, id: u32, memory: &Vec<Class>) -> Object {
+    if self.start != 0 {context.process(self.start, memory)}
+    return Object::Nexists(crate::Nexists {});
+}}
+
+//> USE -> REPRESENTATION
+impl crate::Display for _Use {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.display(formatter)}}
+impl crate::Debug for _Use {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.debug(formatter)}} 
+
+//> USE -> COMMON
+impl Tip for _Use {} impl _Use {
+    pub fn display(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "_Use")}
+    pub fn debug(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
+        "name = \"{}\", start = {}",
+        self.name, self.start
+    )}
 }

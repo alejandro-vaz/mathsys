@@ -3,10 +3,10 @@
 //^
 
 //> HEAD -> CROSS-SCOPE TRAIT
-use crate::reparser::Class;
-use crate::runtime::Object;
-use crate::Display;
-use crate::Debug;
+use crate::class::Class;
+use crate::object::Object;
+use crate::runtime::Context;
+use crate::tip::Tip;
 
 
 //^
@@ -19,14 +19,20 @@ pub struct _Tensor {
     pub values: Box<[u32]>
 }
 
-//> TENSOR -> IMPLEMENTATION
-impl Display for _Tensor {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "{}", self.name())}}
-impl Debug for _Tensor {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
-    "values = {:?}",
-    self.values
-)}} impl Class for _Tensor {
-    fn name(&self) -> &'static str {"_Tensor"}
-    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32, memory: &Vec<Box<dyn Class>>) -> Object {
-        return Object::Tensor(crate::Tensor {})
-    }
+//> TENSOR -> EVALUATE
+impl _Tensor {pub fn evaluate(&self, context: &mut Context, id: u32, memory: &Vec<Class>) -> Object {
+    return Object::Tensor(crate::Tensor {})
+}}
+
+//> TENSOR -> REPRESENTATION
+impl crate::Display for _Tensor {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.display(formatter)}}
+impl crate::Debug for _Tensor {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.debug(formatter)}} 
+
+//> TENSOR -> COMMON
+impl Tip for _Tensor {} impl _Tensor {
+    pub fn display(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "_Tensor")}
+    pub fn debug(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
+        "values = {:?}",
+        self.values
+    )}
 }

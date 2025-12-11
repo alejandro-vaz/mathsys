@@ -3,10 +3,10 @@
 //^
 
 //> HEAD -> CROSS-SCOPE TRAIT
-use crate::reparser::Class;
-use crate::runtime::Object;
-use crate::Display;
-use crate::Debug;
+use crate::class::Class;
+use crate::object::Object;
+use crate::runtime::Context;
+use crate::tip::Tip;
 
 
 //^
@@ -20,18 +20,24 @@ pub struct _Number {
     pub shift: u8
 }
 
-//> NUMBER -> IMPLEMENTATION
-impl Display for _Number {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "{}", self.name())}}
-impl Debug for _Number {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
-    "value = {}, shift = {}",
-    self.value, self.shift
-)}} impl Class for _Number {
-    fn name(&self) -> &'static str {"_Number"}
-    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32, memory: &Vec<Box<dyn Class>>) -> Object {
-        return Object::Number(crate::Number {
-            value: self.value,
-            shift: self.shift,
-            negative: false
-        });
-    }
+//> NUMBER -> EVALUATE
+impl _Number {pub fn evaluate(&self, context: &mut Context, id: u32, memory: &Vec<Class>) -> Object {
+    return Object::Number(crate::Number {
+        value: self.value,
+        shift: self.shift,
+        negative: false
+    })
+}}
+
+//> NUMBER -> REPRESENTATION
+impl crate::Display for _Number {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.display(formatter)}}
+impl crate::Debug for _Number {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.debug(formatter)}} 
+
+//> NUMBER -> COMMON
+impl Tip for _Number {} impl _Number {
+    pub fn display(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "_Number")}
+    pub fn debug(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
+        "value = {}, shift = {}",
+        self.value, self.shift
+    )}
 }

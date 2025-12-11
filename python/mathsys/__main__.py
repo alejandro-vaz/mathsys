@@ -17,7 +17,7 @@ from .release import wrapper as wrapperRelease
 from .dev import wrapper as wrapperDev
 
 #> MAIN -> EXECUTION
-if __name__ == "__main__":
+def main() -> None:
     if len(sys.argv) == 3: 
         match sys.argv[2]:
             case value if value.endswith(".ms1"): wrapper1(*sys.argv[1:])
@@ -27,4 +27,4 @@ if __name__ == "__main__":
             case value if value.endswith(".msr"): wrapperRelease(*sys.argv[1:])
             case value if value.endswith(".msd"): asyncio.run(wrapperDev(*sys.argv[1:]))
             case other: sys.exit("[ENTRY ISSUE] Invalid file extension.") 
-    else: sys.exit("[ENTRY ISSUE] Usage: python -m mathsys <target> <filename>.msX.") 
+    else: sys.exit("[ENTRY ISSUE] Usage: mathsys <target> <filename>.msX.") 

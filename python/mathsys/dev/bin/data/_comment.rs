@@ -3,10 +3,10 @@
 //^
 
 //> HEAD -> CROSS-SCOPE TRAIT
-use crate::reparser::Class;
-use crate::runtime::Object;
-use crate::Display;
-use crate::Debug;
+use crate::class::Class;
+use crate::object::Object;
+use crate::runtime::Context;
+use crate::tip::Tip;
 
 
 //^
@@ -19,16 +19,21 @@ pub struct _Comment {
     pub text: Box<str>,
 }
 
-//> COMMENT -> IMPLEMENTATION
-impl Display for _Comment {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "{}", self.name())}}
-impl Debug for _Comment {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
-    "text = \"{}\"",
-    self.text
-)}} 
-impl Class for _Comment {
-    fn name(&self) -> &'static str {"_Comment"}
-    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32, memory: &Vec<Box<dyn Class>>) -> Object {
-        self.space("Comment data", id);
-        return Object::Nexists(crate::Nexists {});
-    }
+//> COMMENT -> EVALUATE
+impl _Comment {pub fn evaluate(&self, context: &mut Context, id: u32, memory: &Vec<Class>) -> Object {
+    self.space("Comment data", id);
+    return Object::Nexists(crate::Nexists {});
+}}
+
+//> COMMENT -> REPRESENTATION
+impl crate::Display for _Comment {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.display(formatter)}}
+impl crate::Debug for _Comment {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.debug(formatter)}} 
+
+//> COMMENT -> COMMON
+impl Tip for _Comment {} impl _Comment {
+    pub fn display(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "_Comment")}
+    pub fn debug(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
+        "text = \"{}\"",
+        self.text
+    )}
 }

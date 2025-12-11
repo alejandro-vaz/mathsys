@@ -3,10 +3,10 @@
 //^
 
 //> HEAD -> CROSS-SCOPE TRAIT
-use crate::reparser::Class;
-use crate::runtime::Object;
-use crate::Display;
-use crate::Debug;
+use crate::class::Class;
+use crate::object::Object;
+use crate::runtime::Context;
+use crate::tip::Tip;
 
 
 //^
@@ -23,14 +23,20 @@ pub struct _Limit {
     pub exponent: u32
 }
 
-//> LIMIT -> IMPLEMENTATION
-impl Display for _Limit {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "{}", self.name())}}
-impl Debug for _Limit {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
-    "variable = {}, approach = {}, direction = {}, nest = {}, exponent = {}",
-    self.variable, self.approach, self.direction, self.nest, self.exponent
-)}} impl Class for _Limit {
-    fn name(&self) -> &'static str {"_Limit"}
-    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32, memory: &Vec<Box<dyn Class>>) -> Object {
-        return Object::Undefined(crate::Undefined {});
-    }
+//> LIMIT -> EVALUATE
+impl _Limit {pub fn evaluate(&self, context: &mut Context, id: u32, memory: &Vec<Class>) -> Object {
+    return Object::Undefined(crate::Undefined {});
+}}
+
+//> LIMIT -> REPRESENTATION
+impl crate::Display for _Limit {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.display(formatter)}}
+impl crate::Debug for _Limit {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.debug(formatter)}} 
+
+//> LIMIT -> COMMON
+impl Tip for _Limit {} impl _Limit {
+    pub fn display(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "_Limit")}
+    pub fn debug(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
+        "variable = {}, approach = {}, direction = {}, nest = {}, exponent = {}",
+        self.variable, self.approach, self.direction, self.nest, self.exponent
+    )}
 }

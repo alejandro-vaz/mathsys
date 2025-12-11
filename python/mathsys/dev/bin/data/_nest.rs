@@ -3,10 +3,10 @@
 //^
 
 //> HEAD -> CROSS-SCOPE TRAIT
-use crate::reparser::Class;
-use crate::runtime::Object;
-use crate::Display;
-use crate::Debug;
+use crate::class::Class;
+use crate::object::Object;
+use crate::runtime::Context;
+use crate::tip::Tip;
 
 
 //^
@@ -19,14 +19,20 @@ pub struct _Nest {
     pub expression: u32
 }
 
-//> NEST -> IMPLEMENTATION
-impl Display for _Nest {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "{}", self.name())}}
-impl Debug for _Nest {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
-    "expression = {}",
-    self.expression
-)}} impl Class for _Nest {
-    fn name(&self) -> &'static str {"_Nest"}
-    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32, memory: &Vec<Box<dyn Class>>) -> Object {
-        return Object::Undefined(crate::Undefined {});
-    }
+//> NEST -> EVALUATE
+impl _Nest {pub fn evaluate(&self, context: &mut Context, id: u32, memory: &Vec<Class>) -> Object {
+    return Object::Undefined(crate::Undefined {});
+}}
+
+//> NEST -> REPRESENTATION
+impl crate::Display for _Nest {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.display(formatter)}}
+impl crate::Debug for _Nest {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.debug(formatter)}} 
+
+//> NEST -> COMMON
+impl Tip for _Nest {} impl _Nest {
+    pub fn display(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "_Nest")}
+    pub fn debug(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
+        "expression = {}",
+        self.expression
+    )}
 }

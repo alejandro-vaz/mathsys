@@ -3,33 +3,7 @@
 //^
 
 //> HEAD -> CROSS-SCOPE TRAIT
-use crate::runtime::Object;
-
-
-//^
-//^ CLASS
-//^
-
-//> CLASS -> TRAIT
-pub trait Class: crate::Display + crate::Debug {
-    fn name(&self) -> &'static str;
-    fn space(&self, message: &str, id: u32) -> () {crate::stdout::space(format!(
-        "{{{}{}}} {}",
-        id, self, message
-    )); self.info()}
-    fn info(&self) -> () {crate::stdout::debug(format!(
-        "{:?}",
-        self
-    ))}
-    fn result(&self, value: Object) -> Object {
-        crate::stdout::class(format!(
-            "{} > {:?}",
-            value, value
-        ));
-        return value;
-    }
-    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32, memory: &Vec<Box<dyn Class>>) -> Object;
-}
+use crate::class::Class;
 
 
 //^
@@ -39,12 +13,12 @@ pub trait Class: crate::Display + crate::Debug {
 //> REPARSER -> STRUCT
 pub struct Reparser {
     locus: usize,
-    memory: Vec<Box <dyn Class>>
+    memory: Vec<Class>
 }
 
 //> REPARSER -> IMPLEMENTATION
 impl Reparser {
-    pub fn run(&mut self) -> &Vec<Box<dyn Class>> {
+    pub fn run(&mut self) -> &Vec<Class> {
         crate::stdout::space("{REPARSER} Processing IR");
         while self.locus < crate::SETTINGS.ir.len() {
             let object = match self.take8() {
@@ -69,74 +43,74 @@ impl Reparser {
             };
             crate::stdout::trace(format!(
                 "Creating {} data structure",
-                object.name()
+                object
             ));
             self.memory.push(object);
         };
         return &self.memory;
     }
-    fn Annotation(&mut self) -> Box<dyn Class> {return Box::new(crate::_Annotation {
+    fn Annotation(&mut self) -> Class {return Class::_Annotation(crate::_Annotation {
         group: self.take8(),
         variables: self.list32()
     })}
-    fn Comment(&mut self) -> Box<dyn Class> {return Box::new(crate::_Comment {
+    fn Comment(&mut self) -> Class {return Class::_Comment(crate::_Comment {
         text: self.listchar()
     })}
-    fn Declaration(&mut self) -> Box<dyn Class> {return Box::new(crate::_Declaration {
+    fn Declaration(&mut self) -> Class {return Class::_Declaration(crate::_Declaration {
         group: self.take8(),
         variable: self.take32(),
         expression: self.take32()
     })}
-    fn Definition(&mut self) -> Box<dyn Class> {return Box::new(crate::_Definition {
+    fn Definition(&mut self) -> Class {return Class::_Definition(crate::_Definition {
         group: self.take8(),
         variable: self.take32(),
         expression: self.take32()
     })}
-    fn Equation(&mut self) -> Box<dyn Class> {return Box::new(crate::_Equation {
+    fn Equation(&mut self) -> Class {return Class::_Equation(crate::_Equation {
         leftexpression: self.take32(),
         rightexpression: self.take32()
     })}
-    fn Expression(&mut self) -> Box<dyn Class> {return Box::new(crate::_Expression {
+    fn Expression(&mut self) -> Class {return Class::_Expression(crate::_Expression {
         signs: self.list8(),
         terms: self.list32()
     })}
-    fn Factor(&mut self) -> Box<dyn Class> {return Box::new(crate::_Factor {
+    fn Factor(&mut self) -> Class {return Class::_Factor(crate::_Factor {
         value: self.take32(),
         exponent: self.take32()
     })}
-    fn Infinite(&mut self) -> Box<dyn Class> {return Box::new(crate::_Infinite {})}
-    fn Limit(&mut self) -> Box<dyn Class> {return Box::new(crate::_Limit {
+    fn Infinite(&mut self) -> Class {return Class::_Infinite(crate::_Infinite {})}
+    fn Limit(&mut self) -> Class {return Class::_Limit(crate::_Limit {
         variable: self.take32(),
         approach: self.take32(),
         direction: self.take8(),
         nest: self.take32(),
         exponent: self.take32()
     })}
-    fn Nest(&mut self) -> Box<dyn Class> {return Box::new(crate::_Nest {
+    fn Nest(&mut self) -> Class {return Class::_Nest(crate::_Nest {
         expression: self.take32()
     })}
-    fn Node(&mut self) -> Box<dyn Class> {return Box::new(crate::_Node {
+    fn Node(&mut self) -> Class {return Class::_Node(crate::_Node {
         expression: self.take32()
     })}
-    fn Number(&mut self) -> Box<dyn Class> {return Box::new(crate::_Number {
+    fn Number(&mut self) -> Class {return Class::_Number(crate::_Number {
         value: self.take32(),
         shift: self.take8()
     })}
-    fn Start(&mut self) -> Box<dyn Class> {return Box::new(crate::_Start {
+    fn Start(&mut self) -> Class {return Class::_Start(crate::_Start {
         statements: self.list32()
     })}
-    fn Tensor(&mut self) -> Box<dyn Class> {return Box::new(crate::_Tensor {
+    fn Tensor(&mut self) -> Class {return Class::_Tensor(crate::_Tensor {
         values: self.list32()
     })}
-    fn Term(&mut self) -> Box<dyn Class> {return Box::new(crate::_Term {
+    fn Term(&mut self) -> Class {return Class::_Term(crate::_Term {
         numerator: self.list32(),
         denominator: self.list32()
     })}
-    fn Use(&mut self) -> Box<dyn Class> {return Box::new(crate::_Use {
+    fn Use(&mut self) -> Class {return Class::_Use(crate::_Use {
         name: self.listchar(),
         start: self.take32()
     })}
-    fn Variable(&mut self) -> Box<dyn Class> {return Box::new(crate::_Variable {
+    fn Variable(&mut self) -> Class {return Class::_Variable(crate::_Variable {
         representation: self.listchar()
     })}
 }
@@ -145,7 +119,7 @@ impl Reparser {
 impl Reparser {
     pub fn new() -> Self {return Reparser { 
         locus: 0,
-        memory: Vec::<Box<dyn Class>>::new()
+        memory: Vec::<Class>::new()
     }}
     fn take8(&mut self) -> u8 {
         self.check(1);

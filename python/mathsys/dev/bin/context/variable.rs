@@ -3,10 +3,8 @@
 //^
 
 //> HEAD -> CROSS-SCOPE TRAIT
-use crate::runtime::Value;
-use crate::Display;
-use crate::runtime::Object;
-use crate::Debug;
+use crate::value::Value;
+use crate::object::Object;
 
 
 //^
@@ -19,42 +17,50 @@ pub struct Variable {
     pub name: String
 }
 
-//> VARIABLE -> IMPLEMENTATION
+//> VARIABLE -> EQUIVALENCY
 impl Variable {
     pub fn unequivalency(&self, to: &Object) -> bool {return match to {
-        Object::Infinite(item) => return item.unequivalency(&self.to()),
-        Object::Nexists(item) => return item.unequivalency(&self.to()),
-        Object::Number(item) => return item.unequivalency(&self.to()),
-        Object::Tensor(item) => return item.unequivalency(&self.to()),
-        Object::Undefined(item) => return item.unequivalency(&self.to()),
-        Object::Variable(item) => return !self.equivalency(to)
+        Object::Infinite(item) => item.unequivalency(&self.to()),
+        Object::Nexists(item) => item.unequivalency(&self.to()),
+        Object::Number(item) => item.unequivalency(&self.to()),
+        Object::Tensor(item) => item.unequivalency(&self.to()),
+        Object::Undefined(item) => item.unequivalency(&self.to()),
+        Object::Variable(item) => !self.equivalency(to)
     }}
     pub fn equivalency(&self, to: &Object) -> bool {return match to {
-        Object::Infinite(item) => return item.equivalency(&self.to()),
-        Object::Nexists(item) => return item.equivalency(&self.to()),
-        Object::Number(item) => return item.equivalency(&self.to()),
-        Object::Tensor(item) => return item.equivalency(&self.to()),
-        Object::Undefined(item) => return item.equivalency(&self.to()),
+        Object::Infinite(item) => item.equivalency(&self.to()),
+        Object::Nexists(item) => item.equivalency(&self.to()),
+        Object::Number(item) => item.equivalency(&self.to()),
+        Object::Tensor(item) => item.equivalency(&self.to()),
+        Object::Undefined(item) => item.equivalency(&self.to()),
         Object::Variable(item) => &self.name == &item.name
     }}
-    pub fn negate(&self) -> Object {return self.partial(self.to())}
-    pub fn summation(&self, to: &Object) -> Object {return self.partial(match to {
-        Object::Infinite(item) => return item.summation(&self.to()),
-        Object::Nexists(item) => return item.summation(&self.to()),
-        Object::Number(item) => return item.summation(&self.to()),
-        Object::Tensor(item) => return item.summation(&self.to()),
-        Object::Undefined(item) => return item.summation(&self.to()),
+}
+
+//> VARIABLE -> SUMMATION
+impl Variable {
+    pub fn negate(&self) -> Object {return self.to()}
+    pub fn summation(&self, to: &Object) -> Object {return match to {
+        Object::Infinite(item) => item.summation(&self.to()),
+        Object::Nexists(item) => item.summation(&self.to()),
+        Object::Number(item) => item.summation(&self.to()),
+        Object::Tensor(item) => item.summation(&self.to()),
+        Object::Undefined(item) => item.summation(&self.to()),
         Object::Variable(item) => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
-    })}
-    pub fn invert(&self) -> Object {return self.partial(self.to())}
-    pub fn multiplication(&self, to: &Object) -> Object {return self.partial(match to {
-        Object::Infinite(item) => return item.multiplication(&self.to()),
-        Object::Nexists(item) => return item.multiplication(&self.to()),
-        Object::Number(item) => return item.multiplication(&self.to()),
-        Object::Tensor(item) => return item.multiplication(&self.to()),
-        Object::Undefined(item) => return item.multiplication(&self.to()),
+    }}
+}
+
+//> VARIABLE -> MULTIPLICATION
+impl Variable {
+    pub fn invert(&self) -> Object {return self.to()}
+    pub fn multiplication(&self, to: &Object) -> Object {return match to {
+        Object::Infinite(item) => item.multiplication(&self.to()),
+        Object::Nexists(item) => item.multiplication(&self.to()),
+        Object::Number(item) => item.multiplication(&self.to()),
+        Object::Tensor(item) => item.multiplication(&self.to()),
+        Object::Undefined(item) => item.multiplication(&self.to()),
         Object::Variable(item) => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
-    })}
+    }}
 } impl Variable {
     fn locale0(&self, mutable: bool) -> () {crate::stdout::trace(format!("Setting {}mutable value for {}", if mutable {""} else {"im"}, self))}
     fn locale1(&self, class: u8) -> () {crate::stdout::trace(format!("Setting group of {} to {}", self, class))}
@@ -62,6 +68,10 @@ impl Variable {
     fn locale3(&self) -> () {crate::stdout::alert(format!("Value of {} is not stored", self))}
     fn locale4(&self, class: u8, string: &str) -> () {crate::stdout::trace(format!("Checking if {} group code {} is compatible with {}", self, class, string))}
     fn locale5(&self) -> () {crate::stdout::trace(format!("Getting stored value of {}", self))}
+}
+
+//> VARIABLE -> CUSTOM
+impl Variable {
     pub fn set(&self, value: Object, mutable: bool, context: &mut crate::runtime::Context, constraint: u8) -> () {
         //self.locale0(mutable);
         //self.setGroup(constraint, context);
@@ -84,10 +94,10 @@ impl Variable {
     }
     pub fn get(&self, context: &crate::runtime::Context) -> Object {
         self.locale2();
-        for (key, value) in &context.immutable {if key == &self.name {return self.partial(value.clone())}}
-        for (key, value) in &context.mutable {if key == &self.name {return self.partial(value.clone())}}
+        for (key, value) in &context.immutable {if key == &self.name {return value.clone()}}
+        for (key, value) in &context.mutable {if key == &self.name {return value.clone()}}
         self.locale3();
-        return self.partial(Object::Undefined(crate::Undefined {}));
+        return Object::Undefined(crate::Undefined {});
     }
     fn compatible(&self, code: u8, output: &str) -> bool {
         self.locale4(code, output);
@@ -110,9 +120,11 @@ impl Variable {
     }
 }
 
+//> VARIABLE -> REPRESENTATION
+impl crate::Display for Variable {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.display(formatter)}}
+impl crate::Debug for Variable {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.debug(formatter)}} 
+
 //> VARIABLE -> COMMON
-impl Display for Variable {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.display(formatter)}}
-impl Debug for Variable {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.debug(formatter)}} 
 impl Value for Variable {} impl Variable {
     pub fn to(&self) -> Object {return Object::Variable(self.clone())}
     pub fn info(&self) -> () {self.data()}

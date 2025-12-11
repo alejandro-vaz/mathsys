@@ -31,6 +31,7 @@ _builder = Builder()
 #> PRELUDE -> FUNCTIONS
 def functions() -> list:
     return [
+        targets,
         validate,
         tokens,
         latex,
@@ -60,16 +61,18 @@ def clear() -> None:
 #^  MAIN
 #^
 
+#> MAIN -> TARGETS
+@cache
+def targets() -> str: return ", ".join([value.__name__.replace("_", "-") for value in functions()])
+
 #> MAIN -> VALIDATE
 @cache
-@timeWrapper
 async def validate(content: str) -> bool:
     try: _parser.run(content); return True
     except: return False
 
 #> MAIN -> TOKENS
 @cache
-@timeWrapper
 async def tokens(content: str) -> int: return len(_ir.run(_parser.run(content)))
 
 #> MAIN -> LATEX
@@ -91,9 +94,6 @@ async def unix_x86_64(content: str, optimize: bool) -> bytes: return _builder.ru
 #^
 #^  TARGETS
 #^
-
-#> TARGETS -> FORMAT
-def targets() -> str: return ", ".join([value.__name__.replace("_", "-") for value in functions()])
 
 #> TARGETS -> WRAPPER
 async def wrapper(*arguments: str) -> None: 
