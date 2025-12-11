@@ -1,4 +1,12 @@
 //^
+//^ HEAD
+//^
+
+//> HEAD -> CROSS-SCOPE TRAIT
+use crate::runtime::Object;
+
+
+//^
 //^ CLASS
 //^
 
@@ -13,14 +21,14 @@ pub trait Class: crate::Display + crate::Debug {
         "{:?}",
         self
     ))}
-    fn result(&self, value: Box<dyn crate::runtime::Value>) -> Box<dyn crate::runtime::Value> {
+    fn result(&self, value: Object) -> Object {
         crate::stdout::class(format!(
             "{} > {:?}",
             value, value
         ));
         return value;
     }
-    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32, memory: &Vec<Box<dyn Class>>) -> Box<dyn crate::runtime::Value>;
+    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32, memory: &Vec<Box<dyn Class>>) -> Object;
 }
 
 

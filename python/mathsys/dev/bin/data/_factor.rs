@@ -4,7 +4,7 @@
 
 //> HEAD -> CROSS-SCOPE TRAIT
 use crate::reparser::Class;
-use crate::runtime::Value;
+use crate::runtime::Object;
 use crate::Display;
 use crate::Debug;
 
@@ -27,7 +27,7 @@ impl Debug for _Factor {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> c
     self.value, self.exponent
 )}} impl Class for _Factor {
     fn name(&self) -> &'static str {"_Factor"}
-    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32, memory: &Vec<Box<dyn Class>>) -> Box<dyn Value> {
-        return Box::new(crate::Undefined {});
+    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32, memory: &Vec<Box<dyn Class>>) -> Object {
+        return Object::Undefined(crate::Undefined {});
     }
 }

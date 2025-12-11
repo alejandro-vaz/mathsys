@@ -5,6 +5,7 @@
 //> HEAD -> CROSS-SCOPE TRAIT
 use crate::runtime::Value;
 use crate::Display;
+use crate::runtime::Object;
 use crate::Debug;
 
 
@@ -21,84 +22,80 @@ pub struct Number {
 }
 
 //> NUMBER -> IMPLEMENTATION
-impl Display for Number {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "{}", self.id())}}
-impl Debug for Number {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
-    "value = {}, shift = {}, negative = {}",
-    self.value, self.shift, self.negative
-)}} impl Value for Number {
-    fn id(&self) -> &'static str {return "Number"}
-    fn ctrlcv(&self) -> Box<dyn Value> {return Box::new(self.clone())}
-    fn unequivalency(&self, to: &Box<dyn Value>) -> bool {self.genlocale0(to); return match to.id() {
-        "Infinite" => return to.unequivalency(&self.ctrlcv()),
-        "Nexists" => return to.unequivalency(&self.ctrlcv()),
-        "Number" => !self.equivalency(to),
-        "Tensor" => true,
-        "Undefined" => false,
-        "Variable" => true,
-        other => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
+impl Number {
+    pub fn unequivalency(&self, to: &Object) -> bool {return match to {
+        Object::Infinite(item) => return item.unequivalency(&self.to()),
+        Object::Nexists(item) => return item.unequivalency(&self.to()),
+        Object::Number(item) => return !self.equivalency(to),
+        Object::Tensor(item) => true,
+        Object::Undefined(item) => false,
+        Object::Variable(item) => true
     }}
-    fn equivalency(&self, to: &Box<dyn Value>) -> bool {self.genlocale1(to); return match to.id() {
-        "Infinite" => return to.equivalency(&self.ctrlcv()),
-        "Nexists" => return to.equivalency(&self.ctrlcv()),
-        "Number" => {
-            let value = crate::runtime::downcast::<crate::Number>(&**to);
-            self.value == value.value && self.shift == value.shift && self.negative == value.negative
-        },
-        "Tensor" => false,
-        "Undefined" => false,
-        "Variable" => false,
-        other => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
+    pub fn equivalency(&self, to: &Object) -> bool {return match to {
+        Object::Infinite(item) => return item.equivalency(&self.to()),
+        Object::Nexists(item) => return item.equivalency(&self.to()),
+        Object::Number(item) => self.value == item.value && self.shift == item.shift && self.negative == item.negative,
+        Object::Tensor(item) => false,
+        Object::Undefined(item) => false,
+        Object::Variable(item) => false
     }}
-    fn negate(&self) -> Box<dyn Value> {self.genlocale2(); return self.partial(Box::new(crate::Number {
+    pub fn negate(&self) -> Object {return self.partial(Object::Number(crate::Number {
         value: self.value,
         shift: self.shift,
         negative: !self.negative
     }))}
-    fn summation(&self, to: &Box<dyn Value>) -> Box<dyn Value> {self.genlocale3(to); return self.partial(match to.id() {
-        "Infinite" => return to.summation(&self.ctrlcv()),
-        "Nexists" => return to.summation(&self.ctrlcv()),
-        "Number" => {
-            let value = crate::runtime::downcast::<crate::Number>(&**to);
-            let shift = crate::max(self.shift, value.shift);
-            let negative = if self.value.pow((shift - self.shift) as u32) >= value.value.pow((shift - value.shift) as u32) {self.negative} else {value.negative};
-            Box::new(crate::Number {
-                value: if self.negative == value.negative {
-                    self.value*10u32.pow((shift - self.shift) as u32) + value.value*10u32.pow((shift - value.shift) as u32)
+    pub fn summation(&self, to: &Object) -> Object {return self.partial(match to {
+        Object::Infinite(item) => return item.summation(&self.to()),
+        Object::Nexists(item) => return item.summation(&self.to()),
+        Object::Number(item) => {
+            let shift = crate::max(self.shift, item.shift);
+            let negative = if self.value.pow((shift - self.shift) as u32) >= item.value.pow((shift - item.shift) as u32) {self.negative} else {item.negative};
+            Object::Number(crate::Number {
+                value: if self.negative == item.negative {
+                    self.value*10u32.pow((shift - self.shift) as u32) + item.value*10u32.pow((shift - item.shift) as u32)
                 } else {
-                    if self.value.pow((shift - self.shift) as u32) >= value.value.pow((shift - value.shift) as u32) {
-                        self.value*10u32.pow((shift - self.shift) as u32) - value.value*10u32.pow((shift - value.shift) as u32)
+                    if self.value.pow((shift - self.shift) as u32) >= item.value.pow((shift - item.shift) as u32) {
+                        self.value*10u32.pow((shift - self.shift) as u32) - item.value*10u32.pow((shift - item.shift) as u32)
                     } else {
-                        value.value*10u32.pow((shift - value.shift) as u32) - self.value*10u32.pow((shift - self.shift) as u32)
+                        item.value*10u32.pow((shift - item.shift) as u32) - self.value*10u32.pow((shift - self.shift) as u32)
                     }
                 },
                 shift: shift,
                 negative: negative
             })
         },
-        "Tensor" => self.ctrlcv(),
-        "Undefined" => to.ctrlcv(),
-        "Variable" => crate::stdout::crash(crate::stdout::Code::UnexpectedValue),
-        other => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
+        Object::Tensor(item) => self.to(),
+        Object::Undefined(item) => item.to(),
+        Object::Variable(item) => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
     })}
-    fn invert(&self) -> Box<dyn Value> {self.genlocale4(); return self.partial(Box::new(crate::Number {
+    pub fn invert(&self) -> Object {return self.partial(Object::Number(crate::Number {
         value: 10u32.pow(6 + self.shift as u32) / self.value,
         shift: 6,
         negative: self.negative
     }))}
-    fn multiplication(&self, to: &Box<dyn Value>) -> Box<dyn Value> {self.genlocale5(to); return self.partial(match to.id() {
-        "Infinite" => return to.multiplication(&self.ctrlcv()),
-        "Nexists" => return to.multiplication(&self.ctrlcv()),
-        "Number" => {
-            let value = crate::runtime::downcast::<crate::Number>(&**to);
-            Box::new(crate::Number {
-                value: self.value * value.value,
-                shift: self.shift + value.shift,
-                negative: self.negative ^ value.negative
-            })
-        },
-        "Tensor" => to.ctrlcv(),
-        "Undefined" => to.ctrlcv(),
-        "Variable" => crate::stdout::crash(crate::stdout::Code::UnexpectedValue),
-        other => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
+    pub fn multiplication(&self, to: &Object) -> Object {return self.partial(match to {
+        Object::Infinite(item) => return item.multiplication(&self.to()),
+        Object::Nexists(item) => return item.multiplication(&self.to()),
+        Object::Number(item) => Object::Number(crate::Number {
+            value: self.value * item.value,
+            shift: self.shift + item.shift,
+            negative: self.negative ^ item.negative
+        }),
+        Object::Tensor(item) => item.to(),
+        Object::Undefined(item) => item.to(),
+        Object::Variable(item) => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
     })}
-} impl Number {}
+}
+
+//> NUMBER -> COMMON
+impl Display for Number {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.display(formatter)}}
+impl Debug for Number {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.debug(formatter)}} 
+impl Value for Number {} impl Number {
+    pub fn to(&self) -> Object {return Object::Number(self.clone())}
+    pub fn info(&self) -> () {self.data()}
+    pub fn display(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "Number")}
+    pub fn debug(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
+        "value = {}, shift = {}, negative = {}",
+        self.value, self.shift, self.negative
+    )}
+}

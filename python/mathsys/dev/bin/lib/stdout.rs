@@ -39,10 +39,8 @@ pub fn crash(code: Code) -> ! {
             2 => "Found unexpected value type",
             3 => "Malformed Intermediate Representation",
             4 => "Unknown IR object code",
-            5 => "Attempted to mutcast a different object type",
-            6 => "Attempted a double annotation of a variable",
-            7 => "Mismatched variable type and type of its value",
-            8 => "Attempted to downcast a different object type",
+            5 => "Attempted a double annotation of a variable",
+            6 => "Mismatched variable type and type of its value",
             other => loop {}
         }
     ), &[0x0A, 0x1B, 0x5B, 0x31, 0x3B, 0x39, 0x31, 0x3B, 0x34, 0x39, 0x6D]);
@@ -56,10 +54,8 @@ pub enum Code {
     UnexpectedValue = 2,
     MalformedIR = 3,
     UnknownIRObject = 4,
-    FailedMutcast = 5,
-    DoubleAnnotation = 6,
-    RuntimeTypeMismatch = 7,
-    FailedDowncast = 8
+    DoubleAnnotation = 5,
+    RuntimeTypeMismatch = 6,
 }
 
 

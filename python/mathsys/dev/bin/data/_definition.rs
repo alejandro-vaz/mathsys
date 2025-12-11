@@ -4,7 +4,7 @@
 
 //> HEAD -> CROSS-SCOPE TRAIT
 use crate::reparser::Class;
-use crate::runtime::Value;
+use crate::runtime::Object;
 use crate::Display;
 use crate::Debug;
 
@@ -28,14 +28,15 @@ impl Debug for _Definition {fn fmt(&self, formatter: &mut crate::Formatter<'_>) 
     self.group, self.variable, self.expression
 )}} impl Class for _Definition {
     fn name(&self) -> &'static str {"_Definition"}
-    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32, memory: &Vec<Box<dyn Class>>) -> Box<dyn Value> {
+    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32, memory: &Vec<Box<dyn Class>>) -> Object {
         context.process(self.variable, memory);
         context.process(self.expression, memory);
         self.space("Setting immutable variable", id);
         let expression = self.result(context.read(self.expression));
-        let mut reference = context.read(self.variable);
-        let variable = crate::runtime::mutcast::<crate::Variable>(&mut *reference);
-        variable.set(expression, false, context, self.group);
-        return Box::new(crate::Nexists {});
+        match context.read(self.variable) {
+            Object::Variable(item) => item.set(expression, false, context, self.group),
+            other => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
+        }
+        return Object::Nexists(crate::Nexists {});
     }
 }

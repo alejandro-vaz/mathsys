@@ -4,7 +4,7 @@
 
 //> HEAD -> CROSS-SCOPE TRAIT
 use crate::reparser::Class;
-use crate::runtime::Value;
+use crate::runtime::Object;
 use crate::Display;
 use crate::Debug;
 
@@ -27,16 +27,16 @@ impl Debug for _Term {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> cra
     self.numerator, self.denominator
 )}} impl Class for _Term {
     fn name(&self) -> &'static str {"_Term"}
-    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32, memory: &Vec<Box<dyn Class>>) -> Box<dyn Value> {
+    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32, memory: &Vec<Box<dyn Class>>) -> Object {
         for &factor in &self.numerator {context.process(factor, memory)}
         for &factor in &self.denominator {context.process(factor, memory)}
         self.space("Calculating term", id);
-        let mut numerator = Box::new(crate::Nexists {}) as Box<dyn Value>;
+        let mut numerator = Object::Nexists(crate::Nexists {});
         for &factor in &self.numerator {
             let next = context.read(factor);
             numerator = numerator.multiplication(&next);
         }
-        let mut denominator = Box::new(crate::Nexists {}) as Box<dyn Value>;
+        let mut denominator = Object::Nexists(crate::Nexists {});
         for &factor in &self.denominator {
             let next = context.read(factor);
             denominator = denominator.multiplication(&next);

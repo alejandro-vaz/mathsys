@@ -4,7 +4,7 @@
 
 //> HEAD -> CROSS-SCOPE TRAIT
 use crate::reparser::Class;
-use crate::runtime::Value;
+use crate::runtime::Object;
 use crate::Display;
 use crate::Debug;
 
@@ -26,8 +26,8 @@ impl Debug for _Start {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> cr
     self.statements
 )}} impl Class for _Start {
     fn name(&self) -> &'static str {"_Start"}
-    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32, memory: &Vec<Box<dyn Class>>) -> Box<dyn Value> {
+    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32, memory: &Vec<Box<dyn Class>>) -> Object {
         for &statement in &self.statements {context.process(statement, memory);}
-        return Box::new(crate::Nexists {});
+        return Object::Nexists(crate::Nexists {});
     }
 }

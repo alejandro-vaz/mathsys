@@ -5,6 +5,7 @@
 //> HEAD -> CROSS-SCOPE TRAIT
 use crate::runtime::Value;
 use crate::Display;
+use crate::runtime::Object;
 use crate::Debug;
 
 
@@ -17,48 +18,51 @@ use crate::Debug;
 pub struct Nexists {}
 
 //> NEXISTS -> IMPLEMENTATION
-impl Display for Nexists {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "{}", self.id())}}
-impl Debug for Nexists {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
-    ""
-)}} impl Value for Nexists {
-    fn id(&self) -> &'static str {return "Nexists"}
-    fn ctrlcv(&self) -> Box<dyn Value> {return Box::new(self.clone())}
-    fn unequivalency(&self, to: &Box<dyn Value>) -> bool {self.genlocale0(to); return match to.id() {
-        "Infinite" => return to.unequivalency(&self.ctrlcv()),
-        "Nexists" => true,
-        "Number" => true,
-        "Tensor" => true,
-        "Undefined" => false,
-        "Variable" => true,
-        other => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
+impl Nexists {
+    pub fn unequivalency(&self, to: &Object) -> bool {return match to {
+        Object::Infinite(item) => return item.unequivalency(&self.to()),
+        Object::Nexists(item) => true,
+        Object::Number(item) => true,
+        Object::Tensor(item) => true,
+        Object::Undefined(item) => false,
+        Object::Variable(item) => true
     }}
-    fn equivalency(&self, to: &Box<dyn Value>) -> bool {self.genlocale1(to); return match to.id() {
-        "Infinite" => return to.equivalency(&self.ctrlcv()),
-        "Nexists" => false,
-        "Number" => false,
-        "Tensor" => false,
-        "Undefined" => false,
-        "Variable" => false,
-        other => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
+    pub fn equivalency(&self, to: &Object) -> bool {return match to {
+        Object::Infinite(item) => return item.equivalency(&self.to()),
+        Object::Nexists(item) => false,
+        Object::Number(item) => false,
+        Object::Tensor(item) => false,
+        Object::Undefined(item) => false,
+        Object::Variable(item) => false
     }}
-    fn negate(&self) -> Box<dyn Value> {self.genlocale2(); return self.partial(Box::new(crate::Nexists {}))}
-    fn summation(&self, to: &Box<dyn Value>) -> Box<dyn Value> {self.genlocale3(to); return self.partial(match to.id() {
-        "Infinite" => return to.summation(&self.ctrlcv()),
-        "Nexists" => to.ctrlcv(),
-        "Number" => to.ctrlcv(),
-        "Tensor" => to.ctrlcv(),
-        "Undefined" => to.ctrlcv(),
-        "Variable" => crate::stdout::crash(crate::stdout::Code::UnexpectedValue),
-        other => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
+    pub fn negate(&self) -> Object {return self.partial(Object::Nexists(crate::Nexists {}))}
+    pub fn summation(&self, to: &Object) -> Object {return self.partial(match to {
+        Object::Infinite(item) => return item.summation(&self.to()),
+        Object::Nexists(item) => item.to(),
+        Object::Number(item) => item.to(),
+        Object::Tensor(item) => item.to(),
+        Object::Undefined(item) => item.to(),
+        Object::Variable(item) => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
     })}
-    fn invert(&self) -> Box<dyn Value> {self.genlocale4(); return self.partial(Box::new(crate::Nexists {}))}
-    fn multiplication(&self, to: &Box<dyn Value>) -> Box<dyn Value> {self.genlocale5(to); return self.partial(match to.id() {
-        "Infinite" => return to.multiplication(&self.ctrlcv()),
-        "Nexists" => to.ctrlcv(),
-        "Number" => to.ctrlcv(),
-        "Tensor" => to.ctrlcv(),
-        "Undefined" => to.ctrlcv(),
-        "Variable" => crate::stdout::crash(crate::stdout::Code::UnexpectedValue),
-        other => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
+    pub fn invert(&self) -> Object {return self.partial(Object::Nexists(crate::Nexists {}))}
+    pub fn multiplication(&self, to: &Object) -> Object {return self.partial(match to {
+        Object::Infinite(item) => return item.multiplication(&self.to()),
+        Object::Nexists(item) => item.to(),
+        Object::Number(item) => item.to(),
+        Object::Tensor(item) => item.to(),
+        Object::Undefined(item) => item.to(),
+        Object::Variable(item) => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
     })}
-} impl Nexists {}
+}
+
+//> NEXISTS -> COMMON
+impl Display for Nexists {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.display(formatter)}}
+impl Debug for Nexists {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.debug(formatter)}} 
+impl Value for Nexists {} impl Nexists {
+    pub fn to(&self) -> Object {return Object::Nexists(self.clone())}
+    pub fn info(&self) -> () {self.data()}
+    pub fn display(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "Nexists")}
+    pub fn debug(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, 
+        ""
+    )}
+}

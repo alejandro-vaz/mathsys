@@ -4,7 +4,7 @@
 
 //> HEAD -> CROSS-SCOPE TRAIT
 use crate::reparser::Class;
-use crate::runtime::Value;
+use crate::runtime::Object;
 use crate::Display;
 use crate::Debug;
 
@@ -27,14 +27,13 @@ impl Debug for _Annotation {fn fmt(&self, formatter: &mut crate::Formatter<'_>) 
     self.group, self.variables
 )}} impl Class for _Annotation {
     fn name(&self) -> &'static str {"_Annotation"}
-    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32, memory: &Vec<Box<dyn Class>>) -> Box<dyn Value> {
+    fn evaluate(&self, context: &mut crate::runtime::Context, id: u32, memory: &Vec<Box<dyn Class>>) -> Object {
         for &variable in &self.variables {context.process(variable, memory)}
         self.space("Setting class of variables", id);
-        for &variable in &self.variables {
-            let mut value = context.read(variable);
-            let instance = crate::runtime::mutcast::<crate::Variable>(&mut *value);
-            instance.setGroup(self.group, context);
-        }
-        return Box::new(crate::Nexists {})
+        for &variable in &self.variables {match context.read(variable) {
+            Object::Variable(item) => item.setGroup(self.group, context),
+            other => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
+        }}
+        return Object::Nexists(crate::Nexists {})
     }
 }
