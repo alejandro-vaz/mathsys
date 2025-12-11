@@ -71,7 +71,7 @@ class Parser(Transformer):
     #~ CLASS -> 1 COMMENT CONSTRUCT
     def comment(self, items: list[Token]) -> parser.Comment:
         return parser.Comment(
-            text = items[0].value if items else ""
+            text = items[0].value
         )
     #~ CLASS -> 1 USE CONSTRUCT
     def use(self, items: list[Token]) -> parser.Use:

@@ -19,6 +19,7 @@ pub struct _Infinite {}
 
 //> INFINITE -> EVALUATE
 impl _Infinite {pub fn evaluate(&self, context: &mut Context, id: u32, memory: &Vec<Class>) -> Object {
+    //~ INFINITE -> OPERATIONS
     return Object::Infinite(crate::Infinite {
         negative: false
     })

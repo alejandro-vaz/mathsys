@@ -22,11 +22,11 @@ pub struct _Equation {
 
 //> EQUATION -> EVALUATE
 impl _Equation {pub fn evaluate(&self, context: &mut Context, id: u32, memory: &Vec<Class>) -> Object {
-    context.process(self.leftexpression, memory);
-    context.process(self.rightexpression, memory);
-    self.space("Checking if both sides are equal", id);
-    let leftexpression = context.read(self.leftexpression);
-    let rightexpression = context.read(self.rightexpression);
+    //~ EVALUATE -> RETRIEVAL
+    let leftexpression = context.get(self.leftexpression, memory);
+    let rightexpression = context.get(self.rightexpression, memory);
+    //~ EVALUATE -> OPERATIONS
+    self.space("Checking equality", id);
     let equal = leftexpression.equivalency(&rightexpression);
     let unequal = leftexpression.unequivalency(&rightexpression);
     let determinable = equal == !unequal;

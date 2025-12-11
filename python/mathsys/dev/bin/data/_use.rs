@@ -16,13 +16,15 @@ use crate::tip::Tip;
 //> USE -> STRUCT
 #[derive(Clone)]
 pub struct _Use {
-    pub name: Box<str>,
+    pub name: String,
     pub start: u32
 }
 
 //> USE -> EVALUATE
 impl _Use {pub fn evaluate(&self, context: &mut Context, id: u32, memory: &Vec<Class>) -> Object {
-    if self.start != 0 {context.process(self.start, memory)}
+    //~ EVALUATE -> RETRIEVAL
+    let start = context.get(self.start, memory);
+    //~ EVALUATE -> OPERATIONS
     return Object::Nexists(crate::Nexists {});
 }}
 

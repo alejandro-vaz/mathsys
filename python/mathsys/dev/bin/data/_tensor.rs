@@ -16,11 +16,12 @@ use crate::tip::Tip;
 //> TENSOR -> STRUCT
 #[derive(Clone)]
 pub struct _Tensor {
-    pub values: Box<[u32]>
+    pub values: Vec<u32>
 }
 
 //> TENSOR -> EVALUATE
 impl _Tensor {pub fn evaluate(&self, context: &mut Context, id: u32, memory: &Vec<Class>) -> Object {
+    //~ EVALUATE -> OPERATIONS
     return Object::Tensor(crate::Tensor {})
 }}
 

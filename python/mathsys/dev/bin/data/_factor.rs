@@ -22,6 +22,10 @@ pub struct _Factor {
 
 //> FACTOR -> EVALUATE
 impl _Factor {pub fn evaluate(&self, context: &mut Context, id: u32, memory: &Vec<Class>) -> Object {
+    //~ EVALUATE -> RETRIEVAL
+    let value = context.get(self.value, memory);
+    let exponent = context.get(self.exponent, memory);
+    //~ EVALUATE -> OPERATIONS
     return Object::Undefined(crate::Undefined {});
 }}
 

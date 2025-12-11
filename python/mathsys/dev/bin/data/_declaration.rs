@@ -23,14 +23,12 @@ pub struct _Declaration {
 
 //> DECLARATION -> EVALUATE
 impl _Declaration {pub fn evaluate(&self, context: &mut Context, id: u32, memory: &Vec<Class>) -> Object {
-    context.process(self.variable, memory);
-    context.process(self.expression, memory);
+    //~ EVALUATE -> RETRIEVAL
+    let expression = context.get(self.expression, memory);
+    let Object::Variable(variable) = context.get(self.variable, memory) else {crate::stdout::crash(crate::stdout::Code::UnexpectedValue)};
+    //~ EVALUATE -> OPERATIONS
     self.space("Setting mutable variable", id);
-    let expression = context.read(self.expression);
-    match context.read(self.variable) {
-        Object::Variable(item) => item.set(expression, true, context, self.group),
-        other => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
-    }
+    variable.set(expression, true, context, self.group);
     return Object::Nexists(crate::Nexists {});
 }}
 

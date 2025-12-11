@@ -16,18 +16,21 @@ use crate::tip::Tip;
 //> EXPRESSION -> STRUCT
 #[derive(Clone)]
 pub struct _Expression {
-    pub signs: Box<[u8]>,
-    pub terms: Box<[u32]>
+    pub signs: Vec<u8>,
+    pub terms: Vec<u32>
 }
 
 //> EXPRESSION -> EVALUATE
 impl _Expression {pub fn evaluate(&self, context: &mut Context, id: u32, memory: &Vec<Class>) -> Object {
-    for &term in &self.terms {context.process(term, memory)}
+    //~ EVALUATE -> RETRIEVAL
+    let mut terms = Vec::with_capacity(self.terms.len());
+    for &index in &self.terms {terms.push(context.get(index, memory))}
+    //~ EVALUATE -> OPERATIONS
     self.space("Summing up all terms", id);
     let mut current = Object::Nexists(crate::Nexists {});
-    for (index, term) in self.terms.iter().enumerate() {
-        let next = context.read(*term);
-        let value = if self.signs[index] % 2 == 0 {next.negate()} else {next};
+    for index in 0..terms.len() {
+        let next = &terms[index];
+        let value = if self.signs[index] % 2 == 0 {next.negate()} else {next.clone()};
         current = current.summation(&value);
     }
     return current;

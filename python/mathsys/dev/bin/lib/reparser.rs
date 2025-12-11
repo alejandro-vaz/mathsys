@@ -133,29 +133,29 @@ impl Reparser {
         self.locus += 4;
         return u32::from_le_bytes([value[0], value[1], value[2], value[3]]);
     }
-    fn list8(&mut self) -> Box<[u8]> {
+    fn list8(&mut self) -> Vec<u8> {
         let mut values = Vec::<u8>::new();
-        loop {
-            let value = self.take8();
-            if value == 0 {break} else {values.push(value)}
-        }
-        return values.into_boxed_slice();
+        loop {match self.take8() {
+            0 => break,
+            other => values.push(other)
+        }};
+        return values
     }
-    fn list32(&mut self) -> Box<[u32]> {
-        let mut values = Vec::<u32>::new();    
-        loop {
-            let value = self.take32();
-            if value == 0 {break} else {values.push(value)};
-        }
-        return values.into_boxed_slice();
+    fn list32(&mut self) -> Vec<u32> {
+        let mut values = Vec::<u32>::new();
+        loop {match self.take32() {
+            0 => break,
+            other => values.push(other)
+        }};
+        return values
     }
-    fn listchar(&mut self) -> Box<str> {
+    fn listchar(&mut self) -> String {
         let mut values = String::new();
-        loop {
-            let value = self.take8();
-            if value == 0 {break} else {values.push(value as char)}
-        }
-        return values.into_boxed_str();
+        loop {match self.take8() {
+            0 => break,
+            other => values.push(other as char)
+        }}
+        return values
     }
     fn check(&self, distance: usize) -> () {
         if self.locus + distance > crate::SETTINGS.ir.len() {

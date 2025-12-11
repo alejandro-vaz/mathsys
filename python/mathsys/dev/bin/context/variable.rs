@@ -61,36 +61,34 @@ impl Variable {
         Object::Undefined(item) => item.multiplication(&self.to()),
         Object::Variable(item) => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
     }}
-} impl Variable {
-    fn locale0(&self, mutable: bool) -> () {crate::stdout::trace(format!("Setting {}mutable value for {}", if mutable {""} else {"im"}, self))}
-    fn locale1(&self, class: u8) -> () {crate::stdout::trace(format!("Setting group of {} to {}", self, class))}
-    fn locale2(&self) -> () {crate::stdout::trace(format!("Retrieving {} value", self))}
-    fn locale3(&self) -> () {crate::stdout::alert(format!("Value of {} is not stored", self))}
-    fn locale4(&self, class: u8, string: &str) -> () {crate::stdout::trace(format!("Checking if {} group code {} is compatible with {}", self, class, string))}
-    fn locale5(&self) -> () {crate::stdout::trace(format!("Getting stored value of {}", self))}
 }
 
 //> VARIABLE -> CUSTOM
 impl Variable {
+    fn locale0(&self, mutable: bool) -> () {crate::stdout::trace(format!("Setting {}mutable value for {}", if mutable {""} else {"im"}, self))}
+    fn locale1(&self, class: u8) -> () {crate::stdout::trace(format!("Setting group of {} to {}", self, class))}
+    fn locale2(&self) -> () {crate::stdout::trace(format!("Retrieving {} value", self))}
+    fn locale3(&self) -> () {crate::stdout::alert(format!("Value of {} is not stored", self))}
+    fn locale4<Type: crate::Display>(&self, class: u8, string: &Type) -> () {crate::stdout::trace(format!("Checking if {} group code {} is compatible with {}", self, class, string))}
+    fn locale5(&self) -> () {crate::stdout::trace(format!("Getting stored value of {}", self))}
     pub fn set(&self, value: Object, mutable: bool, context: &mut crate::runtime::Context, constraint: u8) -> () {
-        //self.locale0(mutable);
-        //self.setGroup(constraint, context);
-        //if !self.compatible(constraint, value.id()) {crate::stdout::crash(crate::stdout::Code::RuntimeTypeMismatch)}
-        //for (key, data) in &context.immutable {if key == &self.name {crate::stdout::crash(crate::stdout::Code::ImmutableModification)}}
-        //self.partial(value.ctrlcv());
-        //if mutable {
-        //    for (key, data) in &mut context.mutable {if *key == self.name {*data = value; return}}
-        //    context.mutable.insert(self.name.clone(), value);
-        //} else {
-        //    context.immutable.insert(self.name.clone(), value);
-        //}
+        self.locale0(mutable);
+        self.setGroup(constraint, context);
+        if !self.compatible(constraint, &value) {crate::stdout::crash(crate::stdout::Code::RuntimeTypeMismatch)}
+        for (key, data) in &context.immutable {if key == &self.name {crate::stdout::crash(crate::stdout::Code::ImmutableModification)}}
+        if mutable {
+            for (key, data) in &mut context.mutable {if *key == self.name {*data = value; return}}
+            context.mutable.insert(self.name.clone(), value);
+        } else {
+            context.immutable.insert(self.name.clone(), value);
+        }
     }
     pub fn setGroup(&self, code: u8, context: &mut crate::runtime::Context) -> () {
-        //let current = self.getGroup(context);
-        //if code == 0 || current == code {return}
-        //self.locale1(code);
-        //if current != 0 {crate::stdout::crash(crate::stdout::Code::DoubleAnnotation)}
-        //context.types.insert(self.name.clone(), code);
+        let current = self.getGroup(context);
+        if code == 0 || current == code {return}
+        self.locale1(code);
+        if current != 0 {crate::stdout::crash(crate::stdout::Code::DoubleAnnotation)}
+        context.types.insert(self.name.clone(), code);
     }
     pub fn get(&self, context: &crate::runtime::Context) -> Object {
         self.locale2();
@@ -99,10 +97,10 @@ impl Variable {
         self.locale3();
         return Object::Undefined(crate::Undefined {});
     }
-    fn compatible(&self, code: u8, output: &str) -> bool {
-        self.locale4(code, output);
+    fn compatible(&self, code: u8, object: &Object) -> bool {
+        self.locale4(code, object);
         if code == 0 {return true} else {
-            return output == match code {
+            return format!("{}", object) == match code {
                 1 => "Infinite",
                 2 => "Nexists",
                 3 => "Number",

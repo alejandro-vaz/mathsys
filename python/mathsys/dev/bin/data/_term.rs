@@ -16,27 +16,27 @@ use crate::tip::Tip;
 //> TERM -> STRUCT
 #[derive(Clone)]
 pub struct _Term {
-    pub numerator: Box<[u32]>,
-    pub denominator: Box<[u32]>
+    pub numerator: Vec<u32>,
+    pub denominator: Vec<u32>
 }
 
 //> TERM -> EVALUATE
 impl _Term {pub fn evaluate(&self, context: &mut Context, id: u32, memory: &Vec<Class>) -> Object {
-    for &factor in &self.numerator {context.process(factor, memory)}
-    for &factor in &self.denominator {context.process(factor, memory)}
-    self.space("Calculating term", id);
-    let mut numerator = Object::Nexists(crate::Nexists {});
-    for &factor in &self.numerator {
-        let next = context.read(factor);
-        numerator = numerator.multiplication(&next);
-    }
-    let mut denominator = Object::Nexists(crate::Nexists {});
-    for &factor in &self.denominator {
-        let next = context.read(factor);
-        denominator = denominator.multiplication(&next);
-    }
-    denominator = denominator.invert();
-    return numerator.multiplication(&denominator)
+    //~ EVALUATE -> RETRIEVAL
+    let mut numerator = Vec::with_capacity(self.numerator.len());
+    for &factor in &self.numerator {numerator.push(context.get(factor, memory))};
+    let mut denominator = Vec::with_capacity(self.denominator.len());
+    for &factor in &self.denominator {denominator.push(context.get(factor, memory))};
+    //~ EVALUATE -> OPERATIONS
+    self.space("Calculating numerator", id);
+    let mut up = Object::Nexists(crate::Nexists {});
+    for factor in numerator {up = up.multiplication(&factor)};
+    self.space("Calculating denominator", id);
+    let mut down = Object::Nexists(crate::Nexists {});
+    for factor in denominator {down = down.multiplication(&factor)};
+    self.space("Computing fraction", id);
+    let inverse = down.invert();
+    return up.multiplication(&inverse);
 }}
 
 //> TERM -> REPRESENTATION

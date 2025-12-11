@@ -80,13 +80,13 @@ SPECIAL = {
 #> MAPPINGS -> CONVERSION TABLE
 CONVERSION = {
     None: lambda name: name,
-    "Any": lambda name: name,
-    "Infinite": lambda name: fr"\overset{{\infty}}{{{name}}}",
-    "Nexists": lambda name: fr"\color{{gray}}{name}\color{{black}}",
-    "Number": lambda name: name,
-    "Tensor": lambda name: fr"\overline{{{name}}}",
-    "Undefined": lambda name: fr"\overset{{?}}{{{name}}}",
-    "Variable": lambda name: f"{{^{{*}}{name}}}"
+    "@Any": lambda name: name,
+    "@Infinite": lambda name: fr"\overset{{\infty}}{{{name}}}",
+    "@Nexists": lambda name: fr"\color{{gray}}{name}\color{{black}}",
+    "@Number": lambda name: name,
+    "@Tensor": lambda name: fr"\overline{{{name}}}",
+    "@Undefined": lambda name: fr"\overset{{?}}{{{name}}}",
+    "@Variable": lambda name: f"{{^{{*}}{name}}}"
 }
 
 

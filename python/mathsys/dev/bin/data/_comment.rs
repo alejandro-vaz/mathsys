@@ -16,11 +16,12 @@ use crate::tip::Tip;
 //> COMMENT -> STRUCT
 #[derive(Clone)]
 pub struct _Comment {
-    pub text: Box<str>,
+    pub text: String
 }
 
 //> COMMENT -> EVALUATE
 impl _Comment {pub fn evaluate(&self, context: &mut Context, id: u32, memory: &Vec<Class>) -> Object {
+    //~ EVALUATE -> OPERATIONS
     self.space("Comment data", id);
     return Object::Nexists(crate::Nexists {});
 }}

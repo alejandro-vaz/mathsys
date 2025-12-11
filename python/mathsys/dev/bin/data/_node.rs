@@ -21,7 +21,9 @@ pub struct _Node {
 
 //> NODE -> EVALUATE
 impl _Node {pub fn evaluate(&self, context: &mut Context, id: u32, memory: &Vec<Class>) -> Object {
-    context.process(self.expression, memory);
+    //~ EVALUATE -> RETRIEVAL
+    let expression = context.get(self.expression, memory);
+    //~ EVALUATE -> OPERATIONS
     return Object::Undefined(crate::Undefined {});
 }}
 

@@ -42,9 +42,9 @@ def functions() -> list:
 #> PRELUDE -> TIME WRAPPER
 def timeWrapper(function):
     @wraps(function)
-    def wrapper(*args, **kwargs):
+    async def wrapper(*args, **kwargs):
         start = time()
-        state = function(*args, **kwargs)
+        state = await function(*args, **kwargs)
         print(f"[INFO] Compiled to {function.__name__} in {(time() - start):.3f}s.")
         return state
     return wrapper
@@ -62,31 +62,25 @@ def clear() -> None:
 #^
 
 #> MAIN -> TARGETS
-@cache
-def targets() -> str: return ", ".join([value.__name__.replace("_", "-") for value in functions()])
+async def targets() -> str: return ", ".join([value.__name__.replace("_", "-") for value in functions()])
 
 #> MAIN -> VALIDATE
-@cache
 async def validate(content: str) -> bool:
     try: _parser.run(content); return True
     except: return False
 
 #> MAIN -> TOKENS
-@cache
 async def tokens(content: str) -> int: return len(_ir.run(_parser.run(content)))
 
 #> MAIN -> LATEX
-@cache
 @timeWrapper
 async def latex(content: str) -> str: return _latex.run(_parser.run(content))
 
 #> MAIN -> WEB
-@lru_cache(maxsize = 8192)
 @timeWrapper
 async def wasm(content: str, optimize: bool) -> bytes: return _builder.run(_ir.run(_parser.run(content)), "wasm", optimize)
 
 #> MAIN -> UNIX_X86_X64
-@lru_cache(maxsize = 1024)
 @timeWrapper
 async def unix_x86_64(content: str, optimize: bool) -> bytes: return _builder.run(_ir.run(_parser.run(content)), "unix-x86-64", optimize)
 

@@ -22,6 +22,7 @@ pub struct _Number {
 
 //> NUMBER -> EVALUATE
 impl _Number {pub fn evaluate(&self, context: &mut Context, id: u32, memory: &Vec<Class>) -> Object {
+    //~ EVALUATE -> OPERATIONS
     return Object::Number(crate::Number {
         value: self.value,
         shift: self.shift,

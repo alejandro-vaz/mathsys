@@ -25,6 +25,10 @@ pub struct _Limit {
 
 //> LIMIT -> EVALUATE
 impl _Limit {pub fn evaluate(&self, context: &mut Context, id: u32, memory: &Vec<Class>) -> Object {
+    //~ EVALUATE -> RETRIEVAL
+    let Object::Variable(variable) = context.get(self.variable, memory) else {crate::stdout::crash(crate::stdout::Code::UnexpectedValue)};
+    let approach = context.get(self.variable, memory);
+    //~ EVALUATE -> OPERATIONS
     return Object::Undefined(crate::Undefined {});
 }}
 

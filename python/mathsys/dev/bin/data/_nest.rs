@@ -21,6 +21,9 @@ pub struct _Nest {
 
 //> NEST -> EVALUATE
 impl _Nest {pub fn evaluate(&self, context: &mut Context, id: u32, memory: &Vec<Class>) -> Object {
+    //~ EVALUATE -> RETRIEVAL
+    let expression = context.get(self.expression, memory);
+    //~ EVALUATE -> OPERATIONS
     return Object::Undefined(crate::Undefined {});
 }}
 

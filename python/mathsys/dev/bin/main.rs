@@ -142,6 +142,6 @@ fn main() -> ! {
 fn run() -> () {
     let mut reparser = reparser::Reparser::new();
     let memory = reparser.run();
-    let mut context = runtime::Context::new(memory.len());
-    context.quick(memory);
+    let mut context = runtime::Context::new();
+    context.start(memory);
 }

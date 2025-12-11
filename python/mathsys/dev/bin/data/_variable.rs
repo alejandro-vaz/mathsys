@@ -16,13 +16,14 @@ use crate::tip::Tip;
 //> VARIABLE -> STRUCT
 #[derive(Clone)]
 pub struct _Variable {
-    pub representation: Box<str>
+    pub representation: String
 }
 
 //> VARIABLE -> EVALUATE
 impl _Variable {pub fn evaluate(&self, context: &mut Context, id: u32, memory: &Vec<Class>) -> Object {
+    //~ EVALUATE -> OPERATIONS
     return Object::Variable(crate::Variable {
-        name: self.representation.clone().into_string()
+        name: self.representation.clone()
     })
 }}
 

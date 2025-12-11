@@ -16,12 +16,15 @@ use crate::tip::Tip;
 //> START -> STRUCT
 #[derive(Clone)]
 pub struct _Start {
-    pub statements: Box<[u32]>
+    pub statements: Vec<u32>
 }
 
 //> START -> EVALUATE
 impl _Start {pub fn evaluate(&self, context: &mut Context, id: u32, memory: &Vec<Class>) -> Object {
-    for &statement in &self.statements {context.process(statement, memory);}
+    //~ EVALUATE -> RETRIEVAL
+    let mut statements = Vec::with_capacity(self.statements.len());
+    for &statement in &self.statements {statements.push(context.get(statement, memory))}
+    //~ EVALUATE -> OPERATIONS
     return Object::Nexists(crate::Nexists {});
 }}
 

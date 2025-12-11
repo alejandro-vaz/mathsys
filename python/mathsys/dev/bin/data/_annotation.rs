@@ -17,17 +17,20 @@ use crate::tip::Tip;
 #[derive(Clone)]
 pub struct _Annotation {
     pub group: u8,
-    pub variables: Box<[u32]>
+    pub variables: Vec<u32>
 }
 
 //> ANNOTATION -> EVALUATE
 impl _Annotation {pub fn evaluate(&self, context: &mut Context, id: u32, memory: &Vec<Class>) -> Object {
-    for &variable in &self.variables {context.process(variable, memory)}
+    //~ EVALUATE -> RETRIEVAL
+    let mut variables = Vec::with_capacity(self.variables.len());
+    for &variable in &self.variables {
+        let Object::Variable(item) = context.get(variable, memory) else {crate::stdout::crash(crate::stdout::Code::UnexpectedValue)};
+        variables.push(item)
+    }
+    //~ EVALUATE -> OPERATIONS
     self.space("Setting class of variables", id);
-    for &variable in &self.variables {match context.read(variable) {
-        Object::Variable(item) => item.setGroup(self.group, context),
-        other => crate::stdout::crash(crate::stdout::Code::UnexpectedValue)
-    }}
+    for variable in variables {variable.setGroup(self.group, context)}
     return Object::Nexists(crate::Nexists {})
 }}
 

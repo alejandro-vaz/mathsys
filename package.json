@@ -5,9 +5,8 @@
   "description": "The Domain Specific Language for math.",
   "scripts": {
     "build/py": "python3 -m build",
-    "build/ts": "babel typescript/ --extensions \".ts\" --watch --out-dir typescript/ --out-file-extension .js",
+    "build/ts": "nearleyc typescript/parser/syntax.ne -o typescript/parser/syntax.cjs && babel typescript/ --extensions \".ts\" --out-dir typescript/ --out-file-extension .js && babel typescript/ --extensions \".cts\" --out-dir typescript/ --out-file-extension .cjs",
     "install/py": "pip install -e . --break-system-packages",
-    "test/py": "python3 -m unittest python.testing",
     "upload/py": "twine upload dist/*",
     "upload/rs": "cd python/mathsys/dev/ && cargo publish && cd ../../../",
     "upload/ts": "npm publish",
@@ -37,5 +36,11 @@
     "@babel/preset-env": "^7.27.2",
     "@babel/preset-react": "^7.27.1",
     "@babel/preset-typescript": "^7.27.1"
+  },
+  "dependencies": {
+    "@types/nearley": "^2.11.5",
+    "@types/node": "^25.0.0",
+    "moo": "^0.5.2",
+    "nearley": "^2.20.1"
   }
 }
