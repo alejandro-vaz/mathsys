@@ -24,10 +24,10 @@ dependencies = [
 mathsys = "mathsys.__main__:main"
 
 [tool.setuptools]
-package-dir = { "" = "python" }
+package-dir = {"" = "."}
 
 [tool.setuptools.packages.find]
-where = ["python"]
+where = ["."]
 
 [tool.setuptools.package-data]
 mathsys = ["**"]
