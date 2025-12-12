@@ -1,10 +1,22 @@
 //^
+//^ HEAD
+//^
+
+//> HEAD -> COMPILER
+import {Parser} from "./parser/code.js";
+
+
+//^
 //^ PRELUDE
 //^
 
+//> PRELUDE -> CLASSES
+const _parser = new Parser();
+
 //> PRELUDE -> FUNCTIONS
 function functions(): Function[] {return [
-    targets
+    targets,
+    latex
 ]}
 
 //> PRELUDE -> TIME WRAPPER
@@ -14,6 +26,12 @@ async function timeWrapper<Type>(fn: () => Promise<Type>, name: string): Promise
     console.log(`[INFO] Compiled to ${name} in ${(Date.now() - start) / 1000}s.`);
     return state;
 }
+
+//> PRELUDE -> STATISTICS
+function statistics(): [] {return []}
+
+//> PRELUDE -> CLEAR
+function clear(): void {}
 
 
 //^
@@ -26,3 +44,9 @@ export async function targets(): Promise<string> {
     for (const fn of functions()) {list.push(fn.name.replace("_", "-"))}
     return list.join(", ");
 }
+
+//> MAIN -> LATEX
+export async function latex(content: string): Promise<any> {return _parser.run(content)}
+
+
+await latex("2");

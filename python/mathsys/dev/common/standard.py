@@ -1,9 +1,0 @@
-#^
-#^  DATA
-#^
-
-#> DATA -> LIBRARY
-data = """
-@Number pi == 3.141592653
-@Number e == lim n->inf of (1 + 1/n)^n^
-"""

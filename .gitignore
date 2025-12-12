@@ -7,6 +7,7 @@ node_modules/
 
 # IGNORE -> BUILD
 *.js
+*.cjs
 *.o
 dist/
 **/**.egg-info

@@ -1,7 +1,5 @@
 @{%
-
-const moo = require("moo");
-const lexer = moo.compile({
+const lexer = require("moo").compile({
     _LIM: /\blim\b/,
     _TO: /->/,
     _OF: /\bof\b/,
@@ -26,37 +24,39 @@ const lexer = moo.compile({
     _L: {match: /\n/, lineBreaks: true},
     QUOTE: /#(?: [^\n]*)?/
 });
-
+const parser = require("./dataclasses.js");
+const {istoken, ñ , del} = require("./local.js");
+const post = require("./postprocessing.js");
 %}
 
 @lexer lexer
 
-start -> (%_S | %_L):* (level1 %_S:? (%_L:+ level1 %_S:?):*):? (%_S | %_L):*
+start -> (%_S | %_L):* (level1 %_S:? (%_L:+ level1 %_S:?):*):? (%_S | %_L):* {% data => post.start(del(data)) %}
 
-declaration -> (%OBJECT %_S):? variable %_S:? %_EQUALITY %_S:?  expression
-definition -> (%OBJECT %_S):? variable %_S:? %_BINDING %_S:? expression
-annotation -> %OBJECT %_S variable (%_S:? %_COMMA %_S:? variable):*
-node -> expression
-equation -> expression %_S:? %_EQUALITY %_S:? expression
-comment -> %QUOTE
-use -> %_USE %_S %IDENTIFIER
+declaration -> (%OBJECT %_S):? variable %_S:? %_EQUALITY %_S:?  expression {% data => post.declaration(del(data)) %}
+definition -> (%OBJECT %_S):? variable %_S:? %_BINDING %_S:? expression {% data => post.definition(del(data)) %}
+annotation -> %OBJECT %_S variable (%_S:? %_COMMA %_S:? variable):* {% data => post.annotation(del(data)) %}
+node -> expression {% data => post.node(del(data)) %}
+equation -> expression %_S:? %_EQUALITY %_S:? expression {% data => post.equation(del(data)) %}
+comment -> %QUOTE {% data => post.comment(del(data)) %}
+use -> %_USE %_S %IDENTIFIER  {% data => post.use(del(data)) %}
 
-expression -> (%SIGNS %_S:?):? level3 (%_S:? %SIGNS %_S:? level3):*
+expression -> (%SIGNS %_S:?):? level3 (%_S:? %SIGNS %_S:? level3):* {% data => post.expression(del(data)) %}
 
-term -> level4 ((%_S:? %OPERATOR):? %_S:? level4):*
+term -> level4 ((%_S:? %OPERATOR):? %_S:? level4):* {% data => post.term(del(data)) %}
 
-factor -> level5 (%_EXPONENTIATION %_S:? expression %_S:? %_EXPONENTIATION):?
-limit -> %_LIM %_S variable %_S:? %_TO %_S:? expression %SIGN:? %_S %_OF %_S nest (%_EXPONENTIATION %_S:? expression %_S:? %_EXPONENTIATION):?
+factor -> level5 (%_EXPONENTIATION %_S:? expression %_S:? %_EXPONENTIATION):? {% data => post.factor(del(data)) %}
+limit -> %_LIM %_S variable %_S:? %_TO %_S:? expression %SIGN:? %_S %_OF %_S nest (%_EXPONENTIATION %_S:? expression %_S:? %_EXPONENTIATION):? {% data => post.limit(del(data)) %}
 
-variable -> %IDENTIFIER
-infinite -> %_INF
-nest -> %_OPEN %_S:? expression:? %_S:? %_CLOSE
-tensor -> %_ENTER %_S:? (expression (%_S:? %_COMMA %_S:? expression):* %_S:?):? %_EXIT
-number -> %NUMBER (%_DOT %NUMBER):?
+variable -> %IDENTIFIER {% data => post.variable(del(data)) %}
+infinite -> %_INF {% data => post.infinite(del(data)) %}
+nest -> %_OPEN %_S:? expression:? %_S:? %_CLOSE {% data => post.nest(del(data)) %}
+tensor -> %_ENTER %_S:? (expression (%_S:? %_COMMA %_S:? expression):* %_S:?):? %_EXIT {% data => post.tensor(del(data)) %}
+number -> %NUMBER (%_DOT %NUMBER):? {% data => post.number(del(data)) %}
 
 
-level1 -> (declaration | definition | annotation | node | equation | comment | use)
-level2 -> (expression)
-level3 -> (term)
-level4 -> (factor | limit)
-level5 -> (variable | infinite | nest | tensor | number)
+level1 -> (declaration | definition | annotation | node | equation | comment | use) {% data => post.level1(del(data)) %}
+level2 -> (expression) {% data => post.level2(del(data)) %}
+level3 -> (term) {% data => post.level3(del(data)) %}
+level4 -> (factor | limit) {% data => post.level4(del(data)) %}
+level5 -> (variable | infinite | nest | tensor | number) {% data => post.level5(del(data)) %}

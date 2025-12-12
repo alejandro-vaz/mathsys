@@ -1,15 +1,12 @@
-const nearley = require("nearley");
-const grammar = require("./syntax.cjs");
-const parser = new nearley.Parser(nearley.Grammar.fromCompiled(grammar));
-parser.feed(`# this is a simple file
-@Tensor u = []
-@Tensor v = [1, 0]
+"use strict";
 
-# here is another comment
-@Number w == u*v
-
-# it's time to end here, but first
-use standard
-
-    `);
-console.log(JSON.stringify(parser.results));
+var _nearley = _interopRequireDefault(require("nearley"));
+var _syntax = _interopRequireDefault(require("./syntax.cjs"));
+var _util = _interopRequireDefault(require("util"));
+function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
+const parser = new _nearley.default.Parser(_nearley.default.Grammar.fromCompiled(_syntax.default));
+parser.feed(`+2*inf - 3/4`);
+console.log(_util.default.inspect(parser.results[0], {
+  depth: null,
+  colors: true
+}));

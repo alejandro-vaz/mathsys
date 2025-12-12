@@ -95,9 +95,7 @@ class Parser(Transformer):
                 match ñ(item):
                     case "*": location = True
                     case "/": location = False
-            else:
-                if location: numerator.append(item)
-                else: denominator.append(item)
+            else: numerator.append(item) if location else denominator.append(item)
         return parser.Term(
             numerator = numerator,
             denominator = denominator

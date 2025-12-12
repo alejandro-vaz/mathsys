@@ -3,12 +3,8 @@
 #^
 
 #> HEAD -> MODULES
+import os
 from lark import Token
-
-#> HEAD -> LIBRARY
-from ..common import (
-    standard
-)
 
 
 #^
@@ -78,9 +74,15 @@ QUOTE: /\#(?: [^\n]*)?/
 #^  LIBRARY
 #^
 
+#> LIBRARY -> READ
+def read(name):
+    path = os.path.join(os.path.join(os.path.dirname(__file__), "..", "common"), f"{name}.msX")
+    with open(path) as file:
+        return file.read()
+
 #> LIBRARY -> MODULES
 MODULES = {
-    "standard": standard.data
+    "standard": read("standard")
 }
 
 
