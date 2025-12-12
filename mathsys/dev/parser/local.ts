@@ -1,21 +1,4 @@
 //^
-//^ HEAD
-//^
-
-//> HEAD -> LIBRARY
-
-
-//^
-//^ LIBRARY
-//^
-
-//> LIBRARY -> MODULES
-export const MODULES = {
-    standard: ""
-}
-
-
-//^
 //^ HELPERS
 //^
 

@@ -11,7 +11,7 @@ import {Parser} from "./parser/code.js";
 //^
 
 //> PRELUDE -> CLASSES
-const _parser = new Parser();
+export const _parser = new Parser();
 
 //> PRELUDE -> FUNCTIONS
 function functions(): Function[] {return [
@@ -49,4 +49,4 @@ export async function targets(): Promise<string> {
 export async function latex(content: string): Promise<any> {return _parser.run(content)}
 
 
-await latex("2");
+await latex("use standard");

@@ -86,7 +86,7 @@ CONVERSION = {
     "@Number": lambda name: name,
     "@Tensor": lambda name: fr"\overline{{{name}}}",
     "@Undefined": lambda name: fr"\overset{{?}}{{{name}}}",
-    "@Variable": lambda name: f"{{^{{*}}{name}}}"
+    "@Variable": lambda name: fr"{{^{{*}}{name}}}"
 }
 
 

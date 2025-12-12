@@ -51,11 +51,10 @@ class LaTeX:
         ))
     #~ GENERATOR -> 1 ANNOTATION GENERATION
     def annotation(self, annotation: parser.Annotation) -> str:
-        if annotation.group is not None: 
-            for variable in annotation.variables:
-                types[variable.representation] = types.get(variable.representation, annotation.group)
+        for variable in annotation.variables:
+            types[variable.representation] = types.get(variable.representation, annotation.group)
         return str(latex.Annotation(
-            group = annotation.group if annotation.group is not None else "",
+            group = annotation.group,
             variables = [self.variable(variable) for variable in annotation.variables]
         ))
     #~ GENERATOR -> 1 NODE GENERATION

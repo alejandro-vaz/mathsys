@@ -4,7 +4,7 @@
 
 //> HEAD -> DATA
 import * as parser from "./dataclasses.js";
-import {Token, istoken, ñ} from "./local.js";
+import {ñ, Token, istoken} from "./local.js";
 
 
 //^

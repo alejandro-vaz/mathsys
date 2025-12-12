@@ -24,9 +24,8 @@ const lexer = require("moo").compile({
     _L: {match: /\n/, lineBreaks: true},
     QUOTE: /#(?: [^\n]*)?/
 });
-const parser = require("./dataclasses.js");
-const {istoken, ñ , del} = require("./local.js");
-const post = require("./postprocessing.js");
+const del = require("./local.js").del;
+const post = require("./post.js");
 %}
 
 @lexer lexer

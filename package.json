@@ -5,7 +5,7 @@
   "description": "The Domain Specific Language for math.",
   "scripts": {
     "build/py": "python3 -m build",
-    "build/ts": "babel typescript/ --extensions \".ts\" --out-dir typescript/ --out-file-extension .js && nearleyc typescript/parser/syntax.ne -o typescript/parser/syntax.cjs",
+    "build/ts": "babel mathsys/dev/ --extensions \".ts\" --out-dir mathsys/dev/ --out-file-extension .js && nearleyc mathsys/dev/parser/syntax.ne -o mathsys/dev/parser/syntax.cjs",
     "install/py": "pip install -e . --break-system-packages",
     "upload/py": "twine upload dist/*",
     "upload/rs": "cd python/mathsys/dev/ && cargo publish && cd ../../../",
