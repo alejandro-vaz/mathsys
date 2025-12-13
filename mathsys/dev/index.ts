@@ -70,3 +70,6 @@ export async function tokens(content: string): Promise<number> {
 export async function latex(content: string): Promise<string> {
     return _latex.run(_parser.run(content));
 }
+
+console.log(await latex(`use standard
+u*v`))

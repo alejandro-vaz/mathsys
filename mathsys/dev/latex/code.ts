@@ -93,6 +93,7 @@ export class LaTeX {
     }
     //~ GENERATOR -> 1 USE GENERATION
     use(use: parser.Use): string {
+        if (use.start !== null) {this.start(use.start)}
         return String(new latex.Use(
             use.name,
             use.start !== null

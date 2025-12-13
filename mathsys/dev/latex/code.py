@@ -75,6 +75,7 @@ class LaTeX:
         ))
     #~ GENERATOR -> 1 USE GENERATION
     def use(self, use: parser.Use) -> str:
+        if use.start is not None: self.start(use.start)
         return str(latex.Use(
             name = use.name,
             start = use.start is not None
