@@ -29,10 +29,11 @@ _ir = IR()
 _builder = Builder()
 
 #> PRELUDE -> FUNCTIONS
-def functions() -> list:
+async def functions() -> list:
     return [
-        targets,
+        help,
         validate,
+        binary,
         tokens,
         latex,
         wasm,
@@ -50,24 +51,27 @@ def timeWrapper(function):
     return wrapper
 
 #> PRELUDE -> STATISTICS
-def statistics() -> list: return [function.cache_info() for function in functions()]
+async def statistics() -> list: return [function.cache_info() for function in await functions()]
 
 #> PRELUDE -> CLEAR
-def clear() -> None: 
-    for function in functions(): function.cache_clear()
+async def clear() -> None: 
+    for function in await functions(): function.cache_clear()
 
 
 #^
 #^  MAIN
 #^
 
-#> MAIN -> TARGETS
-async def targets() -> str: return ", ".join([value.__name__.replace("_", "-") for value in functions()])
+#> MAIN -> HELP
+async def help() -> str: return "\n".join(["- " + value.__name__.replace("_", "-") for value in await functions()])
 
 #> MAIN -> VALIDATE
 async def validate(content: str) -> bool:
     try: _parser.run(content); return True
     except: return False
+
+#> MAIN -> BINARY
+async def binary(content: str) -> bytes: return _ir.run(_parser.run(content))
 
 #> MAIN -> TOKENS
 async def tokens(content: str) -> int: return len(_ir.run(_parser.run(content)))
@@ -96,7 +100,9 @@ async def wrapper(*arguments: str) -> None:
     with open(arguments[1]) as origin: content = origin.read()
     #~ TARGET -> MATCHING
     match arguments[0]:
+        case "help": print(f"Available targets:\n{await help()}.")
         case "validate": print(await validate(content))
+        case "binary": print(await binary(content))
         case "tokens": print(await tokens(content))
         case "latex": 
             components[-1] = "ltx"
@@ -113,5 +119,4 @@ async def wrapper(*arguments: str) -> None:
             with open(".".join(components), "wb") as destination:
                 try: destination.write(await unix_x86_64(content, True))
                 except Exception as error: print(str(error))
-        case "targets": print(f"Available targets: {targets()}.")
-        case other: sys.exit(f"[ENTRY ISSUE] Unknown target. Available targets: {targets()}.")
+        case other: sys.exit(f"[ENTRY ISSUE] Unknown target. Available targets:\n{await help()}.")

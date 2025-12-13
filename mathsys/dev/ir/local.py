@@ -33,7 +33,8 @@ class null32:
 #^
 
 #> HELPERS -> JOIN
-def join(binary: list[bytes]) -> bytes: return b"".join(binary)
+def join(binary: list[bytes], delimiter: null8 | null32) -> bytes: 
+    return b"".join(binary) + delimiter
 
 
 #^

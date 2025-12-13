@@ -3,9 +3,9 @@
 //^
 
 //> HEAD -> DATA
-import {types} from "./local";
-import * as latex from "./dataclasses";
-import * as parser from "../parser/dataclasses";
+import {types} from "./local.js";
+import * as latex from "./dataclasses.js";
+import * as parser from "../parser/dataclasses.js";
 
 
 //^
@@ -13,9 +13,9 @@ import * as parser from "../parser/dataclasses";
 //^
 
 //> LATEX -> GENERATOR
-class Latex {
+export class LaTeX {
     //~ GENERATOR -> CONSTRUCTOR
-    constructor(start: parser.Start) {}
+    constructor() {}
     //~ GENERATOR -> RUN
     run(start: parser.Start): string {
         for (const key in types) {
@@ -105,6 +105,10 @@ class Latex {
     }
     //~ GENERATOR -> 2 EXPRESSION GENERATION
     expression(expression: parser.Expression): string {
+    if (!expression) {
+        console.error("LaTeX.expression called with:", expression);
+        throw new Error("Invalid Expression passed to LaTeX.expression");
+    }
         return String(new latex.Expression(
             expression.signs.map(sign => sign !== null ? sign : ""),
             expression.terms.map(term => this.level3(term))
@@ -114,5 +118,105 @@ class Latex {
     level3(level3: parser.Level3): string {
         if (level3 instanceof parser.Term) return this.term(level3);
         return "";
+    }
+    //~ GENERATOR -> 3 TERM GENERATION
+    term(term: parser.Term): string {
+        const numerator: string[] = [];
+        term.numerator.forEach((item: parser.Level4, index: number) => {
+            let value = this.level4(item);
+            if (index !== 0) {
+                if (term.numerator[index - 1] instanceof parser.Factor) {
+                    if ((term.numerator[index - 1] as any).value instanceof parser.Number) {
+                        if (item instanceof parser.Factor) {
+                            if (item.value instanceof parser.Number || item.value instanceof parser.Infinite) {
+                                value = String.raw`\cdot ` + value;
+                            }
+                        }
+                    } else {value = String.raw`\cdot ` + value}
+                } else {value = String.raw`\cdot ` + value}
+            }
+            numerator.push(value);
+        });
+        const denominator: string[] = [];
+        term.denominator.forEach((item: parser.Level4, index: number) => {
+            let value = this.level4(item);
+            if (index !== 0) {
+                if (term.denominator[index - 1] instanceof parser.Factor) {
+                    if ((term.denominator[index - 1] as any).value instanceof parser.Number) {
+                        if (item instanceof parser.Factor) {
+                            if (item.value instanceof parser.Number || item.value instanceof parser.Infinite) {
+                                value = String.raw`\cdot ` + value;
+                            }
+                        }
+                    } else {value = String.raw`\cdot ` + value}
+                } else {value = String.raw`\cdot ` + value}
+            }
+            denominator.push(value);
+        });
+        return String(new latex.Term(
+            numerator,
+            denominator
+        ));
+    }
+    //~ GENERATOR -> 4 LEVEL GENERATION
+    level4(level4: parser.Level4): string {
+        if (level4 instanceof parser.Factor) return this.factor(level4);
+        if (level4 instanceof parser.Limit) return this.limit(level4);
+        return "";
+    }
+    //~ GENERATOR -> 4 FACTOR GENERATION
+    factor(factor: parser.Factor): string {
+        return String(new latex.Factor(
+            this.level5(factor.value),
+            factor.exponent !== null ? this.expression(factor.exponent) : null
+        ));
+    }
+    //~ GENERATOR -> 4 LIMIT GENERATION
+    limit(limit: parser.Limit): string {
+        return String(new latex.Limit(
+            this.variable(limit.variable),
+            this.expression(limit.approach),
+            limit.direction,
+            this.nest(limit.nest),
+            limit.exponent !== null ? this.expression(limit.exponent) : null
+        ));
+    }
+    //~ GENERATOR -> 5 LEVEL GENERATION
+    level5(level5: parser.Level5): string {
+        if (level5 instanceof parser.Infinite) return this.infinite(level5);
+        if (level5 instanceof parser.Variable) return this.variable(level5);
+        if (level5 instanceof parser.Nest) return this.nest(level5);
+        if (level5 instanceof parser.Tensor) return this.tensor(level5);
+        if (level5 instanceof parser.Number) return this.number(level5);
+        return "";
+    }
+    //~ GENERATOR -> 5 INFINITE GENERATION
+    infinite(infinite: parser.Infinite): string {
+        return String(new latex.Infinite());
+    }
+    //~ GENERATOR -> 5 VARIABLE GENERATION
+    variable(variable: parser.Variable): string {
+        return String(new latex.Variable(
+            variable.representation
+        ));
+    }
+    //~ GENERATOR -> 5 NEST GENERATION
+    nest(nest: parser.Nest): string {
+        return String(new latex.Nest(
+            nest.expression !== null ? this.expression(nest.expression) : ""
+        ));
+    }
+    //~ GENERATOR -> 5 TENSOR GENERATION
+    tensor(tensor: parser.Tensor): string {
+        return String(new latex.Tensor(
+            tensor.values.map(value => this.expression(value))
+        ));
+    }
+    //~ GENERATOR -> 5 NUMBER GENERATION
+    number(number: parser.Number): string {
+        return String(new latex.Number(
+            number.value,
+            number.shift
+        ));
     }
 }

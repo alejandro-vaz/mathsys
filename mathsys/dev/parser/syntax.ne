@@ -54,8 +54,8 @@ tensor -> %_ENTER %_S:? (expression (%_S:? %_COMMA %_S:? expression):* %_S:?):? 
 number -> %NUMBER (%_DOT %NUMBER):? {% data => post.number(del(data)) %}
 
 
-level1 -> (declaration | definition | annotation | node | equation | comment | use) {% data => post.level1(del(data)) %}
-level2 -> (expression) {% data => post.level2(del(data)) %}
-level3 -> (term) {% data => post.level3(del(data)) %}
-level4 -> (factor | limit) {% data => post.level4(del(data)) %}
-level5 -> (variable | infinite | nest | tensor | number) {% data => post.level5(del(data)) %}
+level1 -> (declaration | definition | annotation | node | equation | comment | use) {% id %}
+level2 -> (expression) {% id %}
+level3 -> (term) {% id %}
+level4 -> (factor | limit) {% id %}
+level5 -> (variable | infinite | nest | tensor | number) {% id %}

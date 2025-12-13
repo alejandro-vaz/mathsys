@@ -165,9 +165,9 @@ class LaTeX:
             expression = self.expression(nest.expression) if nest.expression is not None else ""
         ))
     #~ GENERATOR -> 5 TENSOR GENERATION
-    def tensor(self, vector: parser.Tensor) -> str:
+    def tensor(self, tensor: parser.Tensor) -> str:
         return str(latex.Tensor(
-            values = [self.expression(value) for value in vector.values]
+            values = [self.expression(value) for value in tensor.values]
         ))
     #~ GENERATOR -> 5 NUMBER GENERATION
     def number(self, number: parser.Number) -> str:

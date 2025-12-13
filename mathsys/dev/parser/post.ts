@@ -8,26 +8,6 @@ import {ñ, Token, istoken} from "./local.js";
 
 
 //^
-//^ LEVELS
-//^
-
-//> LEVELS -> 1
-export function level1(items: parser.Level1[]): parser.Level1 {return items[0]}
-
-//> LEVELS -> 2
-export function level2(items: parser.Level2[]): parser.Level2 {return items[0]}
-
-//> LEVELS -> 3
-export function level3(items: parser.Level3[]): parser.Level3 {return items[0]}
-
-//> LEVELS -> 4
-export function level4(items: parser.Level4[]): parser.Level4 {return items[0]}
-
-//> LEVELS -> 5
-export function level5(items: parser.Level5[]): parser.Level5 {return items[0]}
-
-
-//^
 //^ START
 //^
 
@@ -151,8 +131,8 @@ export function limit(items: (Token | parser.Variable | parser.Expression | pars
         items[0] as parser.Variable,
         items[1] as parser.Expression,
         istoken(items[2]) ? ñ(items[2] as Token) == "+" : null,
-        items[-2] instanceof parser.Nest ? items.at(-2) as parser.Nest : items.at(-1) as parser.Nest,
-        items[-1] instanceof parser.Expression ? items.at(-1) as parser.Expression : null
+        items.at(-2) instanceof parser.Nest ? items.at(-2) as parser.Nest : items.at(-1) as parser.Nest,
+        items.at(-1) instanceof parser.Expression ? items.at(-1) as parser.Expression : null
     );
 }
 

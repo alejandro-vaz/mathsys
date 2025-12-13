@@ -19,7 +19,7 @@ class Start:
     code = u8(0x01)
     statements: list[u32]
     def __bytes__(self) -> bytes:
-        return self.code + (join(self.statements) + null32())
+        return self.code + join(self.statements, null32())
 
 
 #^
@@ -53,7 +53,7 @@ class Annotation:
     group: u8 | null8
     variables: list[u32]
     def __bytes__(self) -> bytes:
-        return self.code + self.group + (join(self.variables) + null32())
+        return self.code + self.group + join(self.variables, null32())
 
 #> 1ºLEVEL -> NODE
 @dataclass
@@ -78,7 +78,7 @@ class Comment:
     code = u8(0x07)
     text: list[u8]
     def __bytes__(self) -> bytes:
-        return self.code + (join(self.text) + null8())
+        return self.code + join(self.text, null8())
 
 #> 1ºLEVEL -> USE
 @dataclass
@@ -87,7 +87,7 @@ class Use:
     name: list[u8]
     start: u32 | null32
     def __bytes__(self) -> bytes:
-        return self.code + (join(self.name) + null8()) + self.start
+        return self.code + join(self.name, null8()) + self.start
 
 
 #^
@@ -101,7 +101,7 @@ class Expression:
     signs: list[u8]
     terms: list[u32]
     def __bytes__(self) -> bytes:
-        return self.code + (join(self.signs) + null8()) + (join(self.terms) + null32())
+        return self.code + join(self.signs, null8()) + join(self.terms, null32())
 
 
 #^
@@ -115,7 +115,7 @@ class Term:
     numerator: list[u32]
     denominator: list[u32]
     def __bytes__(self) -> bytes:
-        return self.code + (join(self.numerator) + null32()) + (join(self.denominator) + null32())
+        return self.code + join(self.numerator, null32()) + join(self.denominator, null32())
 
 
 #^
@@ -161,7 +161,7 @@ class Variable:
     code = u8(0x0E)
     representation: list[u8]
     def __bytes__(self) -> bytes:
-        return self.code + (join(self.representation) + null8())
+        return self.code + join(self.representation, null8())
 
 #> 5ºLEVEL -> NEST
 @dataclass
@@ -177,7 +177,7 @@ class Tensor:
     code = u8(0x10)
     values: list[u32]
     def __bytes__(self) -> bytes:
-        return self.code + (join(self.values) + null32())
+        return self.code + join(self.values, null32())
 
 #> 5ºLEVEL -> NUMBER
 @dataclass
