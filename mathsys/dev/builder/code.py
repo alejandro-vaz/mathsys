@@ -22,56 +22,47 @@ from .local import TARGETS, EXTENSIONS
 class Builder:
     #~ CLASS -> RUN
     def run(self, data: bytes, target: str, optimize: bool) -> bytes:
-        self.checks()
         descriptor, ir = tempfile.mkstemp(dir = "/tmp", suffix = ".ir")
         with os.fdopen(descriptor, "wb") as file: file.write(data)
-        environment = os.environ.copy()
-        environment["MathsysSource"] = ir
-        environment["MathsysPrecision"] = "standard"
-        environment["MathsysMajor"] = str(__version_info__[0])
-        environment["MathsysMinor"] = str(__version_info__[1])
-        environment["MathsysPatch"] = str(__version_info__[2])
+        environment = self.config(ir)
         try: 
-            subprocess.run(
-                self.command(target, optimize),
-                cwd = os.path.dirname(os.path.abspath(__file__)),
-                env = environment,
-                capture_output = False,
-                text = True,
-                check = True
-            )
-            if target == "wasm" and optimize: subprocess.run(
-                self.postwasm(),
-                cwd = os.path.dirname(os.path.abspath(__file__)),
-                env = environment,
-                capture_output = False,
-                text = True,
-                check = True
-            )
+            self.execute([
+                "cargo",
+                "+nightly",
+                "build",
+                *(["--release"] if optimize else []),
+                "--target", TARGETS[target]
+            ], environment)
+            if optimize: 
+                for command in self.post(target):
+                    try: self.execute(command, environment)
+                    except: pass
             with open(self.filename(target), "rb") as file: return file.read()
         except: raise
         finally: os.remove(ir)
-    #~ CLASS -> COMMAND CREATOR HELPER
-    def command(self, target: str, optimize: bool) -> list[str]:
-        return [
-            "cargo",
-            "+nightly",
-            "build",
-            *(["--release"] if optimize else []),
-            "--target", TARGETS[target]
-        ]
     #~ CLASS -> POSTWASM
-    def postwasm(self) -> str:
-        return [
-            "wasm-opt",
-            "-O3",
-            "--strip-debug",
-            "--enable-bulk-memory",
-            "--dce",
-            "--vacuum",
-            "-o", self.filename("wasm"),
-            self.filename("wasm")
-        ]
+    def post(self, target: str) -> list[list[str]]:
+        match target:
+            case "wasm": return [[
+                "wasm-opt",
+                "-O3",
+                "--strip-debug",
+                "--enable-simd",
+                "--enable-multivalue",
+                "--enable-bulk-memory",
+                "--dce",
+                "--vacuum",
+                "-o", self.filename("wasm"),
+                self.filename("wasm")
+            ]]
+            case "unix-x86-64": return [[
+                "upx",
+                "--best",
+                "--ultra-brute",
+                "--force-overwrite",
+                "-o", self.filename("unix-x86-64"),
+                self.filename("unix-x86-64")
+            ]]
     #~ CLASS -> FILENAME
     def filename(self, target: str) -> str:
         return os.path.join(
@@ -82,11 +73,20 @@ class Builder:
             "release",
             f"mathsys{EXTENSIONS[target]}"
         )
-    #~ CLASS -> CHECKS
-    def checks(self) -> None:
-        subprocess.run(
-            ["rustc", "--version"],
-            capture_output = False,
-            text = True,
-            check = True
-        )
+    #~ CLASS -> EXECUTE
+    def execute(self, command: list[str], env: dict) -> None: subprocess.run(
+        command,
+        cwd = os.path.dirname(os.path.join(os.path.dirname(__file__), "..")),
+        env = env,
+        capture_output = False,
+        text = True,
+        check = True
+    )
+    #~ CLASS -> CONFIGURATION
+    def config(self, ir: bytes) -> dict:
+        env = os.environ.copy()
+        env["MathsysSource"] = ir
+        env["MathsysMajor"] = str(__version_info__[0])
+        env["MathsysMinor"] = str(__version_info__[1])
+        env["MathsysPatch"] = str(__version_info__[2])
+        return env

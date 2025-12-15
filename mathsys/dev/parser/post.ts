@@ -67,14 +67,14 @@ export function equation(items: parser.Expression[]): parser.Equation {
 //> 1ºLEVEL -> COMMENT
 export function comment(items: Token[]): parser.Comment {
     return new parser.Comment(
-        items[0].value
+        items[0].value.slice(1).trim()
     );
 }
 
 //> 1ºLEVEL -> USE
 export function use(items: Token[]): parser.Use {
     return new parser.Use(
-        ñ(items[0]),
+        ñ(items[0]).slice(1, -1),
         null
     );
 }

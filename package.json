@@ -10,7 +10,7 @@
     "upload/py": "twine upload dist/*",
     "upload/rs": "cd python/mathsys/dev/ && cargo publish && cd ../../../",
     "upload/ts": "npm publish",
-    "compile": "bash ./python/mathsys/dev/source/unix-x86-64.sh && bash ./python/mathsys/dev/source/wasm.sh"
+    "compile": "bash ./python/mathsys/dev/bin/unix-x86-64.sh && bash ./python/mathsys/dev/bin/wasm.sh"
   },
   "repository": {
     "type": "git",

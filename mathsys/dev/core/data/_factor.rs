@@ -1,0 +1,45 @@
+//^
+//^ HEAD
+//^
+
+//> HEAD -> CROSS-SCOPE TRAIT
+use crate::class::Class;
+use crate::object::Object;
+use crate::runtime::Runtime;
+use crate::tip::Tip;
+use crate::group::Group;
+
+
+//^
+//^ FACTOR
+//^
+
+//> FACTOR -> STRUCT
+#[derive(Clone)]
+pub struct _Factor {
+    pub value: u32,
+    pub exponent: u32
+}
+
+//> FACTOR -> EVALUATE
+impl _Factor {pub fn evaluate(&self, runtime: &mut Runtime, id: u32, memory: &Vec<Class>) -> Object {
+    //~ EVALUATE -> RETRIEVAL
+    let value = runtime.get(self.value, memory);
+    let Object::Nexists(exponent) = runtime.get(self.exponent, memory) else {crate::stdout::crash(crate::stdout::Code::UnexpectedValue)};
+    //~ EVALUATE -> OPERATIONS
+    self.space("Computing exponentiation", id);
+    return value;
+}}
+
+//> FACTOR -> REPRESENTATION
+impl crate::Display for _Factor {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.display(formatter)}}
+impl crate::Debug for _Factor {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.debug(formatter)}} 
+
+//> FACTOR -> COMMON
+impl Tip for _Factor {} impl _Factor {
+    pub fn display(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "_Factor")}
+    pub fn debug(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
+        "value = {}, exponent = {}",
+        self.value, self.exponent
+    )}
+}

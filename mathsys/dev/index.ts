@@ -26,20 +26,6 @@ export async function functions(): Promise<Function[]> {return [
     latex
 ]}
 
-//> PRELUDE -> TIME WRAPPER
-async function timeWrapper<Type>(fn: () => Promise<Type>, name: string): Promise<Type> {
-    const start = Date.now();
-    const state = await fn();
-    console.log(`[INFO] Compiled to ${name} in ${(Date.now() - start) / 1000}s.`);
-    return state;
-}
-
-//> PRELUDE -> STATISTICS
-export async function statistics(): Promise<[]> {return []}
-
-//> PRELUDE -> CLEAR
-export async function clear(): Promise<void> {}
-
 
 //^
 //^ MAIN
@@ -70,6 +56,3 @@ export async function tokens(content: string): Promise<number> {
 export async function latex(content: string): Promise<string> {
     return _latex.run(_parser.run(content));
 }
-
-console.log(await latex(`use standard
-u*v`))

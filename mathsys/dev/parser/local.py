@@ -21,7 +21,7 @@ annotation: OBJECT _S variable (_S? _COMMA _S? variable)*
 node: expression
 equation: expression _S? _EQUALITY _S? expression
 comment: QUOTE
-use: _USE _S IDENTIFIER
+use: _USE _S MODULE
 
 expression: (SIGNS _S?)? level3 (_S? SIGNS _S? level3)*
 
@@ -48,8 +48,8 @@ _LIM: /\blim\b/
 _TO: /->/
 _OF: /\bof\b/
 _USE: /\buse\b/
-IDENTIFIER: /(?!\b(?:inf|of|use|lim|Any|Infinite|Nexists|Number|Tensor|Undefined|Variable)\b)[A-Za-zº$%]+/
-OBJECT: /\@(?:Any|Infinite|Nexists|Number|Tensor|Undefined|Variable)\b/
+IDENTIFIER: /(?!\b(?:inf|of|use|lim|Infinite|Nexists|Number|Tensor|Undefined|Variable)\b)[A-Za-zº$%]+/
+OBJECT: /\@(?:Infinite|Nexists|Number|Tensor|Undefined|Variable)\b/
 _INF: /\binf\b/
 _EXPONENTIATION: /\^/
 NUMBER: /[0-9]+/
@@ -66,6 +66,7 @@ _COMMA: /,/
 _EXIT: /\]/
 _S: / +/
 _L: /\n/
+MODULE: /"[a-z]+"/
 QUOTE: /\#(?: [^\n]*)?/
 """
 

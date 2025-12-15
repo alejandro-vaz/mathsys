@@ -9,7 +9,8 @@ import sys
 from time import time
 
 #> HEAD -> CACHE
-from functools import lru_cache, cache, wraps
+from functools import wraps
+from async_lru import alru_cache
 
 #> HEAD -> COMPILER
 from .parser.code import Parser
@@ -36,8 +37,7 @@ async def functions() -> list:
         binary,
         tokens,
         latex,
-        wasm,
-        unix_x86_64
+        native
     ]
 
 #> PRELUDE -> TIME WRAPPER
@@ -63,30 +63,33 @@ async def clear() -> None:
 #^
 
 #> MAIN -> HELP
+@alru_cache(maxsize = None)
 async def help() -> str: return "\n".join(["- " + value.__name__.replace("_", "-") for value in await functions()])
 
 #> MAIN -> VALIDATE
+@alru_cache(maxsize = None)
 async def validate(content: str) -> bool:
     try: _parser.run(content); return True
     except: return False
 
 #> MAIN -> BINARY
+@alru_cache(maxsize = None)
+@timeWrapper
 async def binary(content: str) -> bytes: return _ir.run(_parser.run(content))
 
 #> MAIN -> TOKENS
+@alru_cache(maxsize = None)
 async def tokens(content: str) -> int: return len(_ir.run(_parser.run(content)))
 
 #> MAIN -> LATEX
+@alru_cache(maxsize = None)
 @timeWrapper
 async def latex(content: str) -> str: return _latex.run(_parser.run(content))
 
-#> MAIN -> WEB
+#> MAIN -> NATIVE
+@alru_cache(maxsize = 8192)
 @timeWrapper
-async def wasm(content: str, optimize: bool) -> bytes: return _builder.run(_ir.run(_parser.run(content)), "wasm", optimize)
-
-#> MAIN -> UNIX_X86_X64
-@timeWrapper
-async def unix_x86_64(content: str, optimize: bool) -> bytes: return _builder.run(_ir.run(_parser.run(content)), "unix-x86-64", optimize)
+async def native(content: str, optimize: bool, target: str): return _builder.run(_ir.run(_parser.run(content)), target, optimize)
 
 
 #^
@@ -100,7 +103,7 @@ async def wrapper(*arguments: str) -> None:
     with open(arguments[1]) as origin: content = origin.read()
     #~ TARGET -> MATCHING
     match arguments[0]:
-        case "help": print(f"Available targets:\n{await help()}.")
+        case "help": print(f"Usage: mathsys <target> <filename>.msX\nAvailable targets:\n{await help()}")
         case "validate": print(await validate(content))
         case "binary": print(await binary(content))
         case "tokens": print(await tokens(content))
@@ -109,14 +112,9 @@ async def wrapper(*arguments: str) -> None:
             with open(".".join(components), "w") as destination:
                 try: destination.write(await latex(content))
                 except Exception as error: print(str(error))
-        case "wasm": 
-            components[-1] = "wasm"
-            with open(".".join(components), "wb") as destination:
-                try: destination.write(await wasm(content, True))
-                except Exception as error: print(str(error))
-        case "unix-x86-64": 
+        case "native": 
             components.pop()
             with open(".".join(components), "wb") as destination:
-                try: destination.write(await unix_x86_64(content, True))
+                try: destination.write(await native(content, True, "unix-x86-64"))
                 except Exception as error: print(str(error))
-        case other: sys.exit(f"[ENTRY ISSUE] Unknown target. Available targets:\n{await help()}.")
+        case other: sys.exit(f"[ENTRY ISSUE] Unknown target. Available targets:\n{await help()}")

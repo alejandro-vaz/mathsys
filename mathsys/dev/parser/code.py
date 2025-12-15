@@ -71,13 +71,13 @@ class Parser(Transformer):
     #~ CLASS -> 1 COMMENT CONSTRUCT
     def comment(self, items: list[Token]) -> parser.Comment:
         return parser.Comment(
-            text = items[0].value
+            text = items[0].value[1:].strip()
         )
     #~ CLASS -> 1 USE CONSTRUCT
     def use(self, items: list[Token]) -> parser.Use:
         return parser.Use(
-            name = ñ(items[0]),
-            start = self.run(MODULES.get(ñ(items[0]), None)) if MODULES.get(ñ(items[0]), None) is not None else None
+            name = ñ(items[0])[1:-1],
+            start = self.run(MODULES.get(ñ(items[0])[1:-1], None)) if MODULES.get(ñ(items[0])[1:-1], None) is not None else None
         )
     #~ CLASS -> 2 EXPRESSION CONSTRUCT
     def expression(self, items: list[Token | parser.Level3]) -> parser.Expression:

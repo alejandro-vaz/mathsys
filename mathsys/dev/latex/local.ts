@@ -80,7 +80,6 @@ export const SPECIAL: Record<string, string> = {
 //> MAPPINGS -> CONVERSION TABLE
 export const CONVERSION: Record<string, (string: string) => string> = {
     null: (name: string) => name,
-    "@Any": (name: string) => name,
     "@Infinite": (name: string) => String.raw`\overset{\infty}{${name}}`,
     "@Nexists": (name: string) => String.raw`\color{gray}${name}\color{black}`,
     "@Number": (name: string) => name,

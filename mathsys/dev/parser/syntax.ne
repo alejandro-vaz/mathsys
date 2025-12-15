@@ -4,8 +4,8 @@ const lexer = require("moo").compile({
     _TO: /->/,
     _OF: /\bof\b/,
     _USE: /\buse\b/,
-    IDENTIFIER: /(?!\b(?:inf|of|use|lim|Any|Infinite|Nexists|Number|Tensor|Undefined|Variable)\b)[A-Za-zº$%]+/,
-    OBJECT: /\@(?:Any|Infinite|Nexists|Number|Tensor|Undefined|Variable)\b/,
+    IDENTIFIER: /(?!\b(?:inf|of|use|lim|Infinite|Nexists|Number|Tensor|Undefined|Variable)\b)[A-Za-zº$%]+/,
+    OBJECT: /\@(?:Infinite|Nexists|Number|Tensor|Undefined|Variable)\b/,
     _INF: /\binf\b/,
     _EXPONENTIATION: /\^/,
     NUMBER: /[0-9]+/,
@@ -22,6 +22,7 @@ const lexer = require("moo").compile({
     _EXIT: /\]/,
     _S: / +/,
     _L: {match: /\n/, lineBreaks: true},
+    MODULE: /"[a-z]+"/,
     QUOTE: /#(?: [^\n]*)?/
 });
 const del = require("./local.js").del;
@@ -38,7 +39,7 @@ annotation -> %OBJECT %_S variable (%_S:? %_COMMA %_S:? variable):* {% data => p
 node -> expression {% data => post.node(del(data)) %}
 equation -> expression %_S:? %_EQUALITY %_S:? expression {% data => post.equation(del(data)) %}
 comment -> %QUOTE {% data => post.comment(del(data)) %}
-use -> %_USE %_S %IDENTIFIER  {% data => post.use(del(data)) %}
+use -> %_USE %_S %MODULE  {% data => post.use(del(data)) %}
 
 expression -> (%SIGNS %_S:?):? level3 (%_S:? %SIGNS %_S:? level3):* {% data => post.expression(del(data)) %}
 

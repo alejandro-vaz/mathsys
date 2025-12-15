@@ -44,11 +44,10 @@ def join(binary: list[bytes], delimiter: null8 | null32) -> bytes:
 #> MAPPINGS -> OBJECTTYPE
 OBJECTTYPE = {
     None: null8(),
-    "@Any": null8(),
     "@Infinite": u8(1),
     "@Nexists": u8(2),
     "@Number": u8(3),
     "@Tensor": u8(4),
-    "@Undefined": u8(5),
-    "@Variable": u8(6)
+    "@Undefined": null8(),
+    "@Variable": u8(5)
 }
