@@ -4,9 +4,9 @@
 ![NPM Downloads](https://img.shields.io/npm/dm/mathsys?logo=npm&label=NPM%20downloads&link=https%3A%2F%2Fwww.npmjs.com%2Fpackage%2Fmathsys)
 ![Crates.io Total Downloads](https://img.shields.io/crates/d/mathsys)
 
-Mathsys is an educational math language designed to help students and teachers write, read and experiment with mathematics in a clear, human-readable way.
+Mathsys is an educational math language for students and teachers who want to write, read, and experiment with mathematics in a clear, human-readable way.
 
-It looks like math, not code -- but it can still be checked, validated and converted into LaTeX or executables.
+It looks like math, not code -- but it can still be checked, validated and converted into LaTeX or runnable programs for interactive exploration.
 
 ## Example
 
@@ -27,6 +27,8 @@ $$x=2.0+\frac{3.0\cdot 7.0}{4.0}$$
 $$\pi \equiv 3.14159$$
 $$e\equiv \lim_{\substack{n\to \infty }}\left( 1.0+\frac{1.0}{n}\right) ^{n}$$
 $$\overline{u}\cdot \overline{v}$$
+
+See more examples in [the documentation.](https://docs.abscissa.eu)
 
 ## Why Mathsys for Learning?
 
