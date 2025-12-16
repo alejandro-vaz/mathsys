@@ -23,7 +23,10 @@ u*v
 
 compiles to:
 
-\[x=2.0+\frac{3.0\cdot 7.0}{4.0}\\ \pi \equiv 3.14159\\ e\equiv \lim_{\substack{n\to \infty }}\left( 1.0+\frac{1.0}{n}\right) ^{n}\\ \overline{u}\cdot \overline{v}\]
+$$x=2.0+\frac{3.0\cdot 7.0}{4.0}$$
+$$\pi \equiv 3.14159$$
+$$e\equiv \lim_{\substack{n\to \infty }}\left( 1.0+\frac{1.0}{n}\right) ^{n}$$
+$$\overline{u}\cdot \overline{v}$$
 
 ## Why Mathsys for Learning?
 
