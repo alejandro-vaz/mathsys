@@ -52,21 +52,6 @@ Install the latest version via `pip`:
 pip install mathsys
 ```
 
-It is recommended that you import a version specifically:
-```py
-# named
-import mathsys.release as mathsys
-import mathsys.dev as mathsys
-
-# specific versions
-import mathsys.v1 as mathsys
-import mathsys.v2 as mathsys
-import mathsys.v3 as mathsys
-# ...
-```
-
-`mathsys.release` is the last stable version, whilst `mathsys.dev` is the latest version published.
-
 Compile a Mathsys file to different targets with:
 
 ```sh
@@ -74,6 +59,8 @@ mathsys <target> <filename>.msX
 ```
 
 where `.msX` is the file extension stands for `.ms1`, `.ms2`, `.ms3` ... (versioned), `.msr` or `.msd` (release and dev).
+
+`mathsys.release` is the last stable version, whilst `mathsys.dev` is the latest version published.
 
 > [!NOTE]
 > To view all available targets, run `mathsys help <filename>.msX`.

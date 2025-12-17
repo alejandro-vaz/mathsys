@@ -12,7 +12,7 @@ from dataclasses import dataclass
 #^
 
 #> START -> CLASS
-@dataclass
+@dataclass(kw_only = True)
 class Start:
     statements: list[Level1]
 
@@ -25,43 +25,43 @@ class Start:
 class Level1: pass
 
 #> 1ºLEVEL -> DECLARATION
-@dataclass
+@dataclass(kw_only = True)
 class Declaration(Level1):
     group: str | None
     variable: Variable
     expression: Expression
 
 #> 1ºLEVEL -> DEFINITION
-@dataclass
+@dataclass(kw_only = True)
 class Definition(Level1):
     group: str | None
     variable: Variable
     expression: Expression
 
 #> 1ºLEVEL -> ANNOTATION
-@dataclass
+@dataclass(kw_only = True)
 class Annotation(Level1):
     group: str
     variables: list[Variable]
 
 #> 1ºLEVEL -> NODE
-@dataclass
+@dataclass(kw_only = True)
 class Node(Level1):
     expression: Expression
 
 #> 1ºLEVEL -> EQUATION
-@dataclass
+@dataclass(kw_only = True)
 class Equation(Level1):
     leftexpression: Expression
     rightexpression: Expression
 
 #> 1ºLEVEL -> COMMENT
-@dataclass
+@dataclass(kw_only = True)
 class Comment(Level1):
     text: str
 
 #> 1ºLEVEL -> USE
-@dataclass
+@dataclass(kw_only = True)
 class Use(Level1):
     name: str
     start: Start | None
@@ -75,9 +75,9 @@ class Use(Level1):
 class Level2: pass
 
 #> 2ºLEVEL -> EXPRESSION
-@dataclass
+@dataclass(kw_only = True)
 class Expression(Level2):
-    signs: list[str | None]
+    signs: list[bool | None]
     terms: list[Level3]
 
 
@@ -89,7 +89,7 @@ class Expression(Level2):
 class Level3: pass
 
 #> 3ºLEVEL -> TERM
-@dataclass
+@dataclass(kw_only = True)
 class Term(Level3):
     numerator: list[Level4]
     denominator: list[Level4]
@@ -103,13 +103,13 @@ class Term(Level3):
 class Level4: pass
 
 #> 4ºLEVEL -> FACTOR
-@dataclass
+@dataclass(kw_only = True)
 class Factor(Level4):
     value: Level5
     exponent: Expression | None
 
 #> 4ºLEVEL -> LIMIT
-@dataclass
+@dataclass(kw_only = True)
 class Limit(Level4):
     variable: Variable
     approach: Expression
@@ -126,26 +126,25 @@ class Limit(Level4):
 class Level5: pass
 
 #> 5ºLEVEL -> INFINITE
-@dataclass
+@dataclass(kw_only = True)
 class Infinite(Level5): pass
 
 #> 5ºLEVEL -> VARIABLE
-@dataclass
+@dataclass(kw_only = True)
 class Variable(Level5):
     representation: str
 
 #> 5ºLEVEL -> NEST
-@dataclass
+@dataclass(kw_only = True)
 class Nest(Level5):
     expression: Expression | None
 
 #> 5ºLEVEL -> TENSOR
-@dataclass
+@dataclass(kw_only = True)
 class Tensor(Level5):
     values: list[Expression]
 
-#> 5ºLEVEL -> NUMBER
-@dataclass
-class Number(Level5):
+#> 5ºLEVEL -> NATURAL
+@dataclass(kw_only = True)
+class Natural(Level5):
     value: int
-    shift: int

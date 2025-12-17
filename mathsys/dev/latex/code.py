@@ -87,7 +87,7 @@ class LaTeX:
     #~ GENERATOR -> 2 EXPRESSION GENERATION
     def expression(self, expression: parser.Expression) -> str:
         return str(latex.Expression(
-            signs = [sign if sign is not None else "" for sign in expression.signs],
+            signs = expression.signs,
             terms = [self.level3(term) for term in expression.terms]
         ))
     #~ GENERATOR -> 3 LEVEL GENERATION
@@ -101,9 +101,9 @@ class LaTeX:
             value = self.level4(term.numerator[index])
             if index != 0:
                 if isinstance(term.numerator[index - 1], parser.Factor):
-                    if isinstance(term.numerator[index - 1].value, parser.Number):
+                    if isinstance(term.numerator[index - 1].value, parser.Natural):
                         if isinstance(term.numerator[index], parser.Factor):
-                            if isinstance(term.numerator[index].value, parser.Number | parser.Infinite):
+                            if isinstance(term.numerator[index].value, parser.Natural | parser.Infinite):
                                 value = r"\cdot " + value
                     else: value = r"\cdot " + value
                 else: value = r"\cdot " + value
@@ -113,9 +113,9 @@ class LaTeX:
             value = self.level4(term.denominator[index])
             if index != 0:
                 if isinstance(term.denominator[index - 1], parser.Factor):
-                    if isinstance(term.denominator[index - 1].value, parser.Number):
+                    if isinstance(term.denominator[index - 1].value, parser.Natural):
                         if isinstance(term.denominator[index], parser.Factor):
-                            if isinstance(term.denominator[index].value, parser.Number | parser.Infinite):
+                            if isinstance(term.denominator[index].value, parser.Natural | parser.Infinite):
                                 value = r"\cdot " + value
                     else: value = r"\cdot " + value
                 else: value = r"\cdot " + value
@@ -151,7 +151,7 @@ class LaTeX:
             case parser.Variable(): return self.variable(level5)
             case parser.Nest(): return self.nest(level5)
             case parser.Tensor(): return self.tensor(level5)
-            case parser.Number(): return self.number(level5)
+            case parser.Natural(): return self.natural(level5)
     #~ GENERATOR -> 5 INFINITE GENERATION
     def infinite(self, infinite: parser.Infinite) -> str: 
         return str(latex.Infinite())
@@ -170,9 +170,8 @@ class LaTeX:
         return str(latex.Tensor(
             values = [self.expression(value) for value in tensor.values]
         ))
-    #~ GENERATOR -> 5 NUMBER GENERATION
-    def number(self, number: parser.Number) -> str:
-        return str(latex.Number(
-            value = number.value,
-            shift = number.shift
+    #~ GENERATOR -> 5 NATURAL GENERATION
+    def natural(self, natural: parser.Natural) -> str:
+        return str(latex.Natural(
+            value = natural.value
         ))

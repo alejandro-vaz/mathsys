@@ -82,7 +82,7 @@ class Parser(Transformer):
     #~ CLASS -> 2 EXPRESSION CONSTRUCT
     def expression(self, items: list[Token | parser.Level3]) -> parser.Expression:
         return parser.Expression(
-            signs = ([] if isinstance(items[0], Token) else [None]) + [ñ(item) for item in items if isinstance(item, Token)],
+            signs = ([] if isinstance(items[0], Token) else [None]) + [ñ(item) == "+" for item in items if isinstance(item, Token)],
             terms = [item for item in items if isinstance(item, parser.Level3)]
         )
     #~ CLASS -> 3 TERM CONSTRUCT
@@ -133,9 +133,8 @@ class Parser(Transformer):
         return parser.Tensor(
             values = items
         )
-    #~ CLASS -> 5 NUMBER CONSTRUCT
-    def number(self, items: list[Token]) -> parser.Number:
-        return parser.Number(
-            value = int(ñ(items[0]) + (ñ(items[1]) if len(items) == 2 else "0")),
-            shift = len(str(int((ñ(items[1]) if len(items) == 2 else "0")[::-1])))
+    #~ CLASS -> 5 NATURAL CONSTRUCT
+    def natural(self, items: list[Token]) -> parser.Natural:
+        return parser.Natural(
+            value = int(ñ(items[0]))
         )

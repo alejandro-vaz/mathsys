@@ -40,7 +40,7 @@ impl Reparser {
                 0x0E => self.Variable(settings),
                 0x0F => self.Nest(settings),
                 0x10 => self.Tensor(settings),
-                0x11 => self.Number(settings),
+                0x11 => self.Natural(settings),
                 other => crash(Code::UnknownIRObject)
             };
             trace(format!(
@@ -88,15 +88,14 @@ impl Reparser {
         nest: self.take32(settings),
         exponent: self.take32(settings)
     })}
+    fn Natural(&mut self, settings: &Settings) -> Class {return Class::_Natural(crate::_Natural {
+        value: self.take32(settings)
+    })}
     fn Nest(&mut self, settings: &Settings) -> Class {return Class::_Nest(crate::_Nest {
         expression: self.take32(settings)
     })}
     fn Node(&mut self, settings: &Settings) -> Class {return Class::_Node(crate::_Node {
         expression: self.take32(settings)
-    })}
-    fn Number(&mut self, settings: &Settings) -> Class {return Class::_Number(crate::_Number {
-        value: self.take32(settings),
-        shift: self.take8(settings)
     })}
     fn Start(&mut self, settings: &Settings) -> Class {return Class::_Start(crate::_Start {
         statements: self.list32(settings)

@@ -15,8 +15,8 @@ use crate::stdout::{chore, trace};
 #[derive(Clone)]
 pub enum Object {
     Infinite(crate::Infinite),
+    Natural(crate::Natural),
     Nexists(crate::Nexists),
-    Number(crate::Number),
     Tensor(crate::Tensor),
     Undefined(crate::Undefined),
     Variable(crate::Variable)
@@ -25,8 +25,8 @@ pub enum Object {
 //> OBJECT -> CASTING
 impl Object {pub fn cast(&self, group: Group) -> Object {return match self {
     Object::Infinite(item) => item.cast(group),
+    Object::Natural(item) => item.cast(group),
     Object::Nexists(item) => item.cast(group),
-    Object::Number(item) => item.cast(group),
     Object::Tensor(item) => item.cast(group),
     Object::Undefined(item) => item.cast(group),
     Object::Variable(item) => item.cast(group)
@@ -36,16 +36,16 @@ impl Object {pub fn cast(&self, group: Group) -> Object {return match self {
 impl Object {
     pub fn unequivalency(&self, to: &Object) -> bool {self.genlocale0(to); return self.partial(match self {
         Object::Infinite(item) => item.unequivalency(to),
+        Object::Natural(item) => item.unequivalency(to),
         Object::Nexists(item) => item.unequivalency(to),
-        Object::Number(item) => item.unequivalency(to),
         Object::Tensor(item) => item.unequivalency(to),
         Object::Undefined(item) => item.unequivalency(to),
         Object::Variable(item) => item.unequivalency(to)
     })}
     pub fn equivalency(&self, to: &Object) -> bool {self.genlocale1(to); return self.partial(match self {
         Object::Infinite(item) => item.equivalency(to),
+        Object::Natural(item) => item.equivalency(to),
         Object::Nexists(item) => item.equivalency(to),
-        Object::Number(item) => item.equivalency(to),
         Object::Tensor(item) => item.equivalency(to),
         Object::Undefined(item) => item.equivalency(to),
         Object::Variable(item) => item.equivalency(to)
@@ -56,16 +56,16 @@ impl Object {
 impl Object {
     pub fn negate(&self) -> Object {self.genlocale2(); return self.partial(match self {
         Object::Infinite(item) => item.negate(),
+        Object::Natural(item) => item.negate(),
         Object::Nexists(item) => item.negate(),
-        Object::Number(item) => item.negate(),
         Object::Tensor(item) => item.negate(),
         Object::Undefined(item) => item.negate(),
         Object::Variable(item) => item.negate()
     })}
     pub fn summation(&self, to: &Object) -> Object {self.genlocale3(to); return self.partial(match self {
         Object::Infinite(item) => item.summation(to),
+        Object::Natural(item) => item.summation(to),
         Object::Nexists(item) => item.summation(to),
-        Object::Number(item) => item.summation(to),
         Object::Tensor(item) => item.summation(to),
         Object::Undefined(item) => item.summation(to),
         Object::Variable(item) => item.summation(to)
@@ -76,16 +76,16 @@ impl Object {
 impl Object {
     pub fn invert(&self) -> Object {self.genlocale4(); return self.partial(match self {
         Object::Infinite(item) => item.invert(),
+        Object::Natural(item) => item.invert(),
         Object::Nexists(item) => item.invert(),
-        Object::Number(item) => item.invert(),
         Object::Tensor(item) => item.invert(),
         Object::Undefined(item) => item.invert(),
         Object::Variable(item) => item.invert()
     })}
     pub fn multiplication(&self, to: &Object) -> Object {self.genlocale5(to); return self.partial(match self {
         Object::Infinite(item) => item.multiplication(to),
+        Object::Natural(item) => item.multiplication(to),
         Object::Nexists(item) => item.multiplication(to),
-        Object::Number(item) => item.multiplication(to),
         Object::Tensor(item) => item.multiplication(to),
         Object::Undefined(item) => item.multiplication(to),
         Object::Variable(item) => item.multiplication(to),
@@ -95,15 +95,15 @@ impl Object {
 //> OBJECT -> REPRESENTATION
 impl crate::Display for Object {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {match self {
     Object::Infinite(item) => item.display(formatter),
+    Object::Natural(item) => item.display(formatter),
     Object::Nexists(item) => item.display(formatter),
-    Object::Number(item) => item.display(formatter),
     Object::Tensor(item) => item.display(formatter),
     Object::Undefined(item) => item.display(formatter),
     Object::Variable(item) => item.display(formatter)
 }}} impl crate::Debug for Object {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {match self {
     Object::Infinite(item) => item.debug(formatter),
+    Object::Natural(item) => item.debug(formatter),
     Object::Nexists(item) => item.debug(formatter),
-    Object::Number(item) => item.debug(formatter),
     Object::Tensor(item) => item.debug(formatter),
     Object::Undefined(item) => item.debug(formatter),
     Object::Variable(item) => item.debug(formatter)
@@ -141,16 +141,16 @@ impl Object {
     )); self.info(); to.info()}
     pub fn info(&self) -> () {match self {
         Object::Infinite(item) => item.info(),
+        Object::Natural(item) => item.info(),
         Object::Nexists(item) => item.info(),
-        Object::Number(item) => item.info(),
         Object::Tensor(item) => item.info(),
         Object::Undefined(item) => item.info(),
         Object::Variable(item) => item.info(),
     }}
     pub fn is(&self, group: Group) -> bool {return match self {
         Object::Infinite(item) => group == Group::Undefined || group == Group::Infinite,
+        Object::Natural(item) => group == Group::Undefined || group == Group::Natural,
         Object::Nexists(item) => group == Group::Undefined || group == Group::Nexists,
-        Object::Number(item) => group == Group::Undefined || group == Group::Number,
         Object::Tensor(item) => group == Group::Undefined || group == Group::Tensor,
         Object::Undefined(item) => true,
         Object::Variable(item) => group == Group::Undefined || group == Group::Variable

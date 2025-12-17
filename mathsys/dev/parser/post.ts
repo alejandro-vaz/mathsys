@@ -87,7 +87,7 @@ export function use(items: Token[]): parser.Use {
 //> 2ºLEVEL -> EXPRESSION
 export function expression(items: (Token | parser.Level3)[]): parser.Expression {
     return new parser.Expression(
-        [...(istoken(items[0]) ? [] : [null]), ...items.filter(item => istoken(item)).map(item => ñ(item as Token))],
+        [...(istoken(items[0]) ? [] : [null]), ...items.filter(item => istoken(item)).map(item => ñ(item as Token) === "+")],
         items.filter(item => item instanceof parser.Level3)
     );
 }
@@ -167,10 +167,9 @@ export function tensor(items: parser.Expression[]): parser.Tensor {
     );
 }
 
-//> 5ºLEVEL -> NUMBER
-export function number(items: Token[]): parser.Number {
-    return new parser.Number(
-        +(ñ(items[0]) + (items.length == 2 ? ñ(items[1]) : "0")),
-        (+((items.length == 2 ? ñ(items[1]) : "0").split('').reverse().join(''))).toString().length
+//> 5ºLEVEL -> NATURAL
+export function natural(items: Token[]): parser.Natural {
+    return new parser.Natural(
+        +ñ(items[0])
     );
 }

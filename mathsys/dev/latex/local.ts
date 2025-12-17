@@ -81,8 +81,8 @@ export const SPECIAL: Record<string, string> = {
 export const CONVERSION: Record<string, (string: string) => string> = {
     null: (name: string) => name,
     "@Infinite": (name: string) => String.raw`\overset{\infty}{${name}}`,
+    "@Natural": (name: string) => name,
     "@Nexists": (name: string) => String.raw`\color{gray}${name}\color{black}`,
-    "@Number": (name: string) => name,
     "@Tensor": (name: string) => String.raw`\overline{${name}}`,
     "@Undefined": (name: string) => String.raw`\overset{?}{${name}}`,
     "@Variable": (name: string) => String.raw`{^{*}${name}}`

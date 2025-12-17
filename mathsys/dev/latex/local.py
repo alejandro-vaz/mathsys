@@ -81,8 +81,8 @@ SPECIAL = {
 CONVERSION = {
     None: lambda name: name,
     "@Infinite": lambda name: fr"\overset{{\infty}}{{{name}}}",
+    "@Natural": lambda name: name,
     "@Nexists": lambda name: fr"\color{{gray}}{name}\color{{black}}",
-    "@Number": lambda name: name,
     "@Tensor": lambda name: fr"\overline{{{name}}}",
     "@Undefined": lambda name: fr"\overset{{?}}{{{name}}}",
     "@Variable": lambda name: fr"{{^{{*}}{name}}}"

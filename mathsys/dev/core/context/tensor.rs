@@ -20,8 +20,8 @@ pub struct Tensor {}
 //> TENSOR -> CASTING
 impl Tensor {pub fn cast(&self, group: Group) -> Object {return match group {
     Group::Infinite => crash(Code::UnexpectedValue),
+    Group::Natural => crash(Code::UnexpectedValue),
     Group::Nexists => crash(Code::UnexpectedValue),
-    Group::Number => crash(Code::UnexpectedValue),
     Group::Tensor => self.to(),
     Group::Undefined => Object::Undefined(crate::Undefined {}),
     Group::Variable => crash(Code::UnexpectedValue)
@@ -31,16 +31,16 @@ impl Tensor {pub fn cast(&self, group: Group) -> Object {return match group {
 impl Tensor {
     pub fn unequivalency(&self, to: &Object) -> bool {return match to {
         Object::Infinite(item) => item.unequivalency(&self.to()),
+        Object::Natural(item) => item.unequivalency(&self.to()),
         Object::Nexists(item) => item.unequivalency(&self.to()),
-        Object::Number(item) => item.unequivalency(&self.to()),
         Object::Tensor(item) => false,
         Object::Undefined(item) => false,
         Object::Variable(item) => true
     }}
     pub fn equivalency(&self, to: &Object) -> bool {return match to {
         Object::Infinite(item) => item.equivalency(&self.to()),
+        Object::Natural(item) => item.equivalency(&self.to()),
         Object::Nexists(item) => item.equivalency(&self.to()),
-        Object::Number(item) => item.equivalency(&self.to()),
         Object::Tensor(item) => true,
         Object::Undefined(item) => false,
         Object::Variable(item) => false
@@ -52,8 +52,8 @@ impl Tensor {
     pub fn negate(&self) -> Object {return Object::Tensor(crate::Tensor {})}
     pub fn summation(&self, to: &Object) -> Object {return match to {
         Object::Infinite(item) => item.summation(&self.to()),
+        Object::Natural(item) => item.summation(&self.to()),
         Object::Nexists(item) => item.summation(&self.to()),
-        Object::Number(item) => item.summation(&self.to()),
         Object::Tensor(item) => self.to(),
         Object::Undefined(item) => item.to(),
         Object::Variable(item) => crash(Code::UnexpectedValue)
@@ -65,8 +65,8 @@ impl Tensor {
     pub fn invert(&self) -> Object {return Object::Undefined(crate::Undefined {})}
     pub fn multiplication(&self, to: &Object) -> Object {return match to {
         Object::Infinite(item) => item.multiplication(&self.to()),
+        Object::Natural(item) => item.multiplication(&self.to()),
         Object::Nexists(item) => item.multiplication(&self.to()),
-        Object::Number(item) => item.multiplication(&self.to()),
         Object::Tensor(item) => self.to(),
         Object::Undefined(item) => item.to(),
         Object::Variable(item) => crash(Code::UnexpectedValue)

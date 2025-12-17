@@ -67,7 +67,7 @@ export abstract class Level2 {constructor() {}}
 
 //> 2ºLEVEL -> EXPRESSION
 export class Expression extends Level2 {constructor(
-    public signs: (string | null)[],
+    public signs: (boolean | null)[],
     public terms: Level3[]
 ) {super()}}
 
@@ -134,8 +134,7 @@ export class Tensor extends Level5 {constructor(
     public values: Expression[]
 ) {super()}}
 
-//> 5ºLEVEL -> NUMBER
-export class Number extends Level5 {constructor(
-    public value: number,
-    public shift: number
+//> 5ºLEVEL -> NATURAL
+export class Natural extends Level5 {constructor(
+    public value: number
 ) {super()}}

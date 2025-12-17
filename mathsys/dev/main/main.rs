@@ -2,9 +2,6 @@
 //^ HEAD
 //^
 
-//> HEAD -> FLAGS
-#![allow(unused_variables)]
-
 //> HEAD -> RUNTIME
 use core::{run, Settings};
 
@@ -14,13 +11,11 @@ use core::{run, Settings};
 //^
 
 //> MAIN -> FUNCTION
-fn main() -> () {
-    run(Settings {
-        ir: include_bytes!(env!("MathsysSource")),
-        version: [
-            env!("MathsysMajor"), 
-            env!("MathsysMinor"), 
-            env!("MathsysPatch")
-        ]
-    });
-}
+fn main() -> () {run(Settings {
+    ir: include_bytes!(env!("MathsysSource")),
+    version: [
+        env!("MathsysMajor"), 
+        env!("MathsysMinor"), 
+        env!("MathsysPatch")
+    ]
+})}

@@ -223,14 +223,13 @@ export class Tensor {
     )}
 }
 
-//> 5ºLEVEL -> NUMBER
-export class Number {
+//> 5ºLEVEL -> NATURAL
+export class Natural {
     static code = u8(0x11);
     constructor(
-        public value: u32 | null32,
-        public shift: u8 | null8
+        public value: u32 | null32
     ) {}
     bytes() {return clamp(
-        Number.code, this.value, this.shift
+        Natural.code, this.value
     )}
 }

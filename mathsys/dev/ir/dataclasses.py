@@ -14,7 +14,7 @@ from .local import join, u8, null8, u32, null32
 #^
 
 #> START -> CLASS
-@dataclass
+@dataclass(kw_only = True)
 class Start:
     code = u8(0x01)
     statements: list[u32]
@@ -27,7 +27,7 @@ class Start:
 #^
 
 #> 1ºLEVEL -> DECLARATION
-@dataclass
+@dataclass(kw_only = True)
 class Declaration:
     code = u8(0x02)
     group: u8 | null8
@@ -37,7 +37,7 @@ class Declaration:
         return self.code + self.group + self.variable + self.expression
 
 #> 1ºLEVEL -> DEFINITION
-@dataclass
+@dataclass(kw_only = True)
 class Definition:
     code = u8(0x03)
     group: u8 | null8
@@ -47,7 +47,7 @@ class Definition:
         return self.code + self.group + self.variable + self.expression
 
 #> 1ºLEVEL -> ANNOTATION
-@dataclass
+@dataclass(kw_only = True)
 class Annotation:
     code = u8(0x04)
     group: u8 | null8
@@ -56,7 +56,7 @@ class Annotation:
         return self.code + self.group + join(self.variables, null32())
 
 #> 1ºLEVEL -> NODE
-@dataclass
+@dataclass(kw_only = True)
 class Node:
     code = u8(0x05)
     expression: u32
@@ -64,7 +64,7 @@ class Node:
         return self.code + self.expression
 
 #> 1ºLEVEL -> EQUATION
-@dataclass
+@dataclass(kw_only = True)
 class Equation:
     code = u8(0x06)
     leftexpression: u32
@@ -73,7 +73,7 @@ class Equation:
         return self.code + self.leftexpression + self.rightexpression
 
 #> 1ºLEVEL -> COMMENT
-@dataclass
+@dataclass(kw_only = True)
 class Comment:
     code = u8(0x07)
     text: list[u8]
@@ -81,7 +81,7 @@ class Comment:
         return self.code + join(self.text, null8())
 
 #> 1ºLEVEL -> USE
-@dataclass
+@dataclass(kw_only = True)
 class Use:
     code = u8(0x08)
     name: list[u8]
@@ -95,7 +95,7 @@ class Use:
 #^
 
 #> 2ºLEVEL -> EXPRESSION
-@dataclass
+@dataclass(kw_only = True)
 class Expression:
     code = u8(0x09)
     signs: list[u8]
@@ -109,7 +109,7 @@ class Expression:
 #^
 
 #> 3ºLEVEL -> TERM
-@dataclass
+@dataclass(kw_only = True)
 class Term:
     code = u8(0x0A)
     numerator: list[u32]
@@ -123,7 +123,7 @@ class Term:
 #^
 
 #> 4ºLEVEL -> FACTOR
-@dataclass
+@dataclass(kw_only = True)
 class Factor:
     code = u8(0x0B)
     value: u32
@@ -132,7 +132,7 @@ class Factor:
         return self.code + self.value + self.exponent
 
 #> 4ºLEVEL -> LIMIT
-@dataclass
+@dataclass(kw_only = True)
 class Limit:
     code = u8(0x0C)
     variable: u32
@@ -149,14 +149,14 @@ class Limit:
 #^
 
 #> 5ºLEVEL -> INFINITE
-@dataclass
+@dataclass(kw_only = True)
 class Infinite:
     code = u8(0x0D)
     def __bytes__(self) -> bytes:
         return self.code
 
 #> 5ºLEVEL -> VARIABLE
-@dataclass
+@dataclass(kw_only = True)
 class Variable:
     code = u8(0x0E)
     representation: list[u8]
@@ -164,7 +164,7 @@ class Variable:
         return self.code + join(self.representation, null8())
 
 #> 5ºLEVEL -> NEST
-@dataclass
+@dataclass(kw_only = True)
 class Nest:
     code = u8(0x0F)
     expression: u32 | null32
@@ -172,18 +172,17 @@ class Nest:
         return self.code + self.expression
 
 #> 5ºLEVEL -> TENSOR
-@dataclass
+@dataclass(kw_only = True)
 class Tensor:
     code = u8(0x10)
     values: list[u32]
     def __bytes__(self) -> bytes:
         return self.code + join(self.values, null32())
 
-#> 5ºLEVEL -> NUMBER
-@dataclass
-class Number:
+#> 5ºLEVEL -> NATURAL
+@dataclass(kw_only = True)
+class Natural:
     code = u8(0x11)
     value: u32 | null32
-    shift: u8 | null8
     def __bytes__(self) -> bytes:
-        return self.code + self.value + self.shift
+        return self.code + self.value

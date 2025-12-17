@@ -103,7 +103,7 @@ export class IR {
     }
     //~ GENERATOR -> 2 EXPRESSION GENERATION
     expression(expression: parser.Expression): u32 {return this.new(new ir.Expression(
-        expression.signs.map(sign => sign === null || !sign.includes("-") ? u8(1) : u8(sign.split("-").length)),
+        expression.signs.map(sign => sign === null || sign ? u8(1) : u8(2)),
         expression.terms.map(term => this.level3(term))
     ))}
     //~ GENERATOR -> 3 LEVEL GENERATION
@@ -141,7 +141,7 @@ export class IR {
         if (level5 instanceof parser.Variable) return this.variable(level5);
         if (level5 instanceof parser.Nest) return this.nest(level5);
         if (level5 instanceof parser.Tensor) return this.tensor(level5);
-        if (level5 instanceof parser.Number) return this.number(level5);
+        if (level5 instanceof parser.Natural) return this.natural(level5);
         return null32();
     }
     //~ GENERATOR -> 5 INFINITE GENERATION
@@ -158,9 +158,8 @@ export class IR {
     tensor(tensor: parser.Tensor): u32 {return this.new(new ir.Tensor(
         tensor.values.map(value => this.expression(value))
     ))}
-    //~ GENERATOR -> 5 NUMBER GENERATION
-    number(number: parser.Number): u32 {return this.new(new ir.Number(
-        number.value !== 0 ? u32(number.value) : null32(),
-        number.shift !== 0 ? u8(number.shift) : null8()
+    //~ GENERATOR -> 5 NATURAL GENERATION
+    natural(natural: parser.Natural): u32 {return this.new(new ir.Natural(
+        natural.value !== 0 ? u32(natural.value) : null32()
     ))}
 }

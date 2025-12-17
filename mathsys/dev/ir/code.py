@@ -101,7 +101,7 @@ class IR:
     #~ GENERATOR -> 2 EXPRESSION GENERATION
     def expression(self, expression: parser.Expression) -> u32:
         return self.new(ir.Expression(
-            signs = [u8(1) if sign is None or sign.count("-") == 0 else u8(sign.count("-") + 1) for sign in expression.signs],
+            signs = [u8(1) if sign is None or sign else u8(2) for sign in expression.signs],
             terms = [self.level3(item) for item in expression.terms]
         ))
     #~ GENERATOR -> 3 LEVEL GENERATION
@@ -141,7 +141,7 @@ class IR:
             case parser.Variable(): return self.variable(level5)
             case parser.Nest(): return self.nest(level5)
             case parser.Tensor(): return self.tensor(level5)
-            case parser.Number(): return self.number(level5)
+            case parser.Natural(): return self.natural(level5)
     #~ GENERATOR -> 5 INFINITE GENERATION
     def infinite(self, infinite: parser.Infinite) -> u32:
         return self.new(ir.Infinite())
@@ -160,9 +160,8 @@ class IR:
         return self.new(ir.Tensor(
             values = [self.expression(value) for value in tensor.values]
         ))
-    #~ GENERATOR -> 5 NUMBER GENERATION
-    def number(self, number: parser.Number) -> u32:
-        return self.new(ir.Number(
-            value = u32(number.value) if number.value != 0 else null32(),
-            shift = u8(number.shift) if number.shift != 0 else null8()
+    #~ GENERATOR -> 5 NATURAL GENERATION
+    def natural(self, natural: parser.Natural) -> u32:
+        return self.new(ir.Natural(
+            value = u32(natural.value) if natural.value != 0 else null32()
         ))

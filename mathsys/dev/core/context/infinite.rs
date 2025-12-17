@@ -22,8 +22,8 @@ pub struct Infinite {
 //> INFINITE -> CASTING
 impl Infinite {pub fn cast(&self, group: Group) -> Object {return match group {
     Group::Infinite => self.to(),
+    Group::Natural => crash(Code::UnexpectedValue),
     Group::Nexists => crash(Code::UnexpectedValue),
-    Group::Number => crash(Code::UnexpectedValue),
     Group::Tensor => crash(Code::UnexpectedValue),
     Group::Undefined => Object::Undefined(crate::Undefined {}),
     Group::Variable => crash(Code::UnexpectedValue)
@@ -33,16 +33,16 @@ impl Infinite {pub fn cast(&self, group: Group) -> Object {return match group {
 impl Infinite {
     pub fn unequivalency(&self, to: &Object) -> bool {return match to {
         Object::Infinite(item) => !self.equivalency(to),
+        Object::Natural(item) => true,
         Object::Nexists(item) => true,
-        Object::Number(item) => true,
         Object::Tensor(item) => true,
         Object::Undefined(item) => false,
         Object::Variable(item) => true
     }}
     pub fn equivalency(&self, to: &Object) -> bool {return match to {
         Object::Infinite(item) => self.negative == item.negative,
+        Object::Natural(item) => false,
         Object::Nexists(item) => false,
-        Object::Number(item) => false,
         Object::Tensor(item) => false,
         Object::Undefined(item) => false,
         Object::Variable(item) => false
@@ -56,8 +56,8 @@ impl Infinite {
     })}
     pub fn summation(&self, to: &Object) -> Object {match to {
         Object::Infinite(item) => if self.negative != item.negative {Object::Undefined(crate::Undefined {})} else {self.to()},
+        Object::Natural(item) => self.to(),
         Object::Nexists(item) => self.to(),
-        Object::Number(item) => self.to(),
         Object::Tensor(item) => self.to(),
         Object::Undefined(item) => item.to(),
         Object::Variable(item) => crash(Code::UnexpectedValue)
@@ -66,23 +66,19 @@ impl Infinite {
 
 //> INFINITE -> MULTIPLICATION
 impl Infinite {
-    pub fn invert(&self) -> Object {return Object::Number(crate::Number {
-        value: 0,
-        shift: 0,
-        negative: false
+    pub fn invert(&self) -> Object {return Object::Natural(crate::Natural {
+        value: 0
     })}
     pub fn multiplication(&self, to: &Object) -> Object {return match to {
         Object::Infinite(item) => Object::Infinite(crate::Infinite {
             negative: self.negative != item.negative
         }),
-        Object::Nexists(item) => self.to(),
-        Object::Number(item) => if item.value == 0 {Object::Number(crate::Number {
-            value: 0, 
-            shift: 0, 
-            negative: false
+        Object::Natural(item) => if item.value == 0 {Object::Natural(crate::Natural {
+            value: 0
         })} else {Object::Infinite(crate::Infinite {
-            negative: self.negative != item.negative
+            negative: self.negative
         })},
+        Object::Nexists(item) => self.to(),
         Object::Tensor(item) => self.to(),
         Object::Undefined(item) => item.to(),
         Object::Variable(item) => crash(Code::UnexpectedValue)

@@ -120,12 +120,16 @@ export class Use {
 //> 2ºLEVEL -> EXPRESSION
 export class Expression {
     constructor(
-        public signs: string[],
+        public signs: (boolean | null)[],
         public terms: string[]
     ) {}
     toString(): string {
-        const string = [...this.terms.keys()].map(index => `${this.signs[index]}${this.terms[index]}`).join("");
-        return string;
+        let string: string[] = [];
+        this.terms.forEach((value: string, index: number) => {
+            const sign = this.signs[index] !== null ? (this.signs[index] ? "+" : "-") : "";
+            string.push(`${sign}${this.terms[index]}`);
+        })
+        return string.join("");
     }
 }
 
@@ -229,14 +233,12 @@ export class Tensor {
     }
 }
 
-//> 5ºLEVEL -> NUMBER
-export class Number {
+//> 5ºLEVEL -> NATURAL
+export class Natural {
     constructor(
-        public value: number,
-        public shift: number
+        public value: number
     ) {}
     toString(): string {
-        const each = this.value.toString();
-        return `${each.slice(0, each.length - this.shift)}.${each.slice(each.length - this.shift)}`;
+        return `${this.value}`;
     }
 }

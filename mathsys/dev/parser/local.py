@@ -23,7 +23,7 @@ equation: expression _S? _EQUALITY _S? expression
 comment: QUOTE
 use: _USE _S MODULE
 
-expression: (SIGNS _S?)? level3 (_S? SIGNS _S? level3)*
+expression: (SIGN _S?)? level3 (_S? SIGN _S? level3)*
 
 term: level4 ((_S? OPERATOR)? _S? level4)*
 
@@ -34,22 +34,22 @@ variable: IDENTIFIER
 infinite: _INF
 nest: _OPEN _S? expression? _S? _CLOSE
 tensor: _ENTER _S? (expression (_S? _COMMA _S? expression)* _S?)? _EXIT
-number: NUMBER (_DOT NUMBER)?
+natural: NUMBER
 
 
 level1: (declaration | definition | annotation | node | equation | comment | use)
 level2: (expression)
 level3: (term)
 level4: (factor | limit)
-level5: (variable | infinite | nest | tensor | number)
+level5: (variable | infinite | nest | tensor | natural)
 
 
 _LIM: /\blim\b/
 _TO: /->/
 _OF: /\bof\b/
 _USE: /\buse\b/
-IDENTIFIER: /(?!\b(?:inf|of|use|lim|Infinite|Nexists|Number|Tensor|Undefined|Variable)\b)[A-Za-zº$%]+/
-OBJECT: /\@(?:Infinite|Nexists|Number|Tensor|Undefined|Variable)\b/
+IDENTIFIER: /(?!\b(?:inf|of|use|lim|Infinite|Natural|Nexists|Tensor|Undefined|Variable)\b)[A-Za-zº$%]+/
+OBJECT: /\@(?:Infinite|Natural|Nexists|Tensor|Undefined|Variable)\b/
 _INF: /\binf\b/
 _EXPONENTIATION: /\^/
 NUMBER: /[0-9]+/
@@ -57,7 +57,6 @@ _DOT: /\./
 _BINDING: /==/
 _EQUALITY: /=/
 OPERATOR: /[\*\/]/
-SIGNS: /[+-]+(?:\s*[+-]+)*/
 SIGN: /[+-]/
 _OPEN: /\(/
 _CLOSE: /\)/

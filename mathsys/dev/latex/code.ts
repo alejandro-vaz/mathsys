@@ -111,7 +111,7 @@ export class LaTeX {
         throw new Error("Invalid Expression passed to LaTeX.expression");
     }
         return String(new latex.Expression(
-            expression.signs.map(sign => sign !== null ? sign : ""),
+            expression.signs,
             expression.terms.map(term => this.level3(term))
         ));
     }
@@ -127,9 +127,9 @@ export class LaTeX {
             let value = this.level4(item);
             if (index !== 0) {
                 if (term.numerator[index - 1] instanceof parser.Factor) {
-                    if ((term.numerator[index - 1] as any).value instanceof parser.Number) {
+                    if ((term.numerator[index - 1] as any).value instanceof parser.Natural) {
                         if (item instanceof parser.Factor) {
-                            if (item.value instanceof parser.Number || item.value instanceof parser.Infinite) {
+                            if (item.value instanceof parser.Natural || item.value instanceof parser.Infinite) {
                                 value = String.raw`\cdot ` + value;
                             }
                         }
@@ -143,9 +143,9 @@ export class LaTeX {
             let value = this.level4(item);
             if (index !== 0) {
                 if (term.denominator[index - 1] instanceof parser.Factor) {
-                    if ((term.denominator[index - 1] as any).value instanceof parser.Number) {
+                    if ((term.denominator[index - 1] as any).value instanceof parser.Natural) {
                         if (item instanceof parser.Factor) {
-                            if (item.value instanceof parser.Number || item.value instanceof parser.Infinite) {
+                            if (item.value instanceof parser.Natural || item.value instanceof parser.Infinite) {
                                 value = String.raw`\cdot ` + value;
                             }
                         }
@@ -188,7 +188,7 @@ export class LaTeX {
         if (level5 instanceof parser.Variable) return this.variable(level5);
         if (level5 instanceof parser.Nest) return this.nest(level5);
         if (level5 instanceof parser.Tensor) return this.tensor(level5);
-        if (level5 instanceof parser.Number) return this.number(level5);
+        if (level5 instanceof parser.Natural) return this.natural(level5);
         return "";
     }
     //~ GENERATOR -> 5 INFINITE GENERATION
@@ -213,11 +213,10 @@ export class LaTeX {
             tensor.values.map(value => this.expression(value))
         ));
     }
-    //~ GENERATOR -> 5 NUMBER GENERATION
-    number(number: parser.Number): string {
-        return String(new latex.Number(
-            number.value,
-            number.shift
-        ));
+    //~ GENERATOR -> 5 NATURAL GENERATION
+    natural(natural: parser.Natural): string {
+        return String(new latex.Natural(
+            natural.value
+        ))
     }
 }

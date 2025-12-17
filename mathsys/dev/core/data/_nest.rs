@@ -26,7 +26,7 @@ impl _Nest {pub fn evaluate(&self, runtime: &mut Runtime, id: u32, memory: &Vec<
     let expression = runtime.get(self.expression, memory);
     //~ EVALUATE -> OPERATIONS
     self.space("Computing nest placeholder", id);
-    return Object::Undefined(crate::Undefined {});
+    return expression;
 }}
 
 //> NEST -> REPRESENTATION

@@ -14,7 +14,7 @@ from .local import SPECIAL, VARIABLES, CONVERSION, types
 #^
 
 #> START -> CLASS
-@dataclass
+@dataclass(kw_only = True)
 class Start:
     statements: list[str]
     def __str__(self) -> str:
@@ -32,7 +32,7 @@ class Start:
 #^
 
 #> 1ºLEVEL -> DECLARATION
-@dataclass
+@dataclass(kw_only = True)
 class Declaration:
     group: str
     variable: str
@@ -41,7 +41,7 @@ class Declaration:
         return f"{self.variable}={self.expression}"
 
 #> 1ºLEVEL -> DEFINITION
-@dataclass
+@dataclass(kw_only = True)
 class Definition:
     group: str
     variable: str
@@ -50,7 +50,7 @@ class Definition:
         return fr"{self.variable}\equiv {self.expression}"
 
 #> 1ºLEVEL -> ANNOTATION
-@dataclass
+@dataclass(kw_only = True)
 class Annotation:
     group: str
     variables: list[str]
@@ -58,14 +58,14 @@ class Annotation:
         return ""
 
 #> 1ºLEVEL -> NODE
-@dataclass
+@dataclass(kw_only = True)
 class Node:
     expression: str
     def __str__(self) -> str:
         return self.expression
 
 #> 1ºLEVEL -> EQUATION
-@dataclass
+@dataclass(kw_only = True)
 class Equation:
     leftexpression: str
     rightexpression: str
@@ -73,7 +73,7 @@ class Equation:
         return f"{self.leftexpression}={self.rightexpression}"
 
 #> 1ºLEVEL -> COMMENT
-@dataclass
+@dataclass(kw_only = True)
 class Comment:
     text: str
     def __str__(self) -> str:
@@ -81,7 +81,7 @@ class Comment:
         return fr"\\\text{{{curated}}}"
 
 #> 1ºLEVEL -> USE
-@dataclass
+@dataclass(kw_only = True)
 class Use:
     name: str
     start: bool
@@ -95,13 +95,16 @@ class Use:
 #^
 
 #> 2ºLEVEL -> EXPRESSION
-@dataclass
+@dataclass(kw_only = True)
 class Expression:
-    signs: list[str]
+    signs: list[bool | None]
     terms: list[str]
     def __str__(self) -> str:
-        string = "".join([f"{self.signs[index]}{self.terms[index]}" for index in range(len(self.terms))])
-        return string
+        string = []
+        for index in range(len(self.terms)):
+            sign = ("+" if self.signs[index] else "-") if self.signs[index] is not None else ""
+            string.append(f"{sign}{self.terms[index]}")
+        return "".join(string)
 
 
 #^
@@ -109,7 +112,7 @@ class Expression:
 #^
 
 #> 3ºLEVEL -> TERM
-@dataclass
+@dataclass(kw_only = True)
 class Term:
     numerator: list[str]
     denominator: list[str]
@@ -125,7 +128,7 @@ class Term:
 #^
 
 #> 4ºLEVEL -> FACTOR
-@dataclass
+@dataclass(kw_only = True)
 class Factor:
     value: str
     exponent: str | None
@@ -134,7 +137,7 @@ class Factor:
         return f"{self.value}{exponent}"
 
 #> 4ºLEVEL -> LIMIT
-@dataclass
+@dataclass(kw_only = True)
 class Limit:
     variable: str
     approach: str
@@ -152,13 +155,13 @@ class Limit:
 #^
 
 #> 5ºLEVEL -> INFINITE
-@dataclass
+@dataclass(kw_only = True)
 class Infinite:
     def __str__(self) -> str:
         return r"\infty "
 
 #> 5ºLEVEL -> VARIABLE
-@dataclass
+@dataclass(kw_only = True)
 class Variable:
     representation: str
     def __str__(self) -> str:
@@ -168,7 +171,7 @@ class Variable:
         return identifier
 
 #> 5ºLEVEL -> NEST
-@dataclass
+@dataclass(kw_only = True)
 class Nest:
     expression: str
     def __str__(self) -> str:
@@ -176,18 +179,16 @@ class Nest:
         return fr"\left( {inside}\right) "
 
 #> 5ºLEVEL -> TENSOR
-@dataclass
+@dataclass(kw_only = True)
 class Tensor:
     values: list[str]
     def __str__(self) -> str:
         inside = r"\; " if len(self.values) == 0 else r"\\ ".join(self.values)
         return fr"\begin{{bmatrix}}{inside}\end{{bmatrix}}"
 
-#> 5ºLEVEL -> NUMBER
-@dataclass
-class Number:
+#> 5ºLEVEL -> NATURAL
+@dataclass(kw_only = True)
+class Natural:
     value: int
-    shift: int
     def __str__(self) -> str:
-        each = list(str(self.value))
-        return f"{str().join(each[:-self.shift])}.{str().join(each[-self.shift:])}"
+        return f"{self.value}"
