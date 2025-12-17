@@ -39,7 +39,7 @@ export function null32(): null32 {return new Uint8Array([0, 0, 0, 0])}
 //^
 
 //> HELPERS -> JOIN
-export function join(binary: u8[] | u32[], delimiter: null8 | null32): Uint8Array {
+export function join(binary: u8[] | u32[], delimiter: Uint8Array): Uint8Array {
     const nullTerminator = delimiter;
     let totalLength = nullTerminator.length;
     for (const item of binary) {

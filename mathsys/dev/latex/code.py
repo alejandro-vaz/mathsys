@@ -2,6 +2,9 @@
 #^  HEAD
 #^
 
+#> HEAD -> MODULES
+from typing import cast
+
 #> HEAD -> DATA
 from .local import types
 from . import dataclasses as latex
@@ -33,6 +36,7 @@ class LaTeX:
             case parser.Equation(): return self.equation(level1)
             case parser.Comment(): return self.comment(level1)
             case parser.Use(): return self.use(level1)
+        return NotImplemented
     #~ GENERATOR -> 1 DECLARATION GENERATION
     def declaration(self, declaration: parser.Declaration) -> str:
         if declaration.group is not None: types[declaration.variable.representation] = types.get(declaration.variable.representation, declaration.group)
@@ -84,6 +88,7 @@ class LaTeX:
     def level2(self, level2: parser.Level2) -> str:
         match level2:
             case parser.Expression(): return self.expression(level2)
+        return NotImplemented
     #~ GENERATOR -> 2 EXPRESSION GENERATION
     def expression(self, expression: parser.Expression) -> str:
         return str(latex.Expression(
@@ -94,6 +99,7 @@ class LaTeX:
     def level3(self, level3: parser.Level3) -> str:
         match level3:
             case parser.Term(): return self.term(level3)
+        return NotImplemented
     #~ GENERATOR -> 3 TERM GENERATION
     def term(self, term: parser.Term) -> str:
         numerator = []
@@ -101,9 +107,9 @@ class LaTeX:
             value = self.level4(term.numerator[index])
             if index != 0:
                 if isinstance(term.numerator[index - 1], parser.Factor):
-                    if isinstance(term.numerator[index - 1].value, parser.Natural):
+                    if isinstance(cast(parser.Factor, term.numerator[index - 1]).value, parser.Natural):
                         if isinstance(term.numerator[index], parser.Factor):
-                            if isinstance(term.numerator[index].value, parser.Natural | parser.Infinite):
+                            if isinstance(cast(parser.Factor, term.numerator[index]).value, parser.Natural | parser.Infinite):
                                 value = r"\cdot " + value
                     else: value = r"\cdot " + value
                 else: value = r"\cdot " + value
@@ -113,9 +119,9 @@ class LaTeX:
             value = self.level4(term.denominator[index])
             if index != 0:
                 if isinstance(term.denominator[index - 1], parser.Factor):
-                    if isinstance(term.denominator[index - 1].value, parser.Natural):
+                    if isinstance(cast(parser.Factor, term.denominator[index - 1]).value, parser.Natural):
                         if isinstance(term.denominator[index], parser.Factor):
-                            if isinstance(term.denominator[index].value, parser.Natural | parser.Infinite):
+                            if isinstance(cast(parser.Factor, term.denominator[index]).value, parser.Natural | parser.Infinite):
                                 value = r"\cdot " + value
                     else: value = r"\cdot " + value
                 else: value = r"\cdot " + value
@@ -129,6 +135,7 @@ class LaTeX:
         match level4:
             case parser.Factor(): return self.factor(level4)
             case parser.Limit(): return self.limit(level4)
+        return NotImplemented
     #~ GENERATOR -> 4 FACTOR GENERATION
     def factor(self, factor: parser.Factor) -> str:
         return str(latex.Factor(
@@ -152,6 +159,7 @@ class LaTeX:
             case parser.Nest(): return self.nest(level5)
             case parser.Tensor(): return self.tensor(level5)
             case parser.Natural(): return self.natural(level5)
+        return NotImplemented
     #~ GENERATOR -> 5 INFINITE GENERATION
     def infinite(self, infinite: parser.Infinite) -> str: 
         return str(latex.Infinite())

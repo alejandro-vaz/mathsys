@@ -4,6 +4,7 @@
 
 #> HEAD -> MODULES
 from lark import Lark, Transformer, Token
+from typing import cast
 
 #> HEAD -> DATA
 from .local import MODULES, ñ, SYNTAX
@@ -40,21 +41,21 @@ class Parser(Transformer):
     #~ CLASS -> 1 DECLARATION CONSTRUCT
     def declaration(self, items: list[Token | parser.Variable | parser.Expression]) -> parser.Declaration: 
         return parser.Declaration(
-            group = ñ(items[0]) if len(items) == 3 else None,
-            variable = items[1] if len(items) == 3 else items[0],
-            expression = items[2] if len(items) == 3 else items[1]
+            group = ñ(cast(Token, items[0])) if len(items) == 3 else None,
+            variable = cast(parser.Variable, items[1] if len(items) == 3 else items[0]),
+            expression = cast(parser.Expression, items[2] if len(items) == 3 else items[1])
         )
     #~ CLASS -> 1 DEFINITION CONSTRUCT
     def definition(self, items: list[Token | parser.Variable | parser.Expression]) -> parser.Definition: 
         return parser.Definition(
-            group = ñ(items[0]) if len(items) == 3 else None,
-            variable = items[1] if len(items) == 3 else items[0],
-            expression = items[2] if len(items) == 3 else items[1]
+            group = ñ(cast(Token, items[0])) if len(items) == 3 else None,
+            variable = cast(parser.Variable, items[1] if len(items) == 3 else items[0]),
+            expression = cast(parser.Expression, items[2] if len(items) == 3 else items[1])
         )
     #~ CLASS -> 1 ANNOTATION CONSTRUCT
     def annotation(self, items: list[Token | parser.Variable]) -> parser.Annotation:
         return parser.Annotation(
-            group = ñ(items[0]),
+            group = ñ(cast(Token, items[0])),
             variables = [item for item in items if isinstance(item, parser.Variable)]
         )
     #~ CLASS -> 1 NODE CONSTRUCT
@@ -77,7 +78,7 @@ class Parser(Transformer):
     def use(self, items: list[Token]) -> parser.Use:
         return parser.Use(
             name = ñ(items[0])[1:-1],
-            start = self.run(MODULES.get(ñ(items[0])[1:-1], None)) if MODULES.get(ñ(items[0])[1:-1], None) is not None else None
+            start = self.run(MODULES[ñ(items[0])[1:-1]]) if MODULES.get(ñ(items[0])[1:-1]) is not None else None
         )
     #~ CLASS -> 2 EXPRESSION CONSTRUCT
     def expression(self, items: list[Token | parser.Level3]) -> parser.Expression:
@@ -103,16 +104,16 @@ class Parser(Transformer):
     #~ CLASS -> 4 FACTOR CONSTRUCT
     def factor(self, items: list[parser.Level5 | parser.Expression]) -> parser.Factor:
         return parser.Factor(
-            value = items[0],
-            exponent = items[1] if len(items) == 2 else None
+            value = cast(parser.Level5, items[0]),
+            exponent = cast(parser.Expression, items[1]) if len(items) == 2 else None
         )
     #~ CLASS -> 4 LIMIT CONSTRUCT
     def limit(self, items: list[parser.Variable | parser.Expression | Token | parser.Nest]) -> parser.Limit:
         return parser.Limit(
-            variable = items[0],
-            approach = items[1],
+            variable = cast(parser.Variable, items[0]),
+            approach = cast(parser.Expression, items[1]),
             direction = ñ(items[2]) == "+" if isinstance(items[2], Token) else None,
-            nest = items[-2] if isinstance(items[-2], parser.Nest) else items[-1],
+            nest = cast(parser.Nest, items[-2] if isinstance(items[-2], parser.Nest) else items[-1]),
             exponent = items[-1] if isinstance(items[-1], parser.Expression) else None
         )
     #~ CLASS -> 5 INFINITE CONSTRUCT

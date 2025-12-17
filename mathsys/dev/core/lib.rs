@@ -6,8 +6,6 @@
 #![allow(unused_variables)]
 #![allow(non_snake_case)]
 #![allow(unreachable_code)]
-#![feature(const_cmp)]
-#![feature(const_trait_impl)]
 
 //> HEAD -> CONTEXT
 mod context {
@@ -94,7 +92,6 @@ use std::fmt::Display;
 use std::fmt::Debug;
 use std::fmt::Formatter;
 use std::fmt::Result;
-use std::cmp::max;
 
 
 //^

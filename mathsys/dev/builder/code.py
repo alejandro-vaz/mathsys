@@ -63,6 +63,7 @@ class Builder:
                 "-o", self.filename("unix-x86-64"),
                 self.filename("unix-x86-64")
             ]]
+        return NotImplemented
     #~ CLASS -> FILENAME
     def filename(self, target: str) -> str:
         return os.path.join(
@@ -83,7 +84,7 @@ class Builder:
         check = True
     )
     #~ CLASS -> CONFIGURATION
-    def config(self, ir: bytes) -> dict:
+    def config(self, ir: str) -> dict:
         env = os.environ.copy()
         env["MathsysSource"] = ir
         env["MathsysMajor"] = str(__version_info__[0])

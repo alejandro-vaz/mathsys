@@ -6,7 +6,11 @@
     "esModuleInterop": true,
     "moduleResolution": "node",
     "allowJs": true,
-    "checkJs": false
+    "checkJs": false,
+    "noEmit": true
   },
-  "include": ["mathsys"]
+  "include": ["mathsys"],
+  "exclude": [
+    "mathsys/dev/parser/syntax.cjs"
+  ]
 }
