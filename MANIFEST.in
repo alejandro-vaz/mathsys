@@ -1,0 +1,7 @@
+recursive-include mathsys *
+recursive-exclude mathsys */target
+recursive-exclude mathsys */target/*
+recursive-exclude mathsys */target/**
+recursive-exclude mathsys */target/**/*
+
+recursive-exclude mathsys */__pycache__ *

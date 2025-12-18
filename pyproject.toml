@@ -30,4 +30,4 @@ package-dir = {"" = "."}
 where = ["."]
 
 [tool.setuptools.package-data]
-mathsys = ["**"]
+mathsys = []
