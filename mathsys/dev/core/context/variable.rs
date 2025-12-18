@@ -27,6 +27,7 @@ impl Variable {pub fn cast(&self, group: Group) -> Object {return match group {
     Group::Integer => crash(Code::FailedCast),
     Group::Natural => crash(Code::FailedCast),
     Group::Nexists => crash(Code::FailedCast),
+    Group::Rational => crash(Code::FailedCast),
     Group::Tensor => crash(Code::FailedCast),
     Group::Undefined => Object::Undefined(crate::Undefined::new()),
     Group::Variable => self.to(),
@@ -39,6 +40,7 @@ impl Variable {pub fn equivalency(&self, to: &Object) -> bool {return match to {
     Object::Integer(item) => item.equivalency(&self.to()),
     Object::Natural(item) => item.equivalency(&self.to()),
     Object::Nexists(item) => item.equivalency(&self.to()),
+    Object::Rational(item) => item.equivalency(&self.to()),
     Object::Tensor(item) => item.equivalency(&self.to()),
     Object::Undefined(item) => item.equivalency(&self.to()),
     Object::Variable(item) => &self.name == &item.name,
@@ -54,6 +56,7 @@ impl Variable {
         Object::Integer(item) => item.summation(&self.to()),
         Object::Natural(item) => item.summation(&self.to()),
         Object::Nexists(item) => item.summation(&self.to()),
+        Object::Rational(item) => item.summation(&self.to()),
         Object::Tensor(item) => item.summation(&self.to()),
         Object::Undefined(item) => item.summation(&self.to()),
         Object::Variable(item) => crash(Code::NoVariableOperation),
@@ -69,6 +72,7 @@ impl Variable {
         Object::Integer(item) => item.multiplication(&self.to()),
         Object::Natural(item) => item.multiplication(&self.to()),
         Object::Nexists(item) => item.multiplication(&self.to()),
+        Object::Rational(item) => item.multiplication(&self.to()),
         Object::Tensor(item) => item.multiplication(&self.to()),
         Object::Undefined(item) => item.multiplication(&self.to()),
         Object::Variable(item) => crash(Code::NoVariableOperation),
@@ -78,9 +82,9 @@ impl Variable {
 
 //> VARIABLE -> CUSTOM
 impl Variable {
-    pub fn get(&self, context: &crate::runtime::Runtime) -> Object {
-        for (key, value) in &context.immutable {if key == &self.name {return value.clone()}}
-        for (key, value) in &context.mutable {if key == &self.name {return value.clone()}}
+    pub fn get(&self, runtime: &crate::runtime::Runtime) -> Object {
+        for (key, value) in &runtime.immutable {if key == &self.name {return value.clone()}}
+        for (key, value) in &runtime.mutable {if key == &self.name {return value.clone()}}
         return Object::Undefined(crate::Undefined::new());
     }
     pub fn set(&self, value: Object, mutable: bool, runtime: &mut crate::runtime::Runtime, group: Group) -> () {

@@ -30,6 +30,11 @@ impl Natural {pub fn cast(&self, group: Group) -> Object {return match group {
     )),
     Group::Natural => self.to(),
     Group::Nexists => crash(Code::FailedCast),
+    Group::Rational => Object::Rational(crate::Rational::new(
+        self.value,
+        1,
+        true
+    )),
     Group::Tensor => crash(Code::FailedCast),
     Group::Undefined => Object::Undefined(crate::Undefined::new()),
     Group::Variable => crash(Code::FailedCast),
@@ -44,6 +49,7 @@ impl Natural {pub fn equivalency(&self, to: &Object) -> bool {return match to {
     Object::Integer(item) => item.equivalency(&self.to()),
     Object::Natural(item) => self.value == item.value,
     Object::Nexists(item) => false,
+    Object::Rational(item) => item.sign && self.value * item.denominator == item.numerator,
     Object::Tensor(item) => false,
     Object::Undefined(item) => false,
     Object::Variable(item) => false,
@@ -64,7 +70,16 @@ impl Natural {
             self.value + item.value
         )),
         Object::Nexists(item) => self.to(),
-        Object::Tensor(item) => self.to(),
+        Object::Rational(item) => if item.sign {Object::Rational(crate::Rational::new(
+            self.value * item.denominator + item.numerator,
+            item.denominator,
+            true
+        ))} else {Object::Rational(crate::Rational::new(
+            if self.value * item.denominator >= item.numerator {self.value * item.denominator - item.numerator} else {item.numerator - self.value * item.denominator},
+            item.denominator,
+            self.value * item.denominator >= item.numerator
+        ))}
+        Object::Tensor(item) => crash(Code::Todo),
         Object::Undefined(item) => item.to(),
         Object::Variable(item) => crash(Code::NoVariableOperation),
         Object::Whole(item) => Object::Natural(crate::Natural::new(
@@ -75,7 +90,11 @@ impl Natural {
 
 //> NATURAL -> MULTIPLICATION
 impl Natural {
-    pub fn invert(&self) -> Object {crash(Code::Todo)}
+    pub fn invert(&self) -> Object {return Object::Rational(crate::Rational::new(
+        1,
+        self.value,
+        true
+    ))}
     pub fn multiplication(&self, to: &Object) -> Object {return match to {
         Object::Infinite(item) => item.multiplication(&self.to()),
         Object::Integer(item) => item.multiplication(&self.to()),
@@ -83,7 +102,12 @@ impl Natural {
             self.value * item.value
         )),
         Object::Nexists(item) => self.to(),
-        Object::Tensor(item) => item.to(),
+        Object::Rational(item) => Object::Rational(crate::Rational::new(
+            item.numerator * self.value,
+            item.denominator,
+            item.sign
+        )),
+        Object::Tensor(item) => crash(Code::Todo),
         Object::Undefined(item) => item.to(),
         Object::Variable(item) => crash(Code::NoVariableOperation),
         Object::Whole(item) => Object::Whole(crate::Whole::new(

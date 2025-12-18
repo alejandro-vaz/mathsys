@@ -27,6 +27,7 @@ impl Infinite {pub fn cast(&self, group: Group) -> Object {return match group {
     Group::Integer => crash(Code::FailedCast),
     Group::Natural => crash(Code::FailedCast),
     Group::Nexists => crash(Code::FailedCast),
+    Group::Rational => crash(Code::FailedCast),
     Group::Tensor => crash(Code::FailedCast),
     Group::Undefined => Object::Undefined(crate::Undefined::new()),
     Group::Variable => crash(Code::FailedCast),
@@ -39,6 +40,7 @@ impl Infinite {pub fn equivalency(&self, to: &Object) -> bool {return match to {
     Object::Integer(item) => false,
     Object::Natural(item) => false,
     Object::Nexists(item) => false,
+    Object::Rational(item) => false,
     Object::Tensor(item) => false,
     Object::Undefined(item) => false,
     Object::Variable(item) => false,
@@ -47,6 +49,9 @@ impl Infinite {pub fn equivalency(&self, to: &Object) -> bool {return match to {
 
 //> INFINITE -> SUMMATION
 impl Infinite {
+    pub fn absolute(&self) -> Object {return Object::Infinite(crate::Infinite::new(
+        true
+    ))}
     pub fn negate(&self) -> Object {return Object::Infinite(crate::Infinite::new(
         !self.sign
     ))}
@@ -55,7 +60,8 @@ impl Infinite {
         Object::Integer(item) => self.to(),
         Object::Natural(item) => self.to(),
         Object::Nexists(item) => self.to(),
-        Object::Tensor(item) => self.to(),
+        Object::Rational(item) => self.to(),
+        Object::Tensor(item) => crash(Code::Todo),
         Object::Undefined(item) => item.to(),
         Object::Variable(item) => crash(Code::NoVariableOperation),
         Object::Whole(item) => self.to()
@@ -64,9 +70,6 @@ impl Infinite {
 
 //> INFINITE -> MULTIPLICATION
 impl Infinite {
-    pub fn absolute(&self) -> Object {return Object::Infinite(crate::Infinite::new(
-        true
-    ))}
     pub fn invert(&self) -> Object {return Object::Whole(crate::Whole::new(
         0
     ))}
@@ -81,7 +84,12 @@ impl Infinite {
         ))},
         Object::Natural(item) => self.to(),
         Object::Nexists(item) => self.to(),
-        Object::Tensor(item) => self.to(),
+        Object::Rational(item) => if item.numerator == 0 {Object::Whole(crate::Whole::new(
+            0
+        ))} else {Object::Infinite(crate::Infinite::new(
+            self.sign == item.sign
+        ))},
+        Object::Tensor(item) => crash(Code::Todo),
         Object::Undefined(item) => item.to(),
         Object::Variable(item) => crash(Code::NoVariableOperation),
         Object::Whole(item) => if item.value == 0 {Object::Whole(crate::Whole::new(

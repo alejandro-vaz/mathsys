@@ -84,6 +84,7 @@ export const CONVERSION: Record<string, (string: string) => string> = {
     "@Integer": (name: string) => name,
     "@Natural": (name: string) => name,
     "@Nexists": (name: string) => String.raw`\color{gray}${name}\color{black}`,
+    "@Rational": (name: string) => name,
     "@Tensor": (name: string) => String.raw`\overline{${name}}`,
     "@Undefined": (name: string) => String.raw`\overset{?}{${name}}`,
     "@Variable": (name: string) => String.raw`{^{*}${name}}`,

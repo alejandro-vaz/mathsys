@@ -64,8 +64,9 @@ OBJECTTYPE = {
     "@Integer": u8(2),
     "@Natural": u8(3),
     "@Nexists": u8(4),
-    "@Tensor": u8(5),
+    "@Rational": u8(5),
+    "@Tensor": u8(6),
     "@Undefined": null8(),
-    "@Variable": u8(6),
-    "@Whole": u8(7)
+    "@Variable": u8(7),
+    "@Whole": u8(8)
 }

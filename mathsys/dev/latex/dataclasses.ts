@@ -68,6 +68,7 @@ export class Annotation {
         switch (this.group) {
             case "@Integer": {return String.raw`${variables}\in\mathbb{Z}`}
             case "@Natural": {return String.raw`${variables}\in\mathbb{N}`}
+            case "@Rational": {return String.raw`${variables}\in\mathbb{Q}`}
             case "@Whole": {return String.raw`${variables}\in\mathbb{W}`}
             default: {return ""}
         }

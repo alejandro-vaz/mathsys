@@ -23,6 +23,7 @@ impl Nexists {pub fn cast(&self, group: Group) -> Object {return match group {
     Group::Integer => crash(Code::FailedCast),
     Group::Natural => crash(Code::FailedCast),
     Group::Nexists => self.to(),
+    Group::Rational => crash(Code::FailedCast),
     Group::Tensor => crash(Code::FailedCast),
     Group::Undefined => Object::Undefined(crate::Undefined::new()),
     Group::Variable => crash(Code::FailedCast),
@@ -35,6 +36,7 @@ impl Nexists {pub fn equivalency(&self, to: &Object) -> bool {return match to {
     Object::Integer(item) => item.equivalency(&self.to()),
     Object::Natural(item) => item.equivalency(&self.to()),
     Object::Nexists(item) => false,
+    Object::Rational(item) => false,
     Object::Tensor(item) => false,
     Object::Undefined(item) => false,
     Object::Variable(item) => false,
@@ -43,12 +45,14 @@ impl Nexists {pub fn equivalency(&self, to: &Object) -> bool {return match to {
 
 //> NEXISTS -> SUMMATION
 impl Nexists {
+    pub fn absolute(&self) -> Object {return self.to()}
     pub fn negate(&self) -> Object {return Object::Nexists(crate::Nexists::new())}
     pub fn summation(&self, to: &Object) -> Object {return match to {
         Object::Infinite(item) => item.summation(&self.to()),
         Object::Integer(item) => item.summation(&self.to()),
         Object::Natural(item) => item.summation(&self.to()),
         Object::Nexists(item) => item.to(),
+        Object::Rational(item) => item.to(),
         Object::Tensor(item) => item.to(),
         Object::Undefined(item) => item.to(),
         Object::Variable(item) => crash(Code::NoVariableOperation),
@@ -58,13 +62,13 @@ impl Nexists {
 
 //> NEXISTS -> MULTIPLICATION
 impl Nexists {
-    pub fn absolute(&self) -> Object {return self.to()}
     pub fn invert(&self) -> Object {return Object::Nexists(crate::Nexists::new())}
     pub fn multiplication(&self, to: &Object) -> Object {return match to {
         Object::Infinite(item) => item.multiplication(&self.to()),
         Object::Integer(item) => item.multiplication(&self.to()),
         Object::Natural(item) => item.multiplication(&self.to()),
         Object::Nexists(item) => item.to(),
+        Object::Rational(item) => item.to(),
         Object::Tensor(item) => item.to(),
         Object::Undefined(item) => item.to(),
         Object::Variable(item) => crash(Code::NoVariableOperation),

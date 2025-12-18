@@ -59,6 +59,7 @@ class Annotation:
         match self.group:
             case "@Integer": return fr"{variables}\in\mathbb{{Z}}"
             case "@Natural": return fr"{variables}\in\mathbb{{N}}"
+            case "@Rational": return fr"{variables}\in\mathbb{{Q}}"
             case "@Whole": return fr"{variables}\in\mathbb{{W}}"
             case other: return ""
 

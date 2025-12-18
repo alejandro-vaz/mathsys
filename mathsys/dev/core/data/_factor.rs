@@ -2,6 +2,8 @@
 //^ HEAD
 //^
 
+use std::env::var;
+
 //> HEAD -> CROSS-SCOPE TRAIT
 use crate::class::Class;
 use crate::object::Object;
@@ -25,10 +27,14 @@ pub struct _Factor {
 //> FACTOR -> EVALUATE
 impl _Factor {pub fn evaluate(&self, runtime: &mut Runtime, id: u32, memory: &Vec<Class>) -> Object {
     //~ EVALUATE -> RETRIEVAL
-    let value = runtime.get(self.value, memory);
+    let mut value = runtime.get(self.value, memory);
     let Object::Nexists(exponent) = runtime.get(self.exponent, memory) else {crash(Code::FailedNamedRetrieval)};
     //~ EVALUATE -> OPERATIONS
     self.space("Computing exponentiation", id);
+    if value.is(Group::Variable) {
+        let Object::Variable(variable) = value else {crash(Code::FailedNamedRetrieval)};
+        value = variable.get(runtime);
+    }
     return value;
 }}
 

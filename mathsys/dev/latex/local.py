@@ -84,6 +84,7 @@ CONVERSION = {
     "@Integer": lambda name: name,
     "@Natural": lambda name: name,
     "@Nexists": lambda name: fr"\color{{gray}}{name}\color{{black}}",
+    "@Rational": lambda name: name,
     "@Tensor": lambda name: fr"\overline{{{name}}}",
     "@Undefined": lambda name: fr"\overset{{?}}{{{name}}}",
     "@Variable": lambda name: fr"{{^{{*}}{name}}}",

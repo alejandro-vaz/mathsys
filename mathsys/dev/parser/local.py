@@ -50,8 +50,8 @@ _PIPE: /\|/
 _TO: /->/
 _OF: /\bof\b/
 _USE: /\buse\b/
-IDENTIFIER: /(?!\b(?:inf|of|use|lim|Infinite|Integer|Natural|Nexists|Tensor|Undefined|Variable|Whole)\b)[A-Za-zº$%]+/
-OBJECT: /\@(?:Infinite|Integer|Natural|Nexists|Tensor|Undefined|Variable|Whole)\b/
+IDENTIFIER: /(?!\b(?:inf|of|use|lim|Infinite|Integer|Natural|Nexists|Rational|Tensor|Undefined|Variable|Whole)\b)[A-Za-zº$%]+/
+OBJECT: /\@(?:Infinite|Integer|Natural|Nexists|Rational|Tensor|Undefined|Variable|Whole)\b/
 _INF: /\binf\b/
 _EXPONENTIATION: /\^/
 NUMBER: /[0-9]+/

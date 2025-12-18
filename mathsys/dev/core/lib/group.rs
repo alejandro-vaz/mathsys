@@ -17,10 +17,11 @@ pub enum Group {
     Integer = 2,
     Natural = 3,
     Nexists = 4,
-    Tensor = 5,
+    Rational = 5,
+    Tensor = 6,
     Undefined = 0,
-    Variable = 6,
-    Whole = 7
+    Variable = 7,
+    Whole = 8
 } 
 
 //> GROUP -> IMPLEMENTATION
@@ -29,9 +30,23 @@ impl Group {pub fn from(number: u8) -> Group {return match number {
     2 => Group::Integer,
     3 => Group::Natural,
     4 => Group::Nexists,
-    5 => Group::Tensor,
+    5 => Group::Rational,
+    6 => Group::Tensor,
     0 => Group::Undefined,
-    6 => Group::Variable,
-    7 => Group::Whole,
+    7 => Group::Variable,
+    8 => Group::Whole,
     other => crash(Code::UnknownGroupCode)
 }}}
+
+//> GROUP -> DISPLAY
+impl crate::Display for Group {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "{}", match self {
+    Group::Infinite => "Infinite",
+    Group::Integer => "Integer",
+    Group::Natural => "Natural",
+    Group::Nexists => "Nexists",
+    Group::Rational => "Rational",
+    Group::Tensor => "Tensor",
+    Group::Undefined => "Undefined",
+    Group::Variable => "Variable",
+    Group::Whole => "Whole"
+})}}

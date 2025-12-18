@@ -3,7 +3,7 @@
 //^
 
 //> HEAD -> CROSS-SCOPE TRAIT
-use crate::stdout::{debug, space};
+use crate::stdout::{class, space};
 
 
 //^
@@ -12,7 +12,7 @@ use crate::stdout::{debug, space};
 
 //> TIP -> TRAIT
 pub trait Tip: crate::Display + crate::Debug {
-    fn data(&self) -> () {debug(format!(
+    fn data(&self) -> () {class(format!(
         "{} > {:?}",
         self, self
     ))}

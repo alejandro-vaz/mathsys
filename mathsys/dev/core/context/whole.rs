@@ -32,6 +32,11 @@ impl Whole {pub fn cast(&self, group: Group) -> Object {return match group {
         self.value
     )),
     Group::Nexists => crash(Code::FailedCast),
+    Group::Rational => Object::Rational(crate::Rational::new(
+        self.value,
+        1,
+        true
+    )),
     Group::Tensor => crash(Code::FailedCast),
     Group::Undefined => Object::Undefined(crate::Undefined::new()),
     Group::Variable => crash(Code::FailedCast),
@@ -44,6 +49,7 @@ impl Whole {pub fn equivalency(&self, to: &Object) -> bool {return match to {
     Object::Integer(item) => item.equivalency(&self.to()),
     Object::Natural(item) => item.equivalency(&self.to()),
     Object::Nexists(item) => item.equivalency(&self.to()),
+    Object::Rational(item) => item.equivalency(&self.to()),
     Object::Tensor(item) => item.equivalency(&self.to()),
     Object::Undefined(item) => item.equivalency(&self.to()),
     Object::Variable(item) => item.equivalency(&self.to()),
@@ -62,6 +68,7 @@ impl Whole {
         Object::Integer(item) => item.summation(&self.to()),
         Object::Natural(item) => item.summation(&self.to()),
         Object::Nexists(item) => item.summation(&self.to()),
+        Object::Rational(item) => item.summation(&self.to()),
         Object::Tensor(item) => item.summation(&self.to()),
         Object::Undefined(item) => item.summation(&self.to()),
         Object::Variable(item) => item.summation(&self.to()),
@@ -73,12 +80,17 @@ impl Whole {
 
 //> WHOLE -> MULTIPLICATION
 impl Whole {
-    pub fn invert(&self) -> Object {crash(Code::Todo)}
+    pub fn invert(&self) -> Object {return Object::Rational(crate::Rational::new(
+        1,
+        self.value,
+        true
+    ))}
     pub fn multiplication(&self, to: &Object) -> Object {return match to {
         Object::Infinite(item) => item.multiplication(&self.to()),
         Object::Integer(item) => item.multiplication(&self.to()),
         Object::Natural(item) => item.multiplication(&self.to()),
         Object::Nexists(item) => item.multiplication(&self.to()),
+        Object::Rational(item) => item.multiplication(&self.to()),
         Object::Tensor(item) => item.multiplication(&self.to()),
         Object::Undefined(item) => item.multiplication(&self.to()),
         Object::Variable(item) => item.multiplication(&self.to()),

@@ -5,7 +5,6 @@
 //> HEAD -> FLAGS
 #![allow(unused_variables)]
 #![allow(non_snake_case)]
-#![allow(unreachable_code)]
 
 //> HEAD -> CONTEXT
 mod context {
@@ -13,6 +12,7 @@ mod context {
     pub mod integer;
     pub mod natural;
     pub mod nexists;
+    pub mod rational;
     pub mod tensor;
     pub mod undefined;
     pub mod variable;
@@ -64,6 +64,7 @@ use context::infinite::Infinite;
 use context::integer::Integer;
 use context::natural::Natural;
 use context::nexists::Nexists;
+use context::rational::Rational;
 use context::tensor::Tensor;
 use context::undefined::Undefined;
 use context::variable::Variable;

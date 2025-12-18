@@ -52,6 +52,7 @@ pub fn crash(code: Code) -> ! {
             Code::DoubleGroupAnnotation => "Cannot annotate a variable to different groups",
             Code::ImmutableModification => "Attempted to mutate the value of an immutable variable",
             Code::NaturalCannotBeZero => "Tried to assign 0 value to a natural number",
+            Code::RationalDenominatorCannotBeZero => "Tried to create a rational number with denominator zero",
             Code::Todo => "Todo"
         }
     ), &[0x0A, 0x1B, 0x5B, 0x31, 0x3B, 0x39, 0x31, 0x3B, 0x34, 0x39, 0x6D]);
@@ -71,6 +72,7 @@ pub enum Code {
     DoubleGroupAnnotation = 7,
     ImmutableModification = 8,
     NaturalCannotBeZero = 9,
+    RationalDenominatorCannotBeZero = 10,
     Todo = 255
 }
 

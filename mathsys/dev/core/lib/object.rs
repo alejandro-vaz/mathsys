@@ -18,6 +18,7 @@ pub enum Object {
     Integer(crate::Integer),
     Natural(crate::Natural),
     Nexists(crate::Nexists),
+    Rational(crate::Rational),
     Tensor(crate::Tensor),
     Undefined(crate::Undefined),
     Variable(crate::Variable),
@@ -25,16 +26,17 @@ pub enum Object {
 } 
 
 //> OBJECT -> CASTING
-impl Object {pub fn cast(&self, group: Group) -> Object {return match self {
+impl Object {pub fn cast(&self, group: Group) -> Object {self.genlocale0(&group); return self.partial(match self {
     Object::Infinite(item) => item.cast(group),
     Object::Integer(item) => item.cast(group),
     Object::Natural(item) => item.cast(group),
     Object::Nexists(item) => item.cast(group),
+    Object::Rational(item) => item.cast(group),
     Object::Tensor(item) => item.cast(group),
     Object::Undefined(item) => item.cast(group),
     Object::Variable(item) => item.cast(group),
     Object::Whole(item) => item.cast(group)
-}}}
+})}}
 
 //> OBJECT -> EQUIVALENCY
 impl Object {pub fn equivalency(&self, to: &Object) -> bool {self.genlocale1(to); return self.partial(match self {
@@ -42,6 +44,7 @@ impl Object {pub fn equivalency(&self, to: &Object) -> bool {self.genlocale1(to)
     Object::Integer(item) => item.equivalency(to),
     Object::Natural(item) => item.equivalency(to),
     Object::Nexists(item) => item.equivalency(to),
+    Object::Rational(item) => item.equivalency(to),
     Object::Tensor(item) => item.equivalency(to),
     Object::Undefined(item) => item.equivalency(to),
     Object::Variable(item) => item.equivalency(to),
@@ -55,6 +58,7 @@ impl Object {
         Object::Integer(item) => item.absolute(),
         Object::Natural(item) => item.absolute(),
         Object::Nexists(item) => item.absolute(),
+        Object::Rational(item) => item.absolute(),
         Object::Tensor(item) => item.absolute(),
         Object::Undefined(item) => item.absolute(),
         Object::Variable(item) => item.absolute(),
@@ -65,6 +69,7 @@ impl Object {
         Object::Integer(item) => item.negate(),
         Object::Natural(item) => item.negate(),
         Object::Nexists(item) => item.negate(),
+        Object::Rational(item) => item.negate(),
         Object::Tensor(item) => item.negate(),
         Object::Undefined(item) => item.negate(),
         Object::Variable(item) => item.negate(),
@@ -75,6 +80,7 @@ impl Object {
         Object::Integer(item) => item.summation(to),
         Object::Natural(item) => item.summation(to),
         Object::Nexists(item) => item.summation(to),
+        Object::Rational(item) => item.summation(to),
         Object::Tensor(item) => item.summation(to),
         Object::Undefined(item) => item.summation(to),
         Object::Variable(item) => item.summation(to),
@@ -89,6 +95,7 @@ impl Object {
         Object::Integer(item) => item.invert(),
         Object::Natural(item) => item.invert(),
         Object::Nexists(item) => item.invert(),
+        Object::Rational(item) => item.invert(),
         Object::Tensor(item) => item.invert(),
         Object::Undefined(item) => item.invert(),
         Object::Variable(item) => item.invert(),
@@ -99,6 +106,7 @@ impl Object {
         Object::Integer(item) => item.multiplication(to),
         Object::Natural(item) => item.multiplication(to),
         Object::Nexists(item) => item.multiplication(to),
+        Object::Rational(item) => item.multiplication(to),
         Object::Tensor(item) => item.multiplication(to),
         Object::Undefined(item) => item.multiplication(to),
         Object::Variable(item) => item.multiplication(to),
@@ -112,6 +120,7 @@ impl crate::Display for Object {fn fmt(&self, formatter: &mut crate::Formatter<'
     Object::Integer(item) => item.display(formatter),
     Object::Natural(item) => item.display(formatter),
     Object::Nexists(item) => item.display(formatter),
+    Object::Rational(item) => item.display(formatter),
     Object::Tensor(item) => item.display(formatter),
     Object::Undefined(item) => item.display(formatter),
     Object::Variable(item) => item.display(formatter),
@@ -121,6 +130,7 @@ impl crate::Display for Object {fn fmt(&self, formatter: &mut crate::Formatter<'
     Object::Integer(item) => item.debug(formatter),
     Object::Natural(item) => item.debug(formatter),
     Object::Nexists(item) => item.debug(formatter),
+    Object::Rational(item) => item.debug(formatter),
     Object::Tensor(item) => item.debug(formatter),
     Object::Undefined(item) => item.debug(formatter),
     Object::Variable(item) => item.debug(formatter),
@@ -133,6 +143,10 @@ impl Object {
         "{} > {:?}",
         value, value
     )); return value}
+    fn genlocale0(&self, group: &Group) -> () {trace(format!(
+        "Casting {} to {}",
+        self, group
+    ))}
     fn genlocale1(&self, to: &Object) -> () {trace(format!(
         "Checking equivalency of {} and {}",
         self, to
@@ -162,6 +176,7 @@ impl Object {
         Object::Integer(item) => item.info(),
         Object::Natural(item) => item.info(),
         Object::Nexists(item) => item.info(),
+        Object::Rational(item) => item.info(),
         Object::Tensor(item) => item.info(),
         Object::Undefined(item) => item.info(),
         Object::Variable(item) => item.info(),
@@ -172,6 +187,7 @@ impl Object {
         Object::Integer(item) => group == Group::Undefined || group == Group::Integer,
         Object::Natural(item) => group == Group::Undefined || group == Group::Natural,
         Object::Nexists(item) => group == Group::Undefined || group == Group::Nexists,
+        Object::Rational(item) => group == Group::Undefined || group == Group::Rational,
         Object::Tensor(item) => group == Group::Undefined || group == Group::Tensor,
         Object::Undefined(item) => true,
         Object::Variable(item) => group == Group::Undefined || group == Group::Variable,
