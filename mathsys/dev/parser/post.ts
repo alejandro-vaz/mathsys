@@ -167,9 +167,16 @@ export function tensor(items: parser.Expression[]): parser.Tensor {
     );
 }
 
-//> 5ºLEVEL -> NATURAL
-export function natural(items: Token[]): parser.Natural {
-    return new parser.Natural(
+//> 5ºLEVEL -> WHOLE
+export function whole(items: Token[]): parser.Whole {
+    return new parser.Whole(
         +ñ(items[0])
     );
+}
+
+//> 5ºLEVEL -> ABSOLUTE
+export function absolute(items: parser.Expression[]): parser.Absolute {
+    return new parser.Absolute(
+        items[0]
+    )
 }

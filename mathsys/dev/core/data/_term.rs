@@ -8,6 +8,7 @@ use crate::object::Object;
 use crate::runtime::Runtime;
 use crate::tip::Tip;
 use crate::group::Group;
+use crate::stdout::{crash, Code};
 
 
 //^
@@ -30,10 +31,10 @@ impl _Term {pub fn evaluate(&self, runtime: &mut Runtime, id: u32, memory: &Vec<
     for &factor in &self.denominator {denominator.push(runtime.get(factor, memory))};
     //~ EVALUATE -> OPERATIONS
     self.space("Calculating numerator", id);
-    let mut up = Object::Nexists(crate::Nexists {});
+    let mut up = Object::Nexists(crate::Nexists::new());
     for factor in numerator {up = up.multiplication(&factor)};
     self.space("Calculating denominator", id);
-    let mut down = Object::Nexists(crate::Nexists {});
+    let mut down = Object::Nexists(crate::Nexists::new());
     for factor in denominator {down = down.multiplication(&factor)};
     self.space("Computing fraction", id);
     let inverse = down.invert();

@@ -8,6 +8,7 @@ use crate::object::Object;
 use crate::runtime::Runtime;
 use crate::tip::Tip;
 use crate::group::Group;
+use crate::stdout::{crash, Code};
 
 
 //^
@@ -22,9 +23,9 @@ pub struct _Infinite {}
 impl _Infinite {pub fn evaluate(&self, runtime: &mut Runtime, id: u32, memory: &Vec<Class>) -> Object {
     //~ INFINITE -> OPERATIONS
     self.space("Getting infinite value", id);
-    return Object::Infinite(crate::Infinite {
-        negative: false
-    })
+    return Object::Infinite(crate::Infinite::new(
+        true
+    ))
 }}
 
 //> INFINITE -> REPRESENTATION

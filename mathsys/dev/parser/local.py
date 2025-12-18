@@ -34,22 +34,24 @@ variable: IDENTIFIER
 infinite: _INF
 nest: _OPEN _S? expression? _S? _CLOSE
 tensor: _ENTER _S? (expression (_S? _COMMA _S? expression)* _S?)? _EXIT
-natural: NUMBER
+whole: NUMBER
+absolute: _PIPE _S? expression _S? _PIPE
 
 
 level1: (declaration | definition | annotation | node | equation | comment | use)
 level2: (expression)
 level3: (term)
 level4: (factor | limit)
-level5: (variable | infinite | nest | tensor | natural)
+level5: (variable | infinite | nest | tensor | whole | absolute)
 
 
 _LIM: /\blim\b/
+_PIPE: /\|/
 _TO: /->/
 _OF: /\bof\b/
 _USE: /\buse\b/
-IDENTIFIER: /(?!\b(?:inf|of|use|lim|Infinite|Natural|Nexists|Tensor|Undefined|Variable)\b)[A-Za-zº$%]+/
-OBJECT: /\@(?:Infinite|Natural|Nexists|Tensor|Undefined|Variable)\b/
+IDENTIFIER: /(?!\b(?:inf|of|use|lim|Infinite|Integer|Natural|Nexists|Tensor|Undefined|Variable|Whole)\b)[A-Za-zº$%]+/
+OBJECT: /\@(?:Infinite|Integer|Natural|Nexists|Tensor|Undefined|Variable|Whole)\b/
 _INF: /\binf\b/
 _EXPONENTIATION: /\^/
 NUMBER: /[0-9]+/

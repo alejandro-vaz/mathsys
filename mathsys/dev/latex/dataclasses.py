@@ -55,7 +55,12 @@ class Annotation:
     group: str
     variables: list[str]
     def __str__(self) -> str:
-        return ""
+        variables = ",".join(self.variables)
+        match self.group:
+            case "@Integer": return fr"{variables}\in\mathbb{{Z}}"
+            case "@Natural": return fr"{variables}\in\mathbb{{N}}"
+            case "@Whole": return fr"{variables}\in\mathbb{{W}}"
+            case other: return ""
 
 #> 1ºLEVEL -> NODE
 @dataclass(kw_only = True)
@@ -186,9 +191,16 @@ class Tensor:
         inside = r"\; " if len(self.values) == 0 else r"\\ ".join(self.values)
         return fr"\begin{{bmatrix}}{inside}\end{{bmatrix}}"
 
-#> 5ºLEVEL -> NATURAL
+#> 5ºLEVEL -> WHOLE
 @dataclass(kw_only = True)
-class Natural:
+class Whole:
     value: int
     def __str__(self) -> str:
         return f"{self.value}"
+
+#> 5ºLEVEL -> ABSOLUTE
+@dataclass(kw_only = True)
+class Absolute:
+    expression: str
+    def __str__(self) -> str:
+        return fr"\left| {self.expression}\right| "

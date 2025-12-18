@@ -1,1 +1,3 @@
-@Natural a = (2 + 3) * 3
+@Integer a 
+
+a = |2 - 1*5|

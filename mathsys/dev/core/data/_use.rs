@@ -8,6 +8,7 @@ use crate::object::Object;
 use crate::runtime::Runtime;
 use crate::tip::Tip;
 use crate::group::Group;
+use crate::stdout::{crash, Code};
 
 
 //^
@@ -27,7 +28,7 @@ impl _Use {pub fn evaluate(&self, runtime: &mut Runtime, id: u32, memory: &Vec<C
     let start = runtime.get(self.start, memory);
     //~ EVALUATE -> OPERATIONS
     self.space("Use being", id);
-    return Object::Nexists(crate::Nexists {});
+    return Object::Undefined(crate::Undefined::new());
 }}
 
 //> USE -> REPRESENTATION

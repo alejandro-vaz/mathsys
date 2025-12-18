@@ -64,7 +64,13 @@ export class Annotation {
         public variables: string[]
     ) {}
     toString(): string {
-        return "";
+        const variables = this.variables.join(",");
+        switch (this.group) {
+            case "@Integer": {return String.raw`${variables}\in\mathbb{Z}`}
+            case "@Natural": {return String.raw`${variables}\in\mathbb{N}`}
+            case "@Whole": {return String.raw`${variables}\in\mathbb{W}`}
+            default: {return ""}
+        }
     }
 }
 
@@ -233,12 +239,22 @@ export class Tensor {
     }
 }
 
-//> 5ºLEVEL -> NATURAL
-export class Natural {
+//> 5ºLEVEL -> WHOLE
+export class Whole {
     constructor(
         public value: number
     ) {}
     toString(): string {
         return `${this.value}`;
+    }
+}
+
+//> 5ºLEVEL -> ABSOLUTE
+export class Absolute {
+    constructor(
+        public expression: string
+    ) {}
+    toString(): string {
+        return String.raw`\left| ${this.expression}\right| `
     }
 }

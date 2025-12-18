@@ -148,7 +148,8 @@ class IR:
             case parser.Variable(): return self.variable(level5)
             case parser.Nest(): return self.nest(level5)
             case parser.Tensor(): return self.tensor(level5)
-            case parser.Natural(): return self.natural(level5)
+            case parser.Whole(): return self.whole(level5)
+            case parser.Absolute(): return self.absolute(level5)
         return NotImplemented
     #~ GENERATOR -> 5 INFINITE GENERATION
     def infinite(self, infinite: parser.Infinite) -> u32:
@@ -168,8 +169,13 @@ class IR:
         return self.new(ir.Tensor(
             values = [self.expression(value) for value in tensor.values]
         ))
-    #~ GENERATOR -> 5 NATURAL GENERATION
-    def natural(self, natural: parser.Natural) -> u32:
-        return self.new(ir.Natural(
-            value = cast(u32 | null32, u32(natural.value) if natural.value != 0 else null32())
+    #~ GENERATOR -> 5 WHOLE GENERATION
+    def whole(self, whole: parser.Whole) -> u32:
+        return self.new(ir.Whole(
+            value = cast(u32 | null32, u32(whole.value) if whole.value != 0 else null32())
+        ))
+    #~ GENERATOR -> 5 ABSOLUTE GENERATION
+    def absolute(self, absolute: parser.Absolute) -> u32:
+        return self.new(ir.Absolute(
+            expression = self.expression(absolute.expression)
         ))

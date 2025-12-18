@@ -223,13 +223,24 @@ export class Tensor {
     )}
 }
 
-//> 5ºLEVEL -> NATURAL
-export class Natural {
+//> 5ºLEVEL -> WHOLE
+export class Whole {
     static code = u8(0x11);
     constructor(
         public value: u32 | null32
     ) {}
     bytes() {return clamp(
-        Natural.code, this.value
+        Whole.code, this.value
+    )}
+}
+
+//> 5ºLEVEL -> ABSOLUTE
+export class Absolute {
+    static code = u8(0x12);
+    constructor(
+        public expression: u32
+    ) {}
+    bytes() {return clamp(
+        Absolute.code, this.expression
     )}
 }

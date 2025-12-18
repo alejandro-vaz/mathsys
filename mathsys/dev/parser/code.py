@@ -134,8 +134,13 @@ class Parser(Transformer):
         return parser.Tensor(
             values = items
         )
-    #~ CLASS -> 5 NATURAL CONSTRUCT
-    def natural(self, items: list[Token]) -> parser.Natural:
-        return parser.Natural(
+    #~ CLASS -> 5 WHOLE CONSTRUCT
+    def whole(self, items: list[Token]) -> parser.Whole:
+        return parser.Whole(
             value = int(ñ(items[0]))
+        )
+    #~ CLASS -> 5 ABSOLUTE CONSTRUCT
+    def absolute(self, items: list[parser.Expression]) -> parser.Absolute:
+        return parser.Absolute(
+            expression = items[0]
         )

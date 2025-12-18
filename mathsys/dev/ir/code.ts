@@ -141,7 +141,8 @@ export class IR {
         if (level5 instanceof parser.Variable) return this.variable(level5);
         if (level5 instanceof parser.Nest) return this.nest(level5);
         if (level5 instanceof parser.Tensor) return this.tensor(level5);
-        if (level5 instanceof parser.Natural) return this.natural(level5);
+        if (level5 instanceof parser.Whole) return this.whole(level5);
+        if (level5 instanceof parser.Absolute) return this.absolute(level5);
         return null32();
     }
     //~ GENERATOR -> 5 INFINITE GENERATION
@@ -158,8 +159,12 @@ export class IR {
     tensor(tensor: parser.Tensor): u32 {return this.new(new ir.Tensor(
         tensor.values.map(value => this.expression(value))
     ))}
-    //~ GENERATOR -> 5 NATURAL GENERATION
-    natural(natural: parser.Natural): u32 {return this.new(new ir.Natural(
-        natural.value !== 0 ? u32(natural.value) : null32()
+    //~ GENERATOR -> 5 WHOLE GENERATION
+    whole(whole: parser.Whole): u32 {return this.new(new ir.Whole(
+        whole.value !== 0 ? u32(whole.value) : null32()
+    ))}
+    //~ GENERATOR -> 5 ABSOLUTE GENERATION
+    absolute(absolute: parser.Absolute): u32 {return this.new(new ir.Absolute(
+        this.expression(absolute.expression)
     ))}
 }

@@ -8,6 +8,7 @@ use crate::object::Object;
 use crate::runtime::Runtime;
 use crate::tip::Tip;
 use crate::group::Group;
+use crate::stdout::{crash, Code};
 
 
 //^
@@ -24,7 +25,7 @@ pub struct _Tensor {
 impl _Tensor {pub fn evaluate(&self, runtime: &mut Runtime, id: u32, memory: &Vec<Class>) -> Object {
     //~ EVALUATE -> OPERATIONS
     self.space("This is a tensor", id);
-    return Object::Tensor(crate::Tensor {})
+    return Object::Tensor(crate::Tensor::new())
 }}
 
 //> TENSOR -> REPRESENTATION

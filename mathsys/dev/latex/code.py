@@ -107,9 +107,9 @@ class LaTeX:
             value = self.level4(term.numerator[index])
             if index != 0:
                 if isinstance(term.numerator[index - 1], parser.Factor):
-                    if isinstance(cast(parser.Factor, term.numerator[index - 1]).value, parser.Natural):
+                    if isinstance(cast(parser.Factor, term.numerator[index - 1]).value, parser.Whole):
                         if isinstance(term.numerator[index], parser.Factor):
-                            if isinstance(cast(parser.Factor, term.numerator[index]).value, parser.Natural | parser.Infinite):
+                            if isinstance(cast(parser.Factor, term.numerator[index]).value, parser.Whole | parser.Infinite):
                                 value = r"\cdot " + value
                     else: value = r"\cdot " + value
                 else: value = r"\cdot " + value
@@ -119,9 +119,9 @@ class LaTeX:
             value = self.level4(term.denominator[index])
             if index != 0:
                 if isinstance(term.denominator[index - 1], parser.Factor):
-                    if isinstance(cast(parser.Factor, term.denominator[index - 1]).value, parser.Natural):
+                    if isinstance(cast(parser.Factor, term.denominator[index - 1]).value, parser.Whole):
                         if isinstance(term.denominator[index], parser.Factor):
-                            if isinstance(cast(parser.Factor, term.denominator[index]).value, parser.Natural | parser.Infinite):
+                            if isinstance(cast(parser.Factor, term.denominator[index]).value, parser.Whole | parser.Infinite):
                                 value = r"\cdot " + value
                     else: value = r"\cdot " + value
                 else: value = r"\cdot " + value
@@ -158,7 +158,8 @@ class LaTeX:
             case parser.Variable(): return self.variable(level5)
             case parser.Nest(): return self.nest(level5)
             case parser.Tensor(): return self.tensor(level5)
-            case parser.Natural(): return self.natural(level5)
+            case parser.Whole(): return self.whole(level5)
+            case parser.Absolute(): return self.absolute(level5)
         return NotImplemented
     #~ GENERATOR -> 5 INFINITE GENERATION
     def infinite(self, infinite: parser.Infinite) -> str: 
@@ -178,8 +179,13 @@ class LaTeX:
         return str(latex.Tensor(
             values = [self.expression(value) for value in tensor.values]
         ))
-    #~ GENERATOR -> 5 NATURAL GENERATION
-    def natural(self, natural: parser.Natural) -> str:
-        return str(latex.Natural(
-            value = natural.value
+    #~ GENERATOR -> 5 WHOLE GENERATION
+    def whole(self, whole: parser.Whole) -> str:
+        return str(latex.Whole(
+            value = whole.value
+        ))
+    #~ GENERATOR -> 5 ABSOLUTE GENERATION
+    def absolute(self, absolute: parser.Absolute) -> str:
+        return str(latex.Absolute(
+            expression = self.expression(absolute.expression)
         ))

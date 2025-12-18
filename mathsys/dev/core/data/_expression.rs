@@ -8,6 +8,7 @@ use crate::object::Object;
 use crate::runtime::Runtime;
 use crate::tip::Tip;
 use crate::group::Group;
+use crate::stdout::{crash, Code};
 
 
 //^
@@ -28,7 +29,7 @@ impl _Expression {pub fn evaluate(&self, runtime: &mut Runtime, id: u32, memory:
     for &index in &self.terms {terms.push(runtime.get(index, memory))}
     //~ EVALUATE -> OPERATIONS
     self.space("Summing up all terms", id);
-    let mut current = Object::Nexists(crate::Nexists {});
+    let mut current = Object::Nexists(crate::Nexists::new());
     for index in 0..terms.len() {
         let next = &terms[index];
         let value = if self.signs[index] % 2 == 0 {next.negate()} else {next.clone()};

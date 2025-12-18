@@ -37,33 +37,41 @@ pub fn login(settings: &Settings) -> () {print(&format!(
 
 //> CALLS -> CRASH
 pub fn crash(code: Code) -> ! {
-    let value = code as u8;
+    let value = code.clone() as u8;
     print(&format!(
         "CRASH: {{{}}} {}.",
         value,
-        match value {
-            0 => "Run finished successfully",
-            1 => "Tried to modify value of immutable variable",
-            2 => "Found unexpected value type",
-            3 => "Malformed Intermediate Representation",
-            4 => "Unknown IR object code",
-            5 => "Attempted a double annotation of a variable",
-            6 => "Mismatched variable type and type of its value",
-            other => loop {}
+        match code {
+            Code::Success => "Run finished successfully",
+            Code::UnknownIRObject => "Attempted to parse an unknown IR object",
+            Code::UnexpectedEndOfIR => "IR ended prematurely",
+            Code::UnknownGroupCode => "No group matches specified code",
+            Code::FailedNamedRetrieval => "Failed to retrieve a value with specific group",
+            Code::FailedCast => "Couldn't cast a group into another",
+            Code::NoVariableOperation => "Can't operate with variables directly",
+            Code::DoubleGroupAnnotation => "Cannot annotate a variable to different groups",
+            Code::ImmutableModification => "Attempted to mutate the value of an immutable variable",
+            Code::NaturalCannotBeZero => "Tried to assign 0 value to a natural number",
+            Code::Todo => "Todo"
         }
     ), &[0x0A, 0x1B, 0x5B, 0x31, 0x3B, 0x39, 0x31, 0x3B, 0x34, 0x39, 0x6D]);
     crate::stack::exit(value);
 }
 
 //> CALLS -> CRASH ENUM
+#[derive(Clone)]
 pub enum Code {
     Success = 0,
-    ImmutableModification = 1,
-    UnexpectedValue = 2,
-    MalformedIR = 3,
-    UnknownIRObject = 4,
-    DoubleAnnotation = 5,
-    RuntimeTypeMismatch = 6,
+    UnknownIRObject = 1,
+    UnexpectedEndOfIR = 2,
+    UnknownGroupCode = 3,
+    FailedNamedRetrieval = 4,
+    FailedCast = 5,
+    NoVariableOperation = 6,
+    DoubleGroupAnnotation = 7,
+    ImmutableModification = 8,
+    NaturalCannotBeZero = 9,
+    Todo = 255
 }
 
 

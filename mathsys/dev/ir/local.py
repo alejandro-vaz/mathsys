@@ -61,9 +61,11 @@ def join(binary: list[bytes] | list[u32] | list[u8], delimiter: bytes) -> bytes:
 OBJECTTYPE = {
     None: null8(),
     "@Infinite": u8(1),
-    "@Natural": u8(2),
-    "@Nexists": u8(3),
-    "@Tensor": u8(4),
+    "@Integer": u8(2),
+    "@Natural": u8(3),
+    "@Nexists": u8(4),
+    "@Tensor": u8(5),
     "@Undefined": null8(),
-    "@Variable": u8(5)
+    "@Variable": u8(6),
+    "@Whole": u8(7)
 }

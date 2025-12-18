@@ -8,6 +8,7 @@ use crate::object::Object;
 use crate::runtime::Runtime;
 use crate::tip::Tip;
 use crate::group::Group;
+use crate::stdout::{crash, Code};
 
 
 //^
@@ -24,7 +25,7 @@ pub struct _Comment {
 impl _Comment {pub fn evaluate(&self, runtime: &mut Runtime, id: u32, memory: &Vec<Class>) -> Object {
     //~ EVALUATE -> OPERATIONS
     self.space("Comment data", id);
-    return Object::Nexists(crate::Nexists {});
+    return Object::Undefined(crate::Undefined::new());
 }}
 
 //> COMMENT -> REPRESENTATION

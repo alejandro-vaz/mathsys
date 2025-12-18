@@ -8,6 +8,7 @@ use crate::object::Object;
 use crate::runtime::Runtime;
 use crate::tip::Tip;
 use crate::group::Group;
+use crate::stdout::{crash, Code};
 
 
 //^
@@ -29,9 +30,7 @@ impl _Equation {pub fn evaluate(&self, runtime: &mut Runtime, id: u32, memory: &
     //~ EVALUATE -> OPERATIONS
     self.space("Checking equality", id);
     let equal = leftexpression.equivalency(&rightexpression);
-    let unequal = leftexpression.unequivalency(&rightexpression);
-    let determinable = equal == !unequal;
-    return Object::Nexists(crate::Nexists {});
+    return Object::Undefined(crate::Undefined::new());
 }}
 
 //> EQUATION -> REPRESENTATION

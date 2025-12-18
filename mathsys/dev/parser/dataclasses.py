@@ -144,7 +144,12 @@ class Nest(Level5):
 class Tensor(Level5):
     values: list[Expression]
 
-#> 5ºLEVEL -> NATURAL
+#> 5ºLEVEL -> WHOLE
 @dataclass(kw_only = True)
-class Natural(Level5):
+class Whole(Level5):
     value: int
+
+#> 5ºLEVEL -> ABSOLUTE
+@dataclass(kw_only = True)
+class Absolute(Level5):
+    expression: Expression

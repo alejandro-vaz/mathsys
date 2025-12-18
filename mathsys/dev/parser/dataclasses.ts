@@ -134,7 +134,12 @@ export class Tensor extends Level5 {constructor(
     public values: Expression[]
 ) {super()}}
 
-//> 5ºLEVEL -> NATURAL
-export class Natural extends Level5 {constructor(
+//> 5ºLEVEL -> WHOLE
+export class Whole extends Level5 {constructor(
     public value: number
+) {super()}}
+
+//> 5ºLEVEL -> ABSOLUTE
+export class Absolute extends Level5 {constructor(
+    public expression: Expression
 ) {super()}}

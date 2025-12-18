@@ -179,10 +179,18 @@ class Tensor:
     def __bytes__(self) -> bytes:
         return self.code + join(self.values, null32())
 
-#> 5ºLEVEL -> NATURAL
+#> 5ºLEVEL -> WHOLE
 @dataclass(kw_only = True)
-class Natural:
+class Whole:
     code = u8(0x11)
     value: u32 | null32
     def __bytes__(self) -> bytes:
         return self.code + self.value
+
+#> 5ºLEVEL -> ABSOLUTE
+@dataclass(kw_only = True)
+class Absolute:
+    code = u8(0x12)
+    expression: u32
+    def __bytes__(self) -> bytes:
+        return self.code + self.expression

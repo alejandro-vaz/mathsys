@@ -127,9 +127,9 @@ export class LaTeX {
             let value = this.level4(item);
             if (index !== 0) {
                 if (term.numerator[index - 1] instanceof parser.Factor) {
-                    if ((term.numerator[index - 1] as any).value instanceof parser.Natural) {
+                    if ((term.numerator[index - 1] as any).value instanceof parser.Whole) {
                         if (item instanceof parser.Factor) {
-                            if (item.value instanceof parser.Natural || item.value instanceof parser.Infinite) {
+                            if (item.value instanceof parser.Whole || item.value instanceof parser.Infinite) {
                                 value = String.raw`\cdot ` + value;
                             }
                         }
@@ -143,9 +143,9 @@ export class LaTeX {
             let value = this.level4(item);
             if (index !== 0) {
                 if (term.denominator[index - 1] instanceof parser.Factor) {
-                    if ((term.denominator[index - 1] as any).value instanceof parser.Natural) {
+                    if ((term.denominator[index - 1] as any).value instanceof parser.Whole) {
                         if (item instanceof parser.Factor) {
-                            if (item.value instanceof parser.Natural || item.value instanceof parser.Infinite) {
+                            if (item.value instanceof parser.Whole || item.value instanceof parser.Infinite) {
                                 value = String.raw`\cdot ` + value;
                             }
                         }
@@ -188,7 +188,8 @@ export class LaTeX {
         if (level5 instanceof parser.Variable) return this.variable(level5);
         if (level5 instanceof parser.Nest) return this.nest(level5);
         if (level5 instanceof parser.Tensor) return this.tensor(level5);
-        if (level5 instanceof parser.Natural) return this.natural(level5);
+        if (level5 instanceof parser.Whole) return this.whole(level5);
+        if (level5 instanceof parser.Absolute) return this.absolute(level5);
         return "";
     }
     //~ GENERATOR -> 5 INFINITE GENERATION
@@ -213,10 +214,16 @@ export class LaTeX {
             tensor.values.map(value => this.expression(value))
         ));
     }
-    //~ GENERATOR -> 5 NATURAL GENERATION
-    natural(natural: parser.Natural): string {
-        return String(new latex.Natural(
-            natural.value
+    //~ GENERATOR -> 5 WHOLE GENERATION
+    whole(whole: parser.Whole): string {
+        return String(new latex.Whole(
+            whole.value
+        ))
+    }
+    //~ GENERATOR -> 5 ABSOLUTE GENERATION
+    absolute(absolute: parser.Absolute): string {
+        return String(new latex.Absolute(
+            this.expression(absolute.expression)
         ))
     }
 }

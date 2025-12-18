@@ -8,6 +8,7 @@ use crate::object::Object;
 use crate::runtime::Runtime;
 use crate::tip::Tip;
 use crate::group::Group;
+use crate::stdout::{crash, Code};
 
 
 //^
@@ -25,7 +26,7 @@ pub struct _Factor {
 impl _Factor {pub fn evaluate(&self, runtime: &mut Runtime, id: u32, memory: &Vec<Class>) -> Object {
     //~ EVALUATE -> RETRIEVAL
     let value = runtime.get(self.value, memory);
-    let Object::Nexists(exponent) = runtime.get(self.exponent, memory) else {crate::stdout::crash(crate::stdout::Code::UnexpectedValue)};
+    let Object::Nexists(exponent) = runtime.get(self.exponent, memory) else {crash(Code::FailedNamedRetrieval)};
     //~ EVALUATE -> OPERATIONS
     self.space("Computing exponentiation", id);
     return value;

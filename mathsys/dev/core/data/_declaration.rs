@@ -8,6 +8,7 @@ use crate::object::Object;
 use crate::runtime::Runtime;
 use crate::tip::Tip;
 use crate::group::Group;
+use crate::stdout::{crash, Code};
 
 
 //^
@@ -26,11 +27,11 @@ pub struct _Declaration {
 impl _Declaration {pub fn evaluate(&self, runtime: &mut Runtime, id: u32, memory: &Vec<Class>) -> Object {
     //~ EVALUATE -> RETRIEVAL
     let expression = runtime.get(self.expression, memory);
-    let Object::Variable(variable) = runtime.get(self.variable, memory) else {crate::stdout::crash(crate::stdout::Code::UnexpectedValue)};
+    let Object::Variable(variable) = runtime.get(self.variable, memory) else {crash(Code::FailedNamedRetrieval)};
     //~ EVALUATE -> OPERATIONS
     self.space("Setting mutable variable", id);
     variable.set(expression, true, runtime, Group::from(self.group));
-    return Object::Nexists(crate::Nexists {});
+    return Object::Undefined(crate::Undefined::new());
 }}
 
 //> DECLARATION -> REPRESENTATION

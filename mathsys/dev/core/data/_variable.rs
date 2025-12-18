@@ -8,6 +8,7 @@ use crate::object::Object;
 use crate::runtime::Runtime;
 use crate::tip::Tip;
 use crate::group::Group;
+use crate::stdout::{crash, Code};
 
 
 //^
@@ -24,9 +25,9 @@ pub struct _Variable {
 impl _Variable {pub fn evaluate(&self, runtime: &mut Runtime, id: u32, memory: &Vec<Class>) -> Object {
     //~ EVALUATE -> OPERATIONS
     self.space("I am a variable", id);
-    return Object::Variable(crate::Variable {
-        name: self.representation.clone()
-    })
+    return Object::Variable(crate::Variable::new(
+        self.representation.clone()
+    ))
 }}
 
 //> VARIABLE -> REPRESENTATION

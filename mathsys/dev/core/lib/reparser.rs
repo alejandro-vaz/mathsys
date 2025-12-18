@@ -20,7 +20,7 @@ pub struct Reparser {
 
 //> REPARSER -> IMPLEMENTATION
 impl Reparser {
-    pub fn run(&mut self, settings: &Settings) -> &Vec<Class> {
+    pub fn run(&mut self, settings: &Settings) -> Vec<Class> {
         space("{REPARSER} Processing IR");
         while self.locus < settings.ir.len() {
             let object = match self.take8(settings) {
@@ -40,7 +40,8 @@ impl Reparser {
                 0x0E => self.Variable(settings),
                 0x0F => self.Nest(settings),
                 0x10 => self.Tensor(settings),
-                0x11 => self.Natural(settings),
+                0x11 => self.Whole(settings),
+                0x12 => self.Absolute(settings),
                 other => crash(Code::UnknownIRObject)
             };
             trace(format!(
@@ -49,8 +50,11 @@ impl Reparser {
             ));
             self.memory.push(object);
         };
-        return &self.memory;
+        return self.memory.clone();
     }
+    fn Absolute(&mut self, settings: &Settings) -> Class {return Class::_Absolute(crate::_Absolute {
+        expression: self.take32(settings)
+    })}
     fn Annotation(&mut self, settings: &Settings) -> Class {return Class::_Annotation(crate::_Annotation {
         group: self.take8(settings),
         variables: self.list32(settings)
@@ -88,9 +92,6 @@ impl Reparser {
         nest: self.take32(settings),
         exponent: self.take32(settings)
     })}
-    fn Natural(&mut self, settings: &Settings) -> Class {return Class::_Natural(crate::_Natural {
-        value: self.take32(settings)
-    })}
     fn Nest(&mut self, settings: &Settings) -> Class {return Class::_Nest(crate::_Nest {
         expression: self.take32(settings)
     })}
@@ -113,6 +114,9 @@ impl Reparser {
     })}
     fn Variable(&mut self, settings: &Settings) -> Class {return Class::_Variable(crate::_Variable {
         representation: self.listchar(settings)
+    })}
+    fn Whole(&mut self, settings: &Settings) -> Class {return Class::_Whole(crate::_Whole {
+        value: self.take32(settings)
     })}
 }
 
@@ -160,7 +164,7 @@ impl Reparser {
     }
     fn check(&self, distance: usize, settings: &Settings) -> () {
         if self.locus + distance > settings.ir.len() {
-            crash(Code::MalformedIR);
+            crash(Code::UnexpectedEndOfIR);
         }
     }
 }

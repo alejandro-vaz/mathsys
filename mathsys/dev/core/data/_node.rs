@@ -8,6 +8,7 @@ use crate::object::Object;
 use crate::runtime::Runtime;
 use crate::tip::Tip;
 use crate::group::Group;
+use crate::stdout::{crash, Code};
 
 
 //^
@@ -26,7 +27,7 @@ impl _Node {pub fn evaluate(&self, runtime: &mut Runtime, id: u32, memory: &Vec<
     let expression = runtime.get(self.expression, memory);
     //~ EVALUATE -> OPERATIONS
     self.space("Computing node placeholder", id);
-    return Object::Undefined(crate::Undefined {});
+    return Object::Undefined(crate::Undefined::new());
 }}
 
 //> NODE -> REPRESENTATION

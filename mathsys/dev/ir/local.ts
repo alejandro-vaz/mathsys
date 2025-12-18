@@ -75,9 +75,11 @@ export function clamp(...arrays: Uint8Array[]): Uint8Array {
 export const OBJECTTYPE: Record<string, Uint8Array> = {
     null: null8(),
     "@Infinite": u8(1),
-    "@Natural": u8(2),
-    "@Nexists": u8(3),
-    "@Tensor": u8(4),
+    "@Integer": u8(2),
+    "@Natural": u8(3),
+    "@Nexists": u8(4),
+    "@Tensor": u8(5),
     "@Undefined": null8(),
-    "@Variable": u8(5)
+    "@Variable": u8(6),
+    "@Whole": u8(7)
 }

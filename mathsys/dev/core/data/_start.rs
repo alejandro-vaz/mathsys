@@ -8,6 +8,7 @@ use crate::object::Object;
 use crate::runtime::Runtime;
 use crate::tip::Tip;
 use crate::group::Group;
+use crate::stdout::{crash, Code};
 
 
 //^
@@ -27,7 +28,7 @@ impl _Start {pub fn evaluate(&self, runtime: &mut Runtime, id: u32, memory: &Vec
     for &statement in &self.statements {statements.push(runtime.get(statement, memory))}
     //~ EVALUATE -> OPERATIONS
     self.space("End", id);
-    return Object::Nexists(crate::Nexists {});
+    return Object::Undefined(crate::Undefined::new());
 }}
 
 //> START -> REPRESENTATION
