@@ -1,14 +1,14 @@
 {
   "name": "mathsys",
-  "version": "4.2.0",
+  "version": "5.0.0",
   "type": "module",
+  "main": "./mathsys/v5/index.js",
   "description": "The Domain Specific Language for math.",
   "scripts": {
     "build/py": "python3 -m build",
     "build/ts": "babel mathsys/dev/ --extensions \".ts\" --out-dir mathsys/dev/ --out-file-extension .js && nearleyc mathsys/dev/parser/syntax.ne -o mathsys/dev/parser/syntax.cjs",
     "install/py": "pip install -e . --break-system-packages",
     "upload/py": "twine upload dist/*",
-    "upload/rs": "cd python/mathsys/dev/ && cargo publish && cd ../../../",
     "upload/ts": "npm publish",
     "compile": "bash ./python/mathsys/dev/bin/unix-x86-64.sh && bash ./python/mathsys/dev/bin/wasm.sh"
   },

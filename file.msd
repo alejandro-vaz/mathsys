@@ -1,1 +1,0 @@
-@Rational x = 0
