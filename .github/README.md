@@ -13,8 +13,6 @@ It looks like math, not code -- but it can still be checked, validated and conve
 ```
 x = 2 + 3*7/4
 
-pi == 3.14159
-
 @Number e == lim n->inf of (1 + 1/n)^n^
 
 @Tensor u, v
