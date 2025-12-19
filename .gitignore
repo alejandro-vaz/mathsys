@@ -7,9 +7,13 @@ node_modules/
 
 # IGNORE -> BUILD
 *.js
+*.cjs
 *.o
 dist/
 **/**.egg-info
 
 # IGNORE -> PYCACHE
 **/__pycache__/
+
+# IGNORE -> CARGO
+mathsys/*/target/

@@ -1,0 +1,51 @@
+{
+    "python.analysis.typeCheckingMode": "basic",
+    "python.analysis.exclude": ["./mathsys/v*", "./node_modules/", "./mathsys/release/"],
+    "python.analysis.diagnosticMode": "workspace",
+    "explorer.excludeGitIgnore": true,
+    "files.exclude": {
+      "**/.DS_Store": false,
+      "**/.hg": false,
+      "**/.svn": false,
+      "**/Thumbs.db": false
+    },
+    "better-comments.tags": [
+        {
+          "tag": "^",
+          "color": "#FF2D00",
+          "strikethrough": false,
+          "underline": false,
+          "backgroundColor": "transparent",
+          "bold": true,
+          "italic": false
+        },
+        {
+          "tag": ">",
+          "color": "#3498DB",
+          "strikethrough": false,
+          "underline": true,
+          "backgroundColor": "transparent",
+          "bold": false,
+          "italic": false
+        },
+        {
+          "tag": "~",
+          "color": "#474747",
+          "strikethrough": false,
+          "underline": false,
+          "backgroundColor": "transparent",
+          "bold": false,
+          "italic": true
+        }
+    ],
+    "rust-analyzer.files.exclude": [
+      "mathsys/dev/main/main.rs"
+    ],
+    "rust-analyzer.linkedProjects": [
+      "mathsys/dev/core/Cargo.toml"
+    ],
+    "rust-analyzer.inlayHints.genericParameterHints.const.enable": false,
+    "rust-analyzer.inlayHints.parameterHints.enable": false,
+    "rust-analyzer.inlayHints.typeHints.enable": false,
+    "rust-analyzer.inlayHints.renderColons": false
+}

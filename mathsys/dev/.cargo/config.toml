@@ -1,0 +1,5 @@
+[target.x86_64-unknown-linux-gnu]
+rustflags = ["-Clink-arg=bin/unix-x86-64.o"]
+
+[target.wasm32-unknown-unknown]
+rustflags = ["-Clink-arg=bin/wasm.o"]

@@ -1,16 +1,16 @@
 {
   "name": "mathsys",
-  "version": "4.2.0",
+  "version": "5.0.0",
   "type": "module",
+  "main": "./mathsys/v5/index.js",
   "description": "The Domain Specific Language for math.",
   "scripts": {
     "build/py": "python3 -m build",
-    "build/ts": "babel typescript/ --extensions \".ts\" --watch --out-dir typescript/ --out-file-extension .js",
+    "build/ts": "babel mathsys/dev/ --extensions \".ts\" --out-dir mathsys/dev/ --out-file-extension .js && nearleyc mathsys/dev/parser/syntax.ne -o mathsys/dev/parser/syntax.cjs",
     "install/py": "pip install -e . --break-system-packages",
-    "test/py": "python3 -m unittest python.testing",
     "upload/py": "twine upload dist/*",
     "upload/ts": "npm publish",
-    "compile": "bash ./python/mathsys/dev/source/unix-x86-64.sh && bash ./python/mathsys/dev/source/web.sh"
+    "compile": "bash ./python/mathsys/dev/bin/unix-x86-64.sh && bash ./python/mathsys/dev/bin/wasm.sh"
   },
   "repository": {
     "type": "git",
@@ -24,7 +24,7 @@
     "language"
   ],
   "author": "alejandro-vaz",
-  "license": "SEE LICENSE IN https://docs.abscissa.eu",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/abscissa-math/mathsys/issues"
   },
@@ -36,5 +36,11 @@
     "@babel/preset-env": "^7.27.2",
     "@babel/preset-react": "^7.27.1",
     "@babel/preset-typescript": "^7.27.1"
+  },
+  "dependencies": {
+    "@types/nearley": "^2.11.5",
+    "@types/node": "^25.0.0",
+    "moo": "^0.5.2",
+    "nearley": "^2.20.1"
   }
 }

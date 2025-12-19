@@ -1,0 +1,5 @@
+# default tensors
+@Tensor u, v
+
+# default nexists
+@Nexists o == ()

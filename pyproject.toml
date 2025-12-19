@@ -4,10 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mathsys"
-version = "4.2.0"
+version = "5"
 description = "The Domain Specific Language for math."
-readme = "README.md"
-license = {text = "SEE LICENSE IN https://docs.abscissa.eu"}
+readme = ".github/README.md"
+license = {file = ".github/LICENSE"}
 authors = [{ name = "Alejandro Vaz", email = "support@abscissa.eu" }]
 keywords = ["dsl", "math", "mathsys", "compiler", "language"]
 classifiers = [
@@ -20,11 +20,14 @@ dependencies = [
     "lark"
 ]
 
+[project.scripts]
+mathsys = "mathsys.__main__:main"
+
 [tool.setuptools]
-package-dir = { "" = "python" }
+package-dir = {"" = "."}
 
 [tool.setuptools.packages.find]
-where = ["python"]
+where = ["."]
 
 [tool.setuptools.package-data]
-mathsys = ["**"]
+mathsys = []
