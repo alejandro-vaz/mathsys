@@ -3,7 +3,7 @@
 //^
 
 //> HEAD -> RUNTIME
-use core::{run, Settings};
+use mathsys::{run, Settings};
 
 
 //^

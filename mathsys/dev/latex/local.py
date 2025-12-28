@@ -64,7 +64,7 @@ VARIABLES = {
     "xi": r"\xi ",
     "Xi": r"\Xi ",
     "pi": r"\pi ",
-    "Pi": r"\pi ",
+    "Pi": r"\Pi ",
     #~ VARIABLES -> WEIERSTRASS
     "wp": r"\wp "
 }

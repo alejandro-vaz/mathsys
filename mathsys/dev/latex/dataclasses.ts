@@ -13,7 +13,7 @@ import {SPECIAL, VARIABLES, CONVERSION, types} from "./local.js";
 //> START -> CLASS
 export class Start {
     constructor(
-        public statements: string[]
+        readonly statements: string[]
     ) {} 
     toString(): string {
         let delimiters;
@@ -36,9 +36,9 @@ export class Start {
 //> 1ºLEVEL -> DECLARATION
 export class Declaration {
     constructor(
-        public group: string,
-        public variable: string,
-        public expression: string
+        readonly group: string,
+        readonly variable: string,
+        readonly expression: string
     ) {}
     toString(): string {
         return `${this.variable}=${this.expression}`;
@@ -48,9 +48,9 @@ export class Declaration {
 //> 1ºLEVEL -> DEFINITION
 export class Definition {
     constructor(
-        public group: string,
-        public variable: string,
-        public expression: string
+        readonly group: string,
+        readonly variable: string,
+        readonly expression: string
     ) {}
     toString(): string {
         return String.raw`${this.variable}\equiv ${this.expression}`;
@@ -60,8 +60,8 @@ export class Definition {
 //> 1ºLEVEL -> ANNOTATION
 export class Annotation {
     constructor(
-        public group: string,
-        public variables: string[]
+        readonly group: string,
+        readonly variables: string[]
     ) {}
     toString(): string {
         const variables = this.variables.join(",");
@@ -78,7 +78,7 @@ export class Annotation {
 //> 1ºLEVEL -> NODE
 export class Node {
     constructor(
-        public expression: string
+        readonly expression: string
     ) {}
     toString(): string {
         return this.expression;
@@ -88,8 +88,8 @@ export class Node {
 //> 1ºLEVEL -> EQUATION
 export class Equation {
     constructor(
-        public leftexpression: string,
-        public rightexpression: string
+        readonly leftexpression: string,
+        readonly rightexpression: string
     ) {}
     toString(): string {
         return `${this.leftexpression}=${this.rightexpression}`;
@@ -99,7 +99,7 @@ export class Equation {
 //> 1ºLEVEL -> COMMENT
 export class Comment {
     constructor(
-        public text: string
+        readonly text: string
     ) {}
     toString(): string {
         const curated = this.text.split("").map(character => character in SPECIAL ? SPECIAL[character] : character).join("");
@@ -110,8 +110,8 @@ export class Comment {
 //> 1ºLEVEL -> USE
 export class Use {
     constructor(
-        public name: string,
-        public start: boolean
+        readonly name: string,
+        readonly start: boolean
     ) {}
     toString(): string {
         const delimiters = this.start ? ["", ""] : [String.raw`\color{brown}`, String.raw`\color{black}`];
@@ -127,8 +127,8 @@ export class Use {
 //> 2ºLEVEL -> EXPRESSION
 export class Expression {
     constructor(
-        public signs: (boolean | null)[],
-        public terms: string[]
+        readonly signs: (boolean | null)[],
+        readonly terms: string[]
     ) {}
     toString(): string {
         let string: string[] = [];
@@ -148,8 +148,8 @@ export class Expression {
 //> 3ºLEVEL -> TERM
 export class Term {
     constructor(
-        public numerator: string[],
-        public denominator: string[]
+        readonly numerator: string[],
+        readonly denominator: string[]
     ) {}
     toString(): string {
         const numerator = this.numerator.join("");
@@ -167,8 +167,8 @@ export class Term {
 //> 4ºLEVEL -> FACTOR
 export class Factor {
     constructor(
-        public value: string,
-        public exponent: string | null
+        readonly value: string,
+        readonly exponent: string | null
     ) {}
     toString(): string {
         const exponent = this.exponent !== null ? `^{${this.exponent}}` : "";
@@ -179,11 +179,11 @@ export class Factor {
 //> 4ºLEVEL -> LIMIT
 export class Limit {
     constructor(
-        public variable: string,
-        public approach: string,
-        public direction: boolean | null,
-        public nest: string,
-        public exponent: string | null
+        readonly variable: string,
+        readonly approach: string,
+        readonly direction: boolean | null,
+        readonly nest: string,
+        readonly exponent: string | null
     ) {}
     toString(): string {
         const direction = this.direction !== null ? `^{${this.direction ? '+' : '-'}}` : "";
@@ -208,7 +208,7 @@ export class Infinite {
 //> 5ºLEVEL -> VARIABLE
 export class Variable {
     constructor(
-        public representation: string
+        readonly representation: string
     ) {}
     toString(): string {
         let curated = this.representation;
@@ -221,7 +221,7 @@ export class Variable {
 //> 5ºLEVEL -> NEST
 export class Nest {
     constructor(
-        public expression: string
+        readonly expression: string
     ) {}
     toString(): string {
         const inside = this.expression ? this.expression : String.raw`\, `;
@@ -232,7 +232,7 @@ export class Nest {
 //> 5ºLEVEL -> TENSOR
 export class Tensor {
     constructor(
-        public values: string[]
+        readonly values: string[]
     ) {}
     toString(): string {
         const inside = this.values.length === 0 ? String.raw`\; ` : this.values.join(String.raw`\\ `);
@@ -243,7 +243,7 @@ export class Tensor {
 //> 5ºLEVEL -> WHOLE
 export class Whole {
     constructor(
-        public value: number
+        readonly value: number
     ) {}
     toString(): string {
         return `${this.value}`;
@@ -253,7 +253,7 @@ export class Whole {
 //> 5ºLEVEL -> ABSOLUTE
 export class Absolute {
     constructor(
-        public expression: string
+        readonly expression: string
     ) {}
     toString(): string {
         return String.raw`\left| ${this.expression}\right| `

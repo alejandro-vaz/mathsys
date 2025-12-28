@@ -42,9 +42,9 @@ export class Parser {
     //~ CLASS -> RUN
     run(content: string): parser.Start {
         this.parser.feed(content);
-        let result = this.parser.results[0] as parser.Start;
+        let result = this.parser.results.pop() as parser.Start;
         for (const level1 of result.statements) {if (level1 instanceof parser.Use) {
-            level1.start = MODULES[level1.name] !== undefined ? (new Parser()).run(MODULES[level1.name]) : null
+            level1.start = MODULES[level1.name] !== undefined ? this.run(MODULES[level1.name]) : null
         }}
         return result;
     }

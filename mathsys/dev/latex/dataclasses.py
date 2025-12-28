@@ -14,7 +14,7 @@ from .local import SPECIAL, VARIABLES, CONVERSION, types
 #^
 
 #> START -> CLASS
-@dataclass(kw_only = True)
+@dataclass(kw_only = True, frozen = True)
 class Start:
     statements: list[str]
     def __str__(self) -> str:
@@ -32,7 +32,7 @@ class Start:
 #^
 
 #> 1ºLEVEL -> DECLARATION
-@dataclass(kw_only = True)
+@dataclass(kw_only = True, frozen = True)
 class Declaration:
     group: str
     variable: str
@@ -41,7 +41,7 @@ class Declaration:
         return f"{self.variable}={self.expression}"
 
 #> 1ºLEVEL -> DEFINITION
-@dataclass(kw_only = True)
+@dataclass(kw_only = True, frozen = True)
 class Definition:
     group: str
     variable: str
@@ -50,7 +50,7 @@ class Definition:
         return fr"{self.variable}\equiv {self.expression}"
 
 #> 1ºLEVEL -> ANNOTATION
-@dataclass(kw_only = True)
+@dataclass(kw_only = True, frozen = True)
 class Annotation:
     group: str
     variables: list[str]
@@ -64,14 +64,14 @@ class Annotation:
             case other: return ""
 
 #> 1ºLEVEL -> NODE
-@dataclass(kw_only = True)
+@dataclass(kw_only = True, frozen = True)
 class Node:
     expression: str
     def __str__(self) -> str:
         return self.expression
 
 #> 1ºLEVEL -> EQUATION
-@dataclass(kw_only = True)
+@dataclass(kw_only = True, frozen = True)
 class Equation:
     leftexpression: str
     rightexpression: str
@@ -79,7 +79,7 @@ class Equation:
         return f"{self.leftexpression}={self.rightexpression}"
 
 #> 1ºLEVEL -> COMMENT
-@dataclass(kw_only = True)
+@dataclass(kw_only = True, frozen = True)
 class Comment:
     text: str
     def __str__(self) -> str:
@@ -87,7 +87,7 @@ class Comment:
         return fr"\\\text{{{curated}}}"
 
 #> 1ºLEVEL -> USE
-@dataclass(kw_only = True)
+@dataclass(kw_only = True, frozen = True)
 class Use:
     name: str
     start: bool
@@ -101,7 +101,7 @@ class Use:
 #^
 
 #> 2ºLEVEL -> EXPRESSION
-@dataclass(kw_only = True)
+@dataclass(kw_only = True, frozen = True)
 class Expression:
     signs: list[bool | None]
     terms: list[str]
@@ -118,7 +118,7 @@ class Expression:
 #^
 
 #> 3ºLEVEL -> TERM
-@dataclass(kw_only = True)
+@dataclass(kw_only = True, frozen = True)
 class Term:
     numerator: list[str]
     denominator: list[str]
@@ -134,7 +134,7 @@ class Term:
 #^
 
 #> 4ºLEVEL -> FACTOR
-@dataclass(kw_only = True)
+@dataclass(kw_only = True, frozen = True)
 class Factor:
     value: str
     exponent: str | None
@@ -143,7 +143,7 @@ class Factor:
         return f"{self.value}{exponent}"
 
 #> 4ºLEVEL -> LIMIT
-@dataclass(kw_only = True)
+@dataclass(kw_only = True, frozen = True)
 class Limit:
     variable: str
     approach: str
@@ -161,13 +161,13 @@ class Limit:
 #^
 
 #> 5ºLEVEL -> INFINITE
-@dataclass(kw_only = True)
+@dataclass(kw_only = True, frozen = True)
 class Infinite:
     def __str__(self) -> str:
         return r"\infty "
 
 #> 5ºLEVEL -> VARIABLE
-@dataclass(kw_only = True)
+@dataclass(kw_only = True, frozen = True)
 class Variable:
     representation: str
     def __str__(self) -> str:
@@ -177,7 +177,7 @@ class Variable:
         return identifier
 
 #> 5ºLEVEL -> NEST
-@dataclass(kw_only = True)
+@dataclass(kw_only = True, frozen = True)
 class Nest:
     expression: str
     def __str__(self) -> str:
@@ -185,7 +185,7 @@ class Nest:
         return fr"\left( {inside}\right) "
 
 #> 5ºLEVEL -> TENSOR
-@dataclass(kw_only = True)
+@dataclass(kw_only = True, frozen = True)
 class Tensor:
     values: list[str]
     def __str__(self) -> str:
@@ -193,14 +193,14 @@ class Tensor:
         return fr"\begin{{bmatrix}}{inside}\end{{bmatrix}}"
 
 #> 5ºLEVEL -> WHOLE
-@dataclass(kw_only = True)
+@dataclass(kw_only = True, frozen = True)
 class Whole:
     value: int
     def __str__(self) -> str:
         return f"{self.value}"
 
 #> 5ºLEVEL -> ABSOLUTE
-@dataclass(kw_only = True)
+@dataclass(kw_only = True, frozen = True)
 class Absolute:
     expression: str
     def __str__(self) -> str:

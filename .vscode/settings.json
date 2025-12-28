@@ -42,7 +42,7 @@
       "mathsys/dev/main/main.rs"
     ],
     "rust-analyzer.linkedProjects": [
-      "mathsys/dev/core/Cargo.toml"
+      "mathsys/dev/math/Cargo.toml"
     ],
     "rust-analyzer.inlayHints.genericParameterHints.const.enable": false,
     "rust-analyzer.inlayHints.parameterHints.enable": false,

@@ -14,8 +14,9 @@ export type Token = {
 }
 
 //> HELPERS -> ISTOKEN
-export function istoken(item: any): boolean {
+export function istoken(item: any): item is Token {
     return item 
+        && typeof item === 'object'
         && "type" in item
         && "value" in item 
         && "text" in item
@@ -26,22 +27,4 @@ export function istoken(item: any): boolean {
 }
 
 //> HELPERS -> TOKEN TRIMMER
-export function ñ(token: Token): string {return token.text.replace(" ", "")}
-
-//> HELPERS -> FILTER
-export function del(list: any[]): any[] {
-    const stack = [...list];
-    const result: any[] = [];
-    while (stack.length > 0) {
-        const item = stack.shift();
-        if (item === null || item === undefined) continue;
-        if (Array.isArray(item)) {
-            stack.unshift(...item);
-        } else if (istoken(item)) {
-            if (!item.type.startsWith("_")) result.push(item);
-        } else {
-            result.push(item);
-        }
-    }
-    return result;
-}
+export function ñ(token: Token): string {return token.text.replaceAll(" ", "")}

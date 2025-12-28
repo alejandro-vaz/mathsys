@@ -37,7 +37,8 @@ async def functions() -> list:
         binary,
         tokens,
         latex,
-        native
+        unix_x86_64,
+        wasm
     ]
 
 #> PRELUDE -> TIME WRAPPER
@@ -86,10 +87,15 @@ async def tokens(content: str) -> int: return len(_ir.run(_parser.run(content)))
 @timeWrapper
 async def latex(content: str) -> str: return _latex.run(_parser.run(content))
 
-#> MAIN -> NATIVE
+#> MAIN -> UNIX-X86-64
 @alru_cache(maxsize = 8192)
 @timeWrapper
-async def native(content: str, optimize: bool, target: str): return _builder.run(_ir.run(_parser.run(content)), target, optimize)
+async def unix_x86_64(content: str, optimize: bool) -> bytes: return _builder.run(_ir.run(_parser.run(content)), "unix-x86-64", optimize)
+
+#> MAIN -> WASM
+@alru_cache(maxsize = 8192)
+@timeWrapper
+async def wasm(content: str, optimize: bool) -> bytes: return _builder.run(_ir.run(_parser.run(content)), "wasm", optimize)
 
 
 #^
@@ -111,10 +117,15 @@ async def wrapper(*arguments: str) -> None:
             components[-1] = "ltx"
             with open(".".join(components), "w") as destination:
                 try: destination.write(await latex(content))
-                except Exception as error: print(str(error))
-        case "native": 
+                except Exception as error: print(str(error)); exit(1)
+        case "unix-x86-64": 
             components.pop()
             with open(".".join(components), "wb") as destination:
-                try: destination.write(await native(content, True, "unix-x86-64"))
-                except Exception as error: print(str(error))
+                try: destination.write(await unix_x86_64(content, True))
+                except Exception as error: print(str(error)); exit(1)
+        case "wasm":
+            components[-1] = "wasm"
+            with open(".".join(components), "wb") as destination:
+                try: destination.write(await wasm(content, True))
+                except Exception as error: print(str(error)); exit(1)
         case other: sys.exit(f"[ENTRY ISSUE] Unknown target. Available targets:\n{await help()}")

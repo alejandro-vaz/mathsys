@@ -1,4 +1,9 @@
 @{%
+//^
+//^ SYNTAX
+//^
+
+//> SYNTAX -> LEXER
 const lexer = require("moo").compile({
     _LIM: /\blim\b/,
     _PIPE: /\|/,
@@ -25,8 +30,27 @@ const lexer = require("moo").compile({
     MODULE: /"[a-z]+"/,
     QUOTE: /#(?: [^\n]*)?/
 });
-const del = require("./local.js").del;
+
+//> SYNTAX -> POSTPROCESSING
 const post = require("./post.js");
+
+//> SYNTAX -> DELETER
+export function del(list: any[]): any[] {
+    const stack = [...list];
+    const result: any[] = [];
+    while (stack.length > 0) {
+        const item = stack.shift();
+        if (item === null || item === undefined) continue;
+        if (Array.isArray(item)) {
+            stack.unshift(...item);
+        } else if (istoken(item)) {
+            if (!item.type.startsWith("_")) result.push(item);
+        } else {
+            result.push(item);
+        }
+    }
+    return result;
+}
 %}
 
 @lexer lexer

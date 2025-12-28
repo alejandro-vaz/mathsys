@@ -4,6 +4,7 @@
 
 #> HEAD -> MODULES
 from typing import cast
+from zlib import compress
 
 #> HEAD -> DATA
 from .local import u32, u8, OBJECTTYPE, null32, null8
@@ -23,6 +24,13 @@ class IR:
     nodes: dict
     #~ GENERATOR -> INIT
     def __init__(self) -> None: pass
+    #~ GENERATOR -> RUN
+    def run(self, start: parser.Start) -> bytes:
+        self.ir = b""
+        self.counter = 0
+        self.nodes = {}
+        self.start(start)
+        return compress(self.ir, level = 9, wbits = -15)
     #~ GENERATOR -> VARIABLE GENERATOR
     def new(self, element) -> u32:
         binary = bytes(element)
@@ -33,13 +41,6 @@ class IR:
             self.ir += binary
             self.nodes[binary] = self.counter
             return cast(u32, u32(self.counter))
-    #~ GENERATOR -> RUN
-    def run(self, start: parser.Start) -> bytes:
-        self.ir = b""
-        self.counter = 0
-        self.nodes = {}
-        self.start(start)
-        return self.ir
     #~ GENERATOR -> START GENERATION
     def start(self, start: parser.Start) -> u32: 
         return self.new(ir.Start(

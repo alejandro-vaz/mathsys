@@ -64,7 +64,7 @@ export const VARIABLES = {
     "xi": String.raw`\xi `,
     "Xi": String.raw`\Xi `,
     "pi": String.raw`\pi `,
-    "Pi": String.raw`\pi `,
+    "Pi": String.raw`\Pi `,
     //~ VARIABLES -> WEIERSTRASS
     "wp": String.raw`\wp `
 }

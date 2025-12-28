@@ -38,7 +38,7 @@ export class LaTeX {
         if (level1 instanceof parser.Equation) return this.equation(level1);
         if (level1 instanceof parser.Comment) return this.comment(level1);
         if (level1 instanceof parser.Use) return this.use(level1);
-        return "";
+        throw new Error();
     }
     //~ GENERATOR -> 1 DECLARATION GENERATION
     declaration(declaration: parser.Declaration): string {
@@ -102,14 +102,10 @@ export class LaTeX {
     //~ GENERATOR -> 2 LEVEL GENERATION
     level2(level2: parser.Level2): string {
         if (level2 instanceof parser.Expression) return this.expression(level2);
-        return "";
+        throw new Error();
     }
     //~ GENERATOR -> 2 EXPRESSION GENERATION
     expression(expression: parser.Expression): string {
-    if (!expression) {
-        console.error("LaTeX.expression called with:", expression);
-        throw new Error("Invalid Expression passed to LaTeX.expression");
-    }
         return String(new latex.Expression(
             expression.signs,
             expression.terms.map(term => this.level3(term))
@@ -118,7 +114,7 @@ export class LaTeX {
     //~ GENERATOR -> 3 LEVEL GENERATION
     level3(level3: parser.Level3): string {
         if (level3 instanceof parser.Term) return this.term(level3);
-        return "";
+        throw new Error();
     }
     //~ GENERATOR -> 3 TERM GENERATION
     term(term: parser.Term): string {
@@ -163,7 +159,7 @@ export class LaTeX {
     level4(level4: parser.Level4): string {
         if (level4 instanceof parser.Factor) return this.factor(level4);
         if (level4 instanceof parser.Limit) return this.limit(level4);
-        return "";
+        throw new Error();
     }
     //~ GENERATOR -> 4 FACTOR GENERATION
     factor(factor: parser.Factor): string {
@@ -190,7 +186,7 @@ export class LaTeX {
         if (level5 instanceof parser.Tensor) return this.tensor(level5);
         if (level5 instanceof parser.Whole) return this.whole(level5);
         if (level5 instanceof parser.Absolute) return this.absolute(level5);
-        return "";
+        throw new Error();
     }
     //~ GENERATOR -> 5 INFINITE GENERATION
     infinite(infinite: parser.Infinite): string {

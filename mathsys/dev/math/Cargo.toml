@@ -1,0 +1,31 @@
+[package]
+name = "mathsys"
+version = "5.0.0"
+edition = "2024"
+authors = ["Alejandro Vaz <support@abscissa.eu>"]
+description = "The Domain Specific Language for math."
+license = "MIT"
+repository = "https://github.com/alejandro-vaz/mathsys"
+homepage = "https://abscissa.eu"
+keywords = [
+    "dsl",
+    "math",
+    "mathsys",
+    "compiler",
+    "language"
+]
+categories = [
+    "compilers",
+    "parser-implementations",
+    "mathematics",
+    "science"
+]
+publish = true
+
+[lib]
+name = "math"
+path = "lib.rs"
+
+[dependencies]
+miniz_oxide = "0.8.9"
+num-bigint = "0.4.6"

@@ -87,7 +87,7 @@ export function use(items: Token[]): parser.Use {
 //> 2ºLEVEL -> EXPRESSION
 export function expression(items: (Token | parser.Level3)[]): parser.Expression {
     return new parser.Expression(
-        [...(istoken(items[0]) ? [] : [null]), ...items.filter(item => istoken(item)).map(item => ñ(item as Token) === "+")],
+        [...(istoken(items[0]) ? [] : [null]), ...items.filter(item => istoken(item)).map(item => ñ(item) === "+")],
         items.filter(item => item instanceof parser.Level3)
     );
 }
@@ -102,7 +102,7 @@ export function term(items: (Token | parser.Level4)[]): parser.Term {
     const numerator = [];
     const denominator = [];
     let location = true;
-    for (const item of items) {if (istoken(item)) {switch (ñ(item as Token)) {
+    for (const item of items) {if (istoken(item)) {switch (ñ(item)) {
         case "*": {location = true; break};
         case "/": {location = false; break};
     }} else {location ? numerator.push(item) : denominator.push(item)}}
@@ -130,7 +130,7 @@ export function limit(items: (Token | parser.Variable | parser.Expression | pars
     return new parser.Limit(
         items[0] as parser.Variable,
         items[1] as parser.Expression,
-        istoken(items[2]) ? ñ(items[2] as Token) == "+" : null,
+        istoken(items[2]) ? ñ(items[2]) == "+" : null,
         items.at(-2) instanceof parser.Nest ? items.at(-2) as parser.Nest : items.at(-1) as parser.Nest,
         items.at(-1) instanceof parser.Expression ? items.at(-1) as parser.Expression : null
     );

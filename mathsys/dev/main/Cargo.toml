@@ -1,31 +1,10 @@
 [package]
-name = "mathsys"
-version = "5.0.0"
+name = "wrapper"
 edition = "2024"
-authors = ["Alejandro Vaz <support@abscissa.eu>"]
-description = "The Domain Specific Language for math."
-license = "MIT"
-repository = "https://github.com/alejandro-vaz/mathsys"
-homepage = "https://abscissa.eu"
-keywords = [
-    "dsl",
-    "math",
-    "mathsys",
-    "compiler",
-    "language"
-]
-categories = [
-    "dsl",
-    "math",
-    "mathsys",
-    "compiler",
-    "language"
-]
-publish = true
 
 [[bin]]
-name = "mathsys"
+name = "wrapper"
 path = "main.rs"
 
 [dependencies]
-core = {package = "core", path = "../core"}
+mathsys = {package = "mathsys", path = "../math"}

@@ -7,9 +7,6 @@ import subprocess
 import os
 import tempfile
 
-#> HEAD -> VERSION
-from mathsys import __version_info__
-
 
 #^
 #^  STATIC
@@ -39,9 +36,9 @@ class Builder:
         environment["MathsysSource"] = ir
         environment["MathsysOptimization"] = "default"
         environment["MathsysPrecision"] = "standard"
-        environment["MathsysMajor"] = str(__version_info__[0])
-        environment["MathsysMinor"] = str(__version_info__[1])
-        environment["MathsysPatch"] = str(__version_info__[2])
+        environment["MathsysMajor"] = '3'
+        environment["MathsysMinor"] = '0'
+        environment["MathsysPatch"] = '0'
         try: 
             subprocess.run(
                 self.command(target, filename),

@@ -59,7 +59,7 @@ export function join(binary: u8[] | u32[], delimiter: Uint8Array): Uint8Array {
 export function clamp(...arrays: Uint8Array[]): Uint8Array {
     let result = new Uint8Array(arrays.reduce((sum, arr) => sum + arr.length, 0));
     let offset = 0;
-    for (let arr of arrays) {
+    for (const arr of arrays) {
         result.set(arr, offset);
         offset += arr.length;
     }

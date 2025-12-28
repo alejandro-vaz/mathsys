@@ -2,6 +2,9 @@
 //^ HEAD
 //^
 
+//> HEAD -> MODULES
+import {deflateRawSync} from "zlib";
+
 //> HEAD -> DATA
 import {u32, u8, OBJECTTYPE, null32, null8, clamp} from "./local.js";
 import * as ir from "./dataclasses.js";
@@ -24,6 +27,14 @@ export class IR {
         this.counter = 0;
         this.nodes = new Map()
     }
+    //~ GENERATOR -> RUN
+    run(start: parser.Start): Uint8Array {
+        this.ir = new Uint8Array();
+        this.counter = 0;
+        this.nodes.clear();
+        this.start(start);
+        return deflateRawSync(this.ir, {level: 9});
+    }
     //~ GENERATOR -> VARIABLE GENERATOR
     new(element: any): u32 {
         const binary = element.bytes();
@@ -38,14 +49,6 @@ export class IR {
             return u32(this.counter);
         }
     }
-    //~ GENERATOR -> RUN
-    run(start: parser.Start): Uint8Array {
-        this.ir = new Uint8Array();
-        this.counter = 0;
-        this.nodes.clear();
-        this.start(start);
-        return this.ir;
-    }
     //~ GENERATOR -> START GENERATION
     start(start: parser.Start): u32 {return this.new(new ir.Start(
         start.statements.map(statement => this.level1(statement))
@@ -59,7 +62,7 @@ export class IR {
         if (level1 instanceof parser.Equation) return this.equation(level1);
         if (level1 instanceof parser.Comment) return this.comment(level1);
         if (level1 instanceof parser.Use) return this.use(level1);
-        return null32();
+        throw new Error();
     }
     //~ GENERATOR -> 1 DECLARATION GENERATION
     declaration(declaration: parser.Declaration): u32 {return this.new(new ir.Declaration(
@@ -99,7 +102,7 @@ export class IR {
     //~ GENERATOR -> 2 LEVEL GENERATION
     level2(level2: parser.Level2): u32 {
         if (level2 instanceof parser.Expression) return this.expression(level2);
-        return null32();
+        throw new Error();
     }
     //~ GENERATOR -> 2 EXPRESSION GENERATION
     expression(expression: parser.Expression): u32 {return this.new(new ir.Expression(
@@ -109,7 +112,7 @@ export class IR {
     //~ GENERATOR -> 3 LEVEL GENERATION
     level3(level3: parser.Level3): u32 {
         if (level3 instanceof parser.Term) return this.term(level3);
-        return null32();
+        throw new Error();
     }
     //~ GENERATOR -> 3 TERM GENERATION
     term(term: parser.Term): u32 {return this.new(new ir.Term(
@@ -120,7 +123,7 @@ export class IR {
     level4(level4: parser.Level4): u32 {
         if (level4 instanceof parser.Factor) return this.factor(level4);
         if (level4 instanceof parser.Limit) return this.limit(level4);
-        return null32();
+        throw new Error();
     }
     //~ GENERATOR -> 4 FACTOR GENERATION
     factor(factor: parser.Factor): u32 {return this.new(new ir.Factor(
@@ -143,7 +146,7 @@ export class IR {
         if (level5 instanceof parser.Tensor) return this.tensor(level5);
         if (level5 instanceof parser.Whole) return this.whole(level5);
         if (level5 instanceof parser.Absolute) return this.absolute(level5);
-        return null32();
+        throw new Error();
     }
     //~ GENERATOR -> 5 INFINITE GENERATION
     infinite(infinite: parser.Infinite): u32 {return this.new(new ir.Infinite())}
