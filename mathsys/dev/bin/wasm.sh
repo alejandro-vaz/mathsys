@@ -5,7 +5,7 @@
 
 #> COMPILE -> COMMAND
 (
-    cd python/mathsys/dev/source
+    cd mathsys/dev/bin
     {
         cat << 'EOF'
         (module
