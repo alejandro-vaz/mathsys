@@ -1,1 +1,0 @@
-{"rustc":4758242423518056681,"features":"[]","declared_features":"[]","target":6915885650820912609,"profile":4853234189652283193,"path":8758052465374852414,"deps":[],"local":[{"CheckDepInfo":{"dep_info":"debug/.fingerprint/core-2a03ba11f3a4839f/dep-test-lib-core","checksum":false}}],"rustflags":["-Clink-arg=bin/unix-x86-64.o"],"config":2069994364910194474,"compile_kind":0}
