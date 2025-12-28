@@ -8,43 +8,29 @@ mode: "wide"
 
 # Changelog
 
-## v0.0.1
+## v0
 1. Initial release.
-
-## v0.1.0
 1. Added *TypeScript* compiler.
 1. Completed [#1](https://github.com/abscissa-math/mathsys/issues/1)
 1. Completed [#2](https://github.com/abscissa-math/mathsys/issues/2)
 1. Completed [#3](https://github.com/abscissa-math/mathsys/issues/3)
 1. Added type annotations in *Python* compiler for some classes.
-
-## v0.2.1
 1. Added support for `+` and `-` operations in the tokenizer and parser.
 1. Redefined syntax.
 1. Modularized compiler.
 1. Published `pip` and `npm` packages.
 1. Deleted semantic analyzer.
 1. Improved entry points.
-
-## v0.2.4
 1. Completed [#5](https://github.com/abscissa-math/mathsys/issues/5)
 1. Completed [#6](https://github.com/abscissa-math/mathsys/issues/6)
 1. Completed [#7](https://github.com/abscissa-math/mathsys/issues/7)
-
-## v0.3.0
 1. Built *IR* generator.
 1. Switched to *Lark* parser.
 1. Removed *TypeScript* compiler temporarily.
 1. Defined a simple *IR* instruction set.
 1. Modularized the parser so multiple syntaxes are allowed in the future.
-
-## v0.3.1
 1. Made entry point fixed imports to `main/` dynamic.
-
-## v0.3.2
 1. Added the `syntax/` directory with its files to package-shipped files.
-
-## v0.6.1
 1. Replaced *IR* generator for *LaTeX* generator.
 1. Added support for multiplication.
 1. Redesigned internal syntax and removed comments in it.
@@ -52,8 +38,6 @@ mode: "wide"
 1. Improved `.gitignore` structure.
 1. Create `node` project again with commands.
 1. Improved `pip` package structure.
-
-## v0.8.0
 1. Added division.
 1. Added vectors.
 1. Added multiple-levels syntax hierarchy system.
@@ -63,15 +47,13 @@ mode: "wide"
 1. Added `lark` dependency to *Python* package.
 1. Added `·` as a character for multiplication.
 1. Added more test cases.
-
-## v0.10.2
 1. Added exponentiation.
 1. Removed `sheet` types.
 1. Made comments always uppercase.
 1. Refactored `Factor` *LaTeX* generation.
 1. Added `º()` function on parser which accesses a list safely.
 
-## v1.0.0
+## v1
 1. Added *Rust* runtime.
 1. Added *IR* generator.
 1. Added executable builder.
@@ -79,8 +61,6 @@ mode: "wide"
 1. Updated syntax to make parsing possible.
 1. Updated `README.md`.
 1. Improved entry point.
-
-## v1.2.7
 1. Added limits.
 1. Added immutable definitions.
 1. Added Greek letter mapping.
@@ -96,8 +76,6 @@ mode: "wide"
 1. Renamed environment variable for the *IR* to `Mathsys`.
 1. Streamlined compilation process with `all.o` binaries.
 1. Refactored complex functions in the compilation steps to keep cyclomatic complexity under 10.
-
-## v1.4.124
 1. Optimized package structure to preserve previous versions.
 1. Moved from a bump allocator to a stack allocator.
 1. Removed implicit addition for implicit multiplication continuation. 
@@ -111,7 +89,7 @@ mode: "wide"
 1. Moved changelog to the [new documentation](https://docs.abscissa.eu).
 1. Removed testing until there's an integration with *Abscissa* for testing data.
 
-## v2.1.5
+## v2
 1. Implemented *IR* parsing in the *Rust* runtime.
 1. Added data implementations for all objects in *Rust.*
 1. Removed data race issues from the stack allocator.
@@ -123,7 +101,7 @@ mode: "wide"
 1. Moved limit to level four.
 1. Refactored assembly build scripts.
 
-## v3.3.1
+## v3
 1. Added runtime values with their own methods.
 1. Created runtime context.
 1. Added evaluation methods to classes.
@@ -134,17 +112,13 @@ mode: "wide"
 1. Fixed typos on `README.md`.
 1. Added `memcmp()` function on `memory.rs`.
 1. Simplified assembly folders, assembly will only be used for communicating with the system.
-
-## v3.5.4
 1. Changed *LaTeX* transpiler to be dataclass-based instead of having a string buffer.
-1. Improved comment syntax.1
+1. Improved comment syntax.
 1. Added file extension based compiling.
 1. Optimized runtime and added variable assignments.
 1. Fixed grammar and syntax in `README.md`.
 1. Added version and version info to exports.
 1. Merged `rustc.rs` and `memory.rs`.
-
-## v3.7.0
 1. Implemented caching with `lru_cache` and hashing inputs.
 1. Added `_Nexists` runtime value.
 1. Added compile-time indicator for *Python* targets.
@@ -156,8 +130,6 @@ mode: "wide"
 1. Fixed separation of variables with `inf`.
 1. Fixed extra newlines at document start.
 1. Added keywords to class constructors in `parser.py`.
-
-## v3.7.40
 1. Fixed `lru_cache` and added cache managing utils.
 1. Improved context `id` and added `equiv` function.
 1. Added runtime code for `Equation`.
@@ -169,8 +141,6 @@ mode: "wide"
 1. Alert stdout print is now orange instead of yellowish.
 1. Added support for multicharacter greek words.
 1. Added `º`, `$` and `%` characters as valid for variables.
-
-## v3.9.10
 1. Added summation method to runtime values.
 1. Switched to bitmap allocator.
 1. Streamlined locales and genlocales in runtime values.
@@ -181,14 +151,10 @@ mode: "wide"
 1. Updated `README.md` wording.
 1. Added mutable downcasting.
 1. Added empty parenthesis for a `_Nexists` value.
-
-## v3.9.16
 1. Added size limit for `lru_cache`.
 1. Added info method to context values in runtime.
 1. Fixed addition methods.
 1. Trimmed down allocator.
-
-## v3.10.6
 1. Added strong typing in syntax, parser, *LaTeX,* *IR,* and throughout the runtime.
 1. Added tensor runtime value.
 1. Added annotation `level1` structure.
@@ -198,8 +164,6 @@ mode: "wide"
 1. Removed all downcasting in favor of mutcasting.
 1. Fixed Greek letters collision.
 1. Removed `(frozen = True)` dataclasses.
-
-## v3.12.1
 1. Added type system in runtime.
 2. Added standard library and `use` keyword.
 1. Restructured `data/*.rs` files to improve logs.
@@ -207,7 +171,7 @@ mode: "wide"
 2. Added modulus method for tensor.
 3. Moved memory usage tracking to left.
 
-## v4.2.0
+## v4
 1. Optimized *Python* parsing workflow.
 1. Moved to a *Rust* standard runtime with the usual global allocator, so marks were removed.
 1. Added `tokens()` target.
