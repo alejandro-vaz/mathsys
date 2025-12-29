@@ -2,9 +2,22 @@
 //^ HEAD
 //^
 
-//> HEAD -> CROSS-SCOPE TRAIT
-use crate::group::Group;
-use crate::stdout::{chore, trace};
+//> HEAD -> PRELUDE
+use crate::prelude::{
+    Infinite,
+    Integer,
+    Natural,
+    Nexists,
+    Rational,
+    Tensor,
+    Undefined,
+    Variable,
+    Whole,
+    Group,
+    fmt,
+    chore,
+    trace
+};
 
 
 //^
@@ -14,15 +27,15 @@ use crate::stdout::{chore, trace};
 //> OBJECT -> ENUM
 #[derive(Clone)]
 pub enum Object {
-    Infinite(crate::Infinite),
-    Integer(crate::Integer),
-    Natural(crate::Natural),
-    Nexists(crate::Nexists),
-    Rational(crate::Rational),
-    Tensor(crate::Tensor),
-    Undefined(crate::Undefined),
-    Variable(crate::Variable),
-    Whole(crate::Whole)
+    Infinite(Infinite),
+    Integer(Integer),
+    Natural(Natural),
+    Nexists(Nexists),
+    Rational(Rational),
+    Tensor(Tensor),
+    Undefined(Undefined),
+    Variable(Variable),
+    Whole(Whole)
 } 
 
 //> OBJECT -> CASTING
@@ -115,7 +128,7 @@ impl Object {
 } 
 
 //> OBJECT -> REPRESENTATION
-impl crate::Display for Object {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {match self {
+impl fmt::Display for Object {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {match self {
     Object::Infinite(item) => item.display(formatter),
     Object::Integer(item) => item.display(formatter),
     Object::Natural(item) => item.display(formatter),
@@ -125,7 +138,7 @@ impl crate::Display for Object {fn fmt(&self, formatter: &mut crate::Formatter<'
     Object::Undefined(item) => item.display(formatter),
     Object::Variable(item) => item.display(formatter),
     Object::Whole(item) => item.display(formatter)
-}}} impl crate::Debug for Object {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {match self {
+}}} impl fmt::Debug for Object {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {match self {
     Object::Infinite(item) => item.debug(formatter),
     Object::Integer(item) => item.debug(formatter),
     Object::Natural(item) => item.debug(formatter),
@@ -139,14 +152,14 @@ impl crate::Display for Object {fn fmt(&self, formatter: &mut crate::Formatter<'
 
 //> OBJECT -> COMMON
 impl Object {
-    fn partial<Type: crate::Display + crate::Debug>(&self, value: Type) -> Type {chore(format!(
-        "{} > {:?}",
-        value, value
+    fn partial<Type: fmt::Display + fmt::Debug>(&self, value: Type) -> Type {chore(format!(
+        "{:?}",
+        value
     )); return value}
     fn castLocale(&self, group: &Group) -> () {trace(format!(
         "Casting {} to {}",
         self, group
-    ))}
+    )); self.info()}
     fn equivalencyLocale(&self, to: &Object) -> () {trace(format!(
         "Checking equivalency of {} and {}",
         self, to
@@ -194,3 +207,14 @@ impl Object {
         Object::Whole(item) => group == Group::Undefined || group == Group::Whole
     }}
 }
+
+//> OBJECT -> FROM BORROWED TO OWNED
+impl From<&Infinite> for Object {fn from(value: &Infinite) -> Object {return Object::Infinite(value.clone())}}
+impl From<&Integer> for Object {fn from(value: &Integer) -> Object {return Object::Integer(value.clone())}}
+impl From<&Natural> for Object {fn from(value: &Natural) -> Object {return Object::Natural(value.clone())}}
+impl From<&Nexists> for Object {fn from(value: &Nexists) -> Object {return Object::Nexists(value.clone())}}
+impl From<&Rational> for Object {fn from(value: &Rational) -> Object {return Object::Rational(value.clone())}}
+impl From<&Tensor> for Object {fn from(value: &Tensor) -> Object {return Object::Tensor(value.clone())}}
+impl From<&Undefined> for Object {fn from(value: &Undefined) -> Object {return Object::Undefined(value.clone())}}
+impl From<&Variable> for Object {fn from(value: &Variable) -> Object {return Object::Variable(value.clone())}}
+impl From<&Whole> for Object {fn from(value: &Whole) -> Object {return Object::Whole(value.clone())}}

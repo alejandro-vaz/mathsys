@@ -2,8 +2,12 @@
 //^ HEAD
 //^
 
-//> HEAD -> CROSS-SCOPE TRAIT
-use crate::stdout::{crash, Code};
+//> HEAD -> PRELUDE
+use crate::prelude::{
+    fmt,
+    crash,
+    Code
+};
 
 
 //^
@@ -39,7 +43,7 @@ impl From<u8> for Group {fn from(number: u8) -> Group {return match number {
 }}}
 
 //> GROUP -> DISPLAY
-impl crate::Display for Group {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "{}", match self {
+impl fmt::Display for Group {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter, "{}", match self {
     Group::Infinite => "Infinite",
     Group::Integer => "Integer",
     Group::Natural => "Natural",

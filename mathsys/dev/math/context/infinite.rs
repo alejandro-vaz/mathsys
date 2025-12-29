@@ -2,16 +2,19 @@
 //^ HEAD
 //^
 
-//> HEAD -> CRATES
-use num_bigint::BigUint;
-
-//> HEAD -> CROSS-SCOPE TRAIT
-use crate::{Integer, Natural, Nexists, Rational, Tensor, Undefined, Variable, Whole};
-use crate::runtime::Runtime;
-use crate::value::Value;
-use crate::object::Object;
-use crate::group::Group;
-use crate::stdout::{crash, Code};
+//> HEAD -> PRELUDE
+use crate::prelude::{
+    Object,
+    Group,
+    crash,
+    Code,
+    Undefined,
+    Whole,
+    fmt,
+    Value,
+    Zero,
+    Sign
+};
 
 
 //^
@@ -21,14 +24,17 @@ use crate::stdout::{crash, Code};
 //> INFINITE -> STRUCT
 #[derive(Clone)]
 pub struct Infinite {
-    pub sign: bool
-} impl Infinite {pub fn new(sign: bool) -> Object {return Object::Infinite(Infinite {
-    sign: sign
-})}}
+    pub sign: Sign
+} impl Infinite {pub fn new(sign: impl Into<Sign>) -> Object {
+    let sign0 = sign.into();
+    return Object::Infinite(Infinite {
+        sign: sign0
+    });
+}}
 
 //> INFINITE -> CASTING
 impl Infinite {pub fn cast(&self, group: Group) -> Object {return match group {
-    Group::Infinite => self.to(),
+    Group::Infinite => self.into(),
     Group::Integer => crash(Code::FailedCast),
     Group::Natural => crash(Code::FailedCast),
     Group::Nexists => crash(Code::FailedCast),
@@ -55,59 +61,58 @@ impl Infinite {pub fn equivalency(&self, to: &Object) -> bool {return match to {
 //> INFINITE -> SUMMATION
 impl Infinite {
     pub fn absolute(&self) -> Object {return Infinite::new(
-        true
+        Sign::Positive
     )}
     pub fn negate(&self) -> Object {return Infinite::new(
         !self.sign
     )}
     pub fn summation(&self, to: &Object) -> Object {return match to {
-        Object::Infinite(item) => if self.sign != item.sign {Undefined::new()} else {self.to()},
-        Object::Integer(item) => self.to(),
-        Object::Natural(item) => self.to(),
-        Object::Nexists(item) => self.to(),
-        Object::Rational(item) => self.to(),
+        Object::Infinite(item) => if self.sign != item.sign {Undefined::new()} else {self.into()},
+        Object::Integer(item) => self.into(),
+        Object::Natural(item) => self.into(),
+        Object::Nexists(item) => self.into(),
+        Object::Rational(item) => self.into(),
         Object::Tensor(item) => crash(Code::Todo),
-        Object::Undefined(item) => item.to(),
+        Object::Undefined(item) => item.into(),
         Object::Variable(item) => crash(Code::NoVariableOperation),
-        Object::Whole(item) => self.to()
+        Object::Whole(item) => self.into()
     }}
 }
 
 //> INFINITE -> MULTIPLICATION
 impl Infinite {
     pub fn invert(&self) -> Object {return Whole::new(
-        0u32.into()
+        0u32
     )}
     pub fn multiplication(&self, to: &Object) -> Object {return match to {
         Object::Infinite(item) => Infinite::new(
             self.sign == item.sign
         ),
-        Object::Integer(item) => if item.value == BigUint::ZERO {Undefined::new()} else {Infinite::new(
+        Object::Integer(item) => if item.value.is_zero() {Undefined::new()} else {Infinite::new(
             self.sign == item.sign
         )},
-        Object::Natural(item) => self.to(),
-        Object::Nexists(item) => self.to(),
-        Object::Rational(item) => if item.numerator == BigUint::ZERO {Undefined::new()} else {Infinite::new(
+        Object::Natural(item) => self.into(),
+        Object::Nexists(item) => self.into(),
+        Object::Rational(item) => if item.numerator.is_zero() {Undefined::new()} else {Infinite::new(
             self.sign == item.sign
         )},
         Object::Tensor(item) => crash(Code::Todo),
-        Object::Undefined(item) => item.to(),
+        Object::Undefined(item) => item.into(),
         Object::Variable(item) => crash(Code::NoVariableOperation),
-        Object::Whole(item) => if item.value == BigUint::ZERO {Undefined::new()} else {self.to()}
+        Object::Whole(item) => if item.value.is_zero() {Undefined::new()} else {self.into()}
     }}
 }
 
 //> INFINITE -> REPRESENTATION
-impl crate::Display for Infinite {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.display(formatter)}}
-impl crate::Debug for Infinite {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.debug(formatter)}} 
+impl fmt::Display for Infinite {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.display(formatter)}}
+impl fmt::Debug for Infinite {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.debug(formatter)}} 
 
 //> INFINITE -> COMMON
 impl Value for Infinite {} impl Infinite {
-    pub fn to(&self) -> Object {return Object::Infinite(self.clone())}
     pub fn info(&self) -> () {self.data()}
-    pub fn display(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "Infinite")}
-    pub fn debug(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
-        "sign = {}",
-        self.sign    
+    pub fn display(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter, "Infinite")}
+    pub fn debug(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter,
+        "{} > sign = {}",
+        self, self.sign    
     )}
 }

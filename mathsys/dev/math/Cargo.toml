@@ -29,3 +29,5 @@ path = "lib.rs"
 [dependencies]
 miniz_oxide = "0.8.9"
 num-bigint = "0.4.6"
+num-traits = "0.2.19"
+num-integer = "0.1.46"

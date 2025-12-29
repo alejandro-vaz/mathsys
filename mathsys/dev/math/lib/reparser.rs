@@ -2,15 +2,37 @@
 //^ HEAD
 //^
 
-//> HEAD -> CRATES
-use miniz_oxide::inflate::decompress_to_vec;
-
-//> HEAD -> CROSS-SCOPE TRAIT
-use crate::{_Absolute, _Annotation, _Comment, _Declaration, _Definition, _Equation, _Expression, _Factor, _Infinite, _Limit, _Nest, _Node, _Start, _Tensor, _Term, _Use, _Variable, _Whole};
-use crate::class::Class;
-use crate::stdout::{space, crash, Code, trace};
-use crate::group::Group;
-use crate::types::Pointer;
+//> HEAD -> PRELUDE
+use crate::prelude::{
+    Class,
+    decompress,
+    space,
+    crash,
+    Code,
+    trace,
+    _Start,
+    _Declaration,
+    _Definition,
+    _Annotation,
+    _Node,
+    _Equation,
+    _Comment,
+    _Use,
+    _Expression,
+    _Term,
+    _Factor,
+    _Limit,
+    _Infinite,
+    _Variable,
+    _Nest,
+    _Tensor,
+    _Whole,
+    _Absolute,
+    Group,
+    Sign,
+    Pointer,
+    BigUint
+};
 
 
 //^
@@ -26,8 +48,8 @@ pub struct Reparser {
 impl Reparser {
     pub fn run(&mut self, ir: &'static [u8]) -> Vec<Class> {
         space("{REPARSER} Processing IR");
-        let mut memory = Vec::new();
-        let Ok(binary) = decompress_to_vec(ir) else {crash(Code::FailedIRDecompression)};
+        let mut memory = Vec::with_capacity(ir.len());
+        let Ok(binary) = decompress(ir) else {crash(Code::FailedIRDecompression)};
         while self.locus < binary.len() {
             let object = match self.take8(&binary) {
                 0x01 => Class::_Start(self.Start(&binary)),
@@ -66,7 +88,7 @@ impl Reparser {
         variables: self.listPointer(binary)
     }}
     fn Comment(&mut self, binary: &Vec<u8>) -> _Comment {return _Comment {
-        text: self.listchar(binary)
+        text: self.listString(binary)
     }}
     fn Declaration(&mut self, binary: &Vec<u8>) -> _Declaration {return _Declaration {
         group: self.takeGroup(binary),
@@ -83,7 +105,7 @@ impl Reparser {
         rightexpression: self.takePointer(binary)
     }}
     fn Expression(&mut self, binary: &Vec<u8>) -> _Expression {return _Expression {
-        signs: self.list8(binary),
+        signs: self.listSign(binary),
         terms: self.listPointer(binary)
     }}
     fn Factor(&mut self, binary: &Vec<u8>) -> _Factor {return _Factor {
@@ -94,7 +116,7 @@ impl Reparser {
     fn Limit(&mut self, binary: &Vec<u8>) -> _Limit {return _Limit {
         variable: self.takePointer(binary),
         approach: self.takePointer(binary),
-        direction: self.take8(binary),
+        direction: self.takeSign(binary),
         nest: self.takePointer(binary),
         exponent: self.takePointer(binary)
     }}
@@ -115,69 +137,63 @@ impl Reparser {
         denominator: self.listPointer(binary)
     }}
     fn Use(&mut self, binary: &Vec<u8>) -> _Use {return _Use {
-        name: self.listchar(binary),
+        name: self.listString(binary),
         start: self.takePointer(binary)
     }}
     fn Variable(&mut self, binary: &Vec<u8>) -> _Variable {return _Variable {
-        representation: self.listchar(binary)
+        representation: self.listString(binary)
     }}
     fn Whole(&mut self, binary: &Vec<u8>) -> _Whole {return _Whole {
-        value: self.take32(binary)
+        value: self.takeBigUint(binary)
     }}
 }
 
 //> REPARSER -> METHODS
 impl Reparser {
-    pub fn new() -> Self {return Reparser { 
-        locus: 0
-    }}
-    fn takeGroup(&mut self, binary: &Vec<u8>) -> Group {
-        self.check(1, binary);
-        let value = binary[self.locus];
-        self.locus += 1;
-        return Group::from(value);
-    }
+    //~ METHODS -> 8 INDIVIDUAL
+    pub fn new() -> Self {return Reparser {locus: 0}}
     fn take8(&mut self, binary: &Vec<u8>) -> u8 {
         self.check(1, binary);
         let value = binary[self.locus];
         self.locus += 1;
         return value;
     }
-    fn takePointer(&mut self, binary: &Vec<u8>) -> Pointer {
-        self.check(4, binary);
-        let value = &binary[self.locus..self.locus + 4];
-        self.locus += 4;
-        return Pointer(u32::from_le_bytes([value[0], value[1], value[2], value[3]]));
-    }
-    fn take32(&mut self, binary: &Vec<u8>) -> u32 {
-        self.check(4, binary);
-        let value = &binary[self.locus..self.locus + 4];
-        self.locus += 4;
-        return u32::from_le_bytes([value[0], value[1], value[2], value[3]]);
-    }
-    fn list8(&mut self, binary: &Vec<u8>) -> Vec<u8> {
-        let mut values = Vec::<u8>::new();
+    fn takeGroup(&mut self, binary: &Vec<u8>) -> Group {return self.take8(binary).into()}
+    fn takeSign(&mut self, binary: &Vec<u8>) -> Sign {return self.take8(binary).into()}
+    //~ METHODS -> 8 LIST
+    fn listSign(&mut self, binary: &Vec<u8>) -> Vec<Sign> {
+        let mut values = Vec::<Sign>::new();
         loop {match self.take8(binary) {
             0 => break,
-            other => values.push(other)
+            other => values.push(other.into()),
         }};
         return values;
     }
-    fn listPointer(&mut self, binary: &Vec<u8>) -> Vec<Pointer> {
-        let mut values = Vec::<Pointer>::new();
-        loop {match self.takePointer(binary) {
-            Pointer(0) => break,
-            other => values.push(other),
-        }};
-        return values;
-    }
-    fn listchar(&mut self, binary: &Vec<u8>) -> String {
+    fn listString(&mut self, binary: &Vec<u8>) -> String {
         let mut values = String::new();
         loop {match self.take8(binary) {
             0 => break,
             other => values.push(other as char)
         }}
         return values
+    }
+    //~ 32 INDIVIDUAL
+    fn take32(&mut self, binary: &Vec<u8>) -> u32 {
+        self.check(4, binary);
+        let value = &binary[self.locus..self.locus + 4];
+        self.locus += 4;
+        return u32::from_le_bytes([value[0], value[1], value[2], value[3]]);
+    }
+    fn takePointer(&mut self, binary: &Vec<u8>) -> Pointer {return self.take32(binary).into()}
+    fn takeBigUint(&mut self, binary: &Vec<u8>) -> BigUint {return self.take32(binary).into()}
+    //~ 32 LIST
+    fn listPointer(&mut self, binary: &Vec<u8>) -> Vec<Pointer> {
+        let mut values = Vec::<Pointer>::new();
+        loop {match self.take32(binary) {
+            0 => break,
+            other => values.push(other.into())
+        }}
+        return values;
     }
     fn check(&self, distance: usize, binary: &Vec<u8>) -> () {
         if self.locus + distance > binary.len() {

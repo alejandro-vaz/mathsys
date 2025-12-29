@@ -2,13 +2,16 @@
 //^ HEAD
 //^
 
-//> HEAD -> CROSS-SCOPE TRAIT
-use crate::{Infinite, Integer, Natural, Rational, Tensor, Undefined, Variable, Whole};
-use crate::runtime::Runtime;
-use crate::value::Value;
-use crate::object::Object;
-use crate::group::Group;
-use crate::stdout::{crash, Code};
+//> HEAD -> PRELUDE
+use crate::prelude::{
+    Object,
+    Group,
+    crash,
+    Code,
+    Undefined,
+    Value,
+    fmt
+};
 
 
 //^
@@ -17,14 +20,16 @@ use crate::stdout::{crash, Code};
 
 //> NEXISTS -> STRUCT
 #[derive(Clone)]
-pub struct Nexists {} impl Nexists {pub fn new() -> Object {return Object::Nexists(Nexists {})}}
+pub struct Nexists {} impl Nexists {pub fn new() -> Object {
+    return Object::Nexists(Nexists {})
+}}
 
 //> NEXISTS -> CASTING
 impl Nexists {pub fn cast(&self, group: Group) -> Object {return match group {
     Group::Infinite => crash(Code::FailedCast),
     Group::Integer => crash(Code::FailedCast),
     Group::Natural => crash(Code::FailedCast),
-    Group::Nexists => self.to(),
+    Group::Nexists => self.into(),
     Group::Rational => crash(Code::FailedCast),
     Group::Tensor => crash(Code::FailedCast),
     Group::Undefined => Undefined::new(),
@@ -34,9 +39,9 @@ impl Nexists {pub fn cast(&self, group: Group) -> Object {return match group {
 
 //> NEXISTS -> EQUIVALENCY
 impl Nexists {pub fn equivalency(&self, to: &Object) -> bool {return match to {
-    Object::Infinite(item) => item.equivalency(&self.to()),
-    Object::Integer(item) => item.equivalency(&self.to()),
-    Object::Natural(item) => item.equivalency(&self.to()),
+    Object::Infinite(item) => item.equivalency(&self.into()),
+    Object::Integer(item) => item.equivalency(&self.into()),
+    Object::Natural(item) => item.equivalency(&self.into()),
     Object::Nexists(item) => false,
     Object::Rational(item) => false,
     Object::Tensor(item) => false,
@@ -47,18 +52,18 @@ impl Nexists {pub fn equivalency(&self, to: &Object) -> bool {return match to {
 
 //> NEXISTS -> SUMMATION
 impl Nexists {
-    pub fn absolute(&self) -> Object {return self.to()}
+    pub fn absolute(&self) -> Object {return self.into()}
     pub fn negate(&self) -> Object {return Nexists::new()}
     pub fn summation(&self, to: &Object) -> Object {return match to {
-        Object::Infinite(item) => item.summation(&self.to()),
-        Object::Integer(item) => item.summation(&self.to()),
-        Object::Natural(item) => item.summation(&self.to()),
-        Object::Nexists(item) => item.to(),
-        Object::Rational(item) => item.to(),
-        Object::Tensor(item) => item.to(),
-        Object::Undefined(item) => item.to(),
+        Object::Infinite(item) => item.summation(&self.into()),
+        Object::Integer(item) => item.summation(&self.into()),
+        Object::Natural(item) => item.summation(&self.into()),
+        Object::Nexists(item) => item.into(),
+        Object::Rational(item) => item.into(),
+        Object::Tensor(item) => item.into(),
+        Object::Undefined(item) => item.into(),
         Object::Variable(item) => crash(Code::NoVariableOperation),
-        Object::Whole(item) => item.to()
+        Object::Whole(item) => item.into()
     }}
 }
 
@@ -66,28 +71,28 @@ impl Nexists {
 impl Nexists {
     pub fn invert(&self) -> Object {return Nexists::new()}
     pub fn multiplication(&self, to: &Object) -> Object {return match to {
-        Object::Infinite(item) => item.multiplication(&self.to()),
-        Object::Integer(item) => item.multiplication(&self.to()),
-        Object::Natural(item) => item.multiplication(&self.to()),
-        Object::Nexists(item) => item.to(),
-        Object::Rational(item) => item.to(),
-        Object::Tensor(item) => item.to(),
-        Object::Undefined(item) => item.to(),
+        Object::Infinite(item) => item.multiplication(&self.into()),
+        Object::Integer(item) => item.multiplication(&self.into()),
+        Object::Natural(item) => item.multiplication(&self.into()),
+        Object::Nexists(item) => item.into(),
+        Object::Rational(item) => item.into(),
+        Object::Tensor(item) => item.into(),
+        Object::Undefined(item) => item.into(),
         Object::Variable(item) => crash(Code::NoVariableOperation),
-        Object::Whole(item) => item.to()
+        Object::Whole(item) => item.into()
     }}
 }
 
 //> NEXISTS -> REPRESENTATION
-impl crate::Display for Nexists {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.display(formatter)}}
-impl crate::Debug for Nexists {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.debug(formatter)}} 
+impl fmt::Display for Nexists {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.display(formatter)}}
+impl fmt::Debug for Nexists {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.debug(formatter)}} 
 
 //> NEXISTS -> COMMON
 impl Value for Nexists {} impl Nexists {
-    pub fn to(&self) -> Object {return Object::Nexists(self.clone())}
     pub fn info(&self) -> () {self.data()}
-    pub fn display(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "Nexists")}
-    pub fn debug(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, 
-        ""
+    pub fn display(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter, "Nexists")}
+    pub fn debug(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter, 
+        "{}",
+        self
     )}
 }

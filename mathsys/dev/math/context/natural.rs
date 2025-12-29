@@ -2,16 +2,22 @@
 //^ HEAD
 //^
 
-//> HEAD -> CRATES
-use num_bigint::BigUint;
-
-//> HEAD -> CROSS-SCOPE TRAIT
-use crate::{Infinite, Integer, Nexists, Rational, Tensor, Undefined, Variable, Whole};
-use crate::runtime::Runtime;
-use crate::value::Value;
-use crate::object::Object;
-use crate::group::Group;
-use crate::stdout::{crash, Code};
+//> HEAD -> PRELUDE
+use crate::prelude::{
+    BigUint,
+    Object,
+    crash,
+    Code,
+    Zero,
+    Group,
+    Integer,
+    Rational,
+    fmt,
+    Undefined,
+    Whole,
+    Value,
+    Tensor
+};
 
 
 //^
@@ -22,9 +28,13 @@ use crate::stdout::{crash, Code};
 #[derive(Clone)]
 pub struct Natural {
     pub value: BigUint
-} impl Natural {pub fn new(value: BigUint) -> Object {return Object::Natural(Natural {
-    value: if value != BigUint::ZERO {value.into()} else {crash(Code::NaturalCannotBeZero)}
-})}}
+} impl Natural {pub fn new(value: impl Into<BigUint>) -> Object {
+    let value0 = value.into();
+    let value1 = if !value0.is_zero() {value0} else {crash(Code::NaturalCannotBeZero)};
+    return Object::Natural(Natural {
+        value: value1
+    });
+}}
 
 //> NATURAL -> CASTING
 impl Natural {pub fn cast(&self, group: Group) -> Object {return match group {
@@ -33,11 +43,11 @@ impl Natural {pub fn cast(&self, group: Group) -> Object {return match group {
         self.value.clone(),
         true
     ),
-    Group::Natural => self.to(),
+    Group::Natural => self.into(),
     Group::Nexists => crash(Code::FailedCast),
     Group::Rational => Rational::new(
         self.value.clone(),
-        1u32.into(),
+        1u32,
         true
     ),
     Group::Tensor => crash(Code::FailedCast),
@@ -50,11 +60,11 @@ impl Natural {pub fn cast(&self, group: Group) -> Object {return match group {
 
 //> NATURAL -> EQUIVALENCY
 impl Natural {pub fn equivalency(&self, to: &Object) -> bool {return match to {
-    Object::Infinite(item) => item.equivalency(&self.to()),
-    Object::Integer(item) => item.equivalency(&self.to()),
+    Object::Infinite(item) => item.equivalency(&self.into()),
+    Object::Integer(item) => item.equivalency(&self.into()),
     Object::Natural(item) => self.value == item.value,
     Object::Nexists(item) => false,
-    Object::Rational(item) => item.sign && &self.value * &item.denominator == item.numerator,
+    Object::Rational(item) => item.sign.into() && &self.value * &item.denominator == item.numerator,
     Object::Tensor(item) => false,
     Object::Undefined(item) => false,
     Object::Variable(item) => false,
@@ -63,19 +73,19 @@ impl Natural {pub fn equivalency(&self, to: &Object) -> bool {return match to {
 
 //> NATURAL -> SUMMATION
 impl Natural {
-    pub fn absolute(&self) -> Object {return self.to()}
+    pub fn absolute(&self) -> Object {return self.into()}
     pub fn negate(&self) -> Object {return Integer::new(
         self.value.clone(),
         false
     )}
     pub fn summation(&self, to: &Object) -> Object {return match to {
-        Object::Infinite(item) => item.summation(&self.to()),
-        Object::Integer(item) => item.summation(&self.to()),
+        Object::Infinite(item) => item.summation(&self.into()),
+        Object::Integer(item) => item.summation(&self.into()),
         Object::Natural(item) => Natural::new(
             &self.value + &item.value
         ),
-        Object::Nexists(item) => self.to(),
-        Object::Rational(item) => if item.sign {Rational::new(
+        Object::Nexists(item) => self.into(),
+        Object::Rational(item) => if item.sign.into() {Rational::new(
             &self.value * &item.denominator + &item.numerator,
             item.denominator.clone(),
             true
@@ -85,7 +95,7 @@ impl Natural {
             &self.value * &item.denominator >= item.numerator
         )}
         Object::Tensor(item) => crash(Code::Todo),
-        Object::Undefined(item) => item.to(),
+        Object::Undefined(item) => item.into(),
         Object::Variable(item) => crash(Code::NoVariableOperation),
         Object::Whole(item) => Natural::new(
             &self.value + &item.value
@@ -96,24 +106,26 @@ impl Natural {
 //> NATURAL -> MULTIPLICATION
 impl Natural {
     pub fn invert(&self) -> Object {return Rational::new(
-        1u32.into(),
+        1u32,
         self.value.clone(),
         true
     )}
     pub fn multiplication(&self, to: &Object) -> Object {return match to {
-        Object::Infinite(item) => item.multiplication(&self.to()),
-        Object::Integer(item) => item.multiplication(&self.to()),
+        Object::Infinite(item) => item.multiplication(&self.into()),
+        Object::Integer(item) => item.multiplication(&self.into()),
         Object::Natural(item) => Natural::new(
             &self.value * &item.value
         ),
-        Object::Nexists(item) => self.to(),
+        Object::Nexists(item) => self.into(),
         Object::Rational(item) => Rational::new(
             &item.numerator * &self.value,
             item.denominator.clone(),
             item.sign
         ),
-        Object::Tensor(item) => crash(Code::Todo),
-        Object::Undefined(item) => item.to(),
+        Object::Tensor(item) => Tensor::new(
+            item.values.iter().map(|value| value.multiplication(&self.into())).collect()
+        ),
+        Object::Undefined(item) => item.into(),
         Object::Variable(item) => crash(Code::NoVariableOperation),
         Object::Whole(item) => Whole::new(
             &self.value * &item.value
@@ -122,16 +134,15 @@ impl Natural {
 }
 
 //> NATURAL -> REPRESENTATION
-impl crate::Display for Natural {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.display(formatter)}}
-impl crate::Debug for Natural {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.debug(formatter)}} 
+impl fmt::Display for Natural {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.display(formatter)}}
+impl fmt::Debug for Natural {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.debug(formatter)}} 
 
 //> NATURAL -> COMMON
 impl Value for Natural {} impl Natural {
-    pub fn to(&self) -> Object {return Object::Natural(self.clone())}
     pub fn info(&self) -> () {self.data()}
-    pub fn display(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "Natural")}
-    pub fn debug(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
-        "value = {}",
-        self.value
+    pub fn display(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter, "Natural")}
+    pub fn debug(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter,
+        "{} > value = {}",
+        self, self.value
     )}
 }

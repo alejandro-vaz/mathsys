@@ -2,8 +2,11 @@
 //^ HEAD
 //^
 
-//> HEAD -> CROSS-SCOPE TRAIT
-use crate::stdout::debug;
+//> HEAD -> PRELUDE
+use crate::prelude::{
+    fmt,
+    debug
+};
 
 
 //^
@@ -11,7 +14,7 @@ use crate::stdout::debug;
 //^
 
 //> VALUE -> TRAIT
-pub trait Value: crate::Display + crate::Debug {fn data(&self) -> () {debug(format!(
-    "{} > {:?}",
-    self, self
+pub trait Value: fmt::Display + fmt::Debug {fn data(&self) -> () {debug(format!(
+    "{:?}",
+    self
 ))}}

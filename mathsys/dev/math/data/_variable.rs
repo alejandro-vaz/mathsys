@@ -2,15 +2,16 @@
 //^ HEAD
 //^
 
-//> HEAD -> CROSS-SCOPE TRAIT
-use crate::{Infinite, Integer, Natural, Nexists, Rational, Tensor, Undefined, Variable, Whole};
-use crate::class::Class;
-use crate::object::Object;
-use crate::runtime::Runtime;
-use crate::tip::Tip;
-use crate::group::Group;
-use crate::stdout::{crash, Code};
-use crate::types::Pointer;
+//> HEAD -> PRELUDE
+use crate::prelude::{
+    Pointer,
+    Runtime,
+    Class,
+    Object,
+    Variable,
+    fmt,
+    Tip
+};
 
 
 //^
@@ -33,13 +34,13 @@ impl _Variable {pub fn evaluate(&self, runtime: &mut Runtime, id: Pointer, memor
 }}
 
 //> VARIABLE -> REPRESENTATION
-impl crate::Display for _Variable {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.display(formatter)}}
-impl crate::Debug for _Variable {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.debug(formatter)}} 
+impl fmt::Display for _Variable {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.display(formatter)}}
+impl fmt::Debug for _Variable {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.debug(formatter)}} 
 
 //> VARIABLE -> COMMON
 impl Tip for _Variable {} impl _Variable {
-    pub fn display(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "_Variable")}
-    pub fn debug(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
+    pub fn display(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter, "_Variable")}
+    pub fn debug(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter,
         "representation = \"{}\"",
         self.representation
     )}

@@ -2,16 +2,10 @@
 //^ HEAD
 //^
 
-//> HEAD -> CRATES
-use num_bigint::BigUint;
-
-//> HEAD -> CROSS-SCOPE TRAIT
-use crate::{Infinite, Integer, Natural, Nexists, Tensor, Undefined, Variable, Whole};
-use crate::runtime::Runtime;
-use crate::value::Value;
-use crate::object::Object;
-use crate::group::Group;
-use crate::stdout::{crash, Code};
+//> HEAD -> PRELUDE
+use crate::prelude::{
+    BigUint, Code, Group, Integer, Natural, Number, Object, One, Sign, Tensor, Undefined, Value, Whole, Zero, crash, fmt
+};
 
 
 //^
@@ -23,44 +17,53 @@ use crate::stdout::{crash, Code};
 pub struct Rational {
     pub numerator: BigUint,
     pub denominator: BigUint,
-    pub sign: bool
-} impl Rational {pub fn new(numerator: BigUint, denominator: BigUint, sign: bool) -> Object {return Object::Rational(Rational {
-    numerator: numerator.clone(),
-    denominator: if denominator != BigUint::ZERO {denominator.into()} else {crash(Code::RationalDenominatorCannotBeZero)},
-    sign: if numerator == BigUint::ZERO {true} else {sign}
-})}}
+    pub sign: Sign
+} impl Rational {pub fn new(numerator: impl Into<BigUint>, denominator: impl Into<BigUint>, sign: impl Into<Sign>) -> Object {
+    let numerator0 = numerator.into();
+    let denominator0 = denominator.into();
+    let sign0 = if numerator0.is_zero() {Sign::Positive} else {sign.into()};
+    let denominator1 = if !denominator0.is_zero() {denominator0} else {crash(Code::RationalDenominatorCannotBeZero)};
+    let gcd = numerator0.gcd(&denominator1);
+    let numerator1 = &numerator0 / &gcd;
+    let denominator2 = &denominator1 / &gcd;
+    return Object::Rational(Rational {
+        numerator: numerator1,
+        denominator: denominator2,
+        sign: sign0
+    });
+}}
 
 //> RATIONAL -> CASTING
 impl Rational {pub fn cast(&self, group: Group) -> Object {return match group {
     Group::Infinite => crash(Code::FailedCast),
     Group::Integer => Integer::new(
-        (&self.numerator + &self.denominator / 2u32) / &self.denominator,
+        if self.denominator.is_one() {self.numerator.clone()} else {crash(Code::FailedCast)},
         self.sign
     ),
     Group::Natural => Natural::new(
-        if self.sign {(&self.numerator + &self.denominator / 2u32) / &self.denominator} else {crash(Code::FailedCast)}
+        if self.denominator.is_one() && self.sign.into() && !self.numerator.is_zero() {self.numerator.clone()} else {crash(Code::FailedCast)}
     ),
     Group::Nexists => crash(Code::FailedCast),
-    Group::Rational => self.to(),
+    Group::Rational => self.into(),
     Group::Tensor => crash(Code::FailedCast),
     Group::Undefined => Undefined::new(),
     Group::Variable => crash(Code::FailedCast),
     Group::Whole => Whole::new(
-        if self.sign {(&self.numerator + &self.denominator / 2u32) / &self.denominator} else {crash(Code::FailedCast)}
+        if self.denominator.is_one() && self.sign.into() {self.numerator.clone()} else {crash(Code::FailedCast)}
     )
 }}}
 
 //> RATIONAL -> EQUIVALENCY
 impl Rational {pub fn equivalency(&self, to: &Object) -> bool {return match to {
-    Object::Infinite(item) => item.equivalency(&self.to()),
-    Object::Integer(item) => item.equivalency(&self.to()),
-    Object::Natural(item) => item.equivalency(&self.to()),
-    Object::Nexists(item) => item.equivalency(&self.to()),
+    Object::Infinite(item) => item.equivalency(&self.into()),
+    Object::Integer(item) => item.equivalency(&self.into()),
+    Object::Natural(item) => item.equivalency(&self.into()),
+    Object::Nexists(item) => item.equivalency(&self.into()),
     Object::Rational(item) => self.sign == item.sign && &self.numerator * &item.denominator == &item.numerator * &self.denominator,
     Object::Tensor(item) => false,
     Object::Undefined(item) => false,
     Object::Variable(item) => false,
-    Object::Whole(item) => self.sign && self.numerator == &self.denominator * &item.value
+    Object::Whole(item) => self.sign.into() && self.numerator == &self.denominator * &item.value
 }}}
 
 //> RATIONAL -> SUMMATION
@@ -76,10 +79,10 @@ impl Rational {
         !self.sign
     )}
     pub fn summation(&self, to: &Object) -> Object {return match to {
-        Object::Infinite(item) => item.summation(&self.to()),
-        Object::Integer(item) => item.summation(&self.to()),
-        Object::Natural(item) => item.summation(&self.to()),
-        Object::Nexists(item) => item.summation(&self.to()),
+        Object::Infinite(item) => item.summation(&self.into()),
+        Object::Integer(item) => item.summation(&self.into()),
+        Object::Natural(item) => item.summation(&self.into()),
+        Object::Nexists(item) => item.summation(&self.into()),
         Object::Rational(item) => if self.sign == item.sign {Rational::new(
             &self.numerator * &item.denominator + &self.denominator * &item.numerator,
             &self.denominator * &item.denominator,
@@ -90,9 +93,9 @@ impl Rational {
             if &self.numerator * &item.denominator >= &self.denominator * &item.numerator {self.sign} else {item.sign}
         )},
         Object::Tensor(item) => crash(Code::Todo),
-        Object::Undefined(item) => item.to(),
+        Object::Undefined(item) => item.into(),
         Object::Variable(item) => crash(Code::NoVariableOperation),
-        Object::Whole(item) => if self.sign {Rational::new(
+        Object::Whole(item) => if self.sign.into() {Rational::new(
             &self.numerator + &self.denominator * &item.value,
             self.denominator.clone(),
             true
@@ -106,23 +109,25 @@ impl Rational {
 
 //> RATIONAL -> MULTIPLICATION
 impl Rational {
-    pub fn invert(&self) -> Object {return if self.numerator != BigUint::ZERO {Rational::new(
+    pub fn invert(&self) -> Object {return if !self.numerator.is_zero() {Rational::new(
         self.denominator.clone(),
         self.numerator.clone(),
         self.sign
     )} else {Undefined::new()}}
     pub fn multiplication(&self, to: &Object) -> Object {return match to {
-        Object::Infinite(item) => item.multiplication(&self.to()),
-        Object::Integer(item) => item.multiplication(&self.to()),
-        Object::Natural(item) => item.multiplication(&self.to()),
-        Object::Nexists(item) => item.multiplication(&self.to()),
+        Object::Infinite(item) => item.multiplication(&self.into()),
+        Object::Integer(item) => item.multiplication(&self.into()),
+        Object::Natural(item) => item.multiplication(&self.into()),
+        Object::Nexists(item) => item.multiplication(&self.into()),
         Object::Rational(item) => Rational::new(
             &self.numerator * &item.numerator,
             &self.denominator * &item.denominator,
             self.sign == item.sign
         ),
-        Object::Tensor(item) => crash(Code::Todo),
-        Object::Undefined(item) => item.to(),
+        Object::Tensor(item) => Tensor::new(
+            item.values.iter().map(|value| value.multiplication(&self.into())).collect()
+        ),
+        Object::Undefined(item) => item.into(),
         Object::Variable(item) => crash(Code::NoVariableOperation),
         Object::Whole(item) => Rational::new(
             &self.numerator * &item.value,
@@ -135,16 +140,15 @@ impl Rational {
 
 
 //> RATIONAL -> REPRESENTATION
-impl crate::Display for Rational {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.display(formatter)}}
-impl crate::Debug for Rational {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.debug(formatter)}} 
+impl fmt::Display for Rational {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.display(formatter)}}
+impl fmt::Debug for Rational {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.debug(formatter)}} 
 
 //> RATIONAL -> COMMON
 impl Value for Rational {} impl Rational {
-    pub fn to(&self) -> Object {return Object::Rational(self.clone())}
     pub fn info(&self) -> () {self.data()}
-    pub fn display(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "Rational")}
-    pub fn debug(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
-        "numerator = {}, denominator = {}, sign = {}",
-        self.numerator, self.denominator, self.sign
+    pub fn display(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter, "Rational")}
+    pub fn debug(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter,
+        "{} > numerator = {} ~ denominator = {} ~ sign = {}",
+        self, self.numerator, self.denominator, self.sign
     )}
 }

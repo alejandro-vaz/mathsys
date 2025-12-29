@@ -2,15 +2,16 @@
 //^ HEAD
 //^
 
-//> HEAD -> CROSS-SCOPE TRAIT
-use crate::{Infinite, Integer, Natural, Nexists, Rational, Tensor, Undefined, Variable, Whole};
-use crate::class::Class;
-use crate::object::Object;
-use crate::runtime::Runtime;
-use crate::tip::Tip;
-use crate::group::Group;
-use crate::stdout::{crash, Code};
-use crate::types::Pointer;
+//> HEAD -> PRELUDE
+use crate::prelude::{
+    Pointer,
+    Runtime,
+    Class,
+    Object,
+    Undefined,
+    fmt,
+    Tip
+};
 
 
 //^
@@ -36,13 +37,13 @@ impl _Equation {pub fn evaluate(&self, runtime: &mut Runtime, id: Pointer, memor
 }}
 
 //> EQUATION -> REPRESENTATION
-impl crate::Display for _Equation {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.display(formatter)}}
-impl crate::Debug for _Equation {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.debug(formatter)}} 
+impl fmt::Display for _Equation {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.display(formatter)}}
+impl fmt::Debug for _Equation {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.debug(formatter)}} 
 
 //> EQUATION -> COMMON
 impl Tip for _Equation {} impl _Equation {
-    pub fn display(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "_Equation")}
-    pub fn debug(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
+    pub fn display(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter, "_Equation")}
+    pub fn debug(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter,
         "leftexpression = {}, rightexpression = {}",
         self.leftexpression, self.rightexpression
     )}

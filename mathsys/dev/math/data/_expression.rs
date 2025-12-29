@@ -2,15 +2,17 @@
 //^ HEAD
 //^
 
-//> HEAD -> CROSS-SCOPE TRAIT
-use crate::{Infinite, Integer, Natural, Nexists, Rational, Tensor, Undefined, Variable, Whole};
-use crate::class::Class;
-use crate::object::Object;
-use crate::runtime::Runtime;
-use crate::tip::Tip;
-use crate::group::Group;
-use crate::stdout::{crash, Code};
-use crate::types::Pointer;
+//> HEAD -> PRELUDE
+use crate::prelude::{
+    Sign,
+    Pointer,
+    Runtime,
+    Class,
+    Object,
+    Nexists,
+    fmt,
+    Tip
+};
 
 
 //^
@@ -20,7 +22,7 @@ use crate::types::Pointer;
 //> EXPRESSION -> STRUCT
 #[derive(Clone)]
 pub struct _Expression {
-    pub signs: Vec<u8>,
+    pub signs: Vec<Sign>,
     pub terms: Vec<Pointer>
 }
 
@@ -34,20 +36,20 @@ impl _Expression {pub fn evaluate(&self, runtime: &mut Runtime, id: Pointer, mem
     let mut current = Nexists::new();
     for index in 0..terms.len() {
         let next = &terms[index];
-        let value = if self.signs[index] % 2 == 0 {next.negate()} else {next.clone()};
-        current = current.summation(&value);
+        let value = if self.signs[index].into() {next} else {&next.negate()};
+        current = current.summation(value);
     }
     return current;
 }}
 
 //> EXPRESSION -> REPRESENTATION
-impl crate::Display for _Expression {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.display(formatter)}}
-impl crate::Debug for _Expression {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.debug(formatter)}} 
+impl fmt::Display for _Expression {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.display(formatter)}}
+impl fmt::Debug for _Expression {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.debug(formatter)}} 
 
 //> EXPRESSION -> COMMON
 impl Tip for _Expression {} impl _Expression {
-    pub fn display(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "_Expression")}
-    pub fn debug(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
+    pub fn display(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter, "_Expression")}
+    pub fn debug(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter,
         "signs = {:?}, terms = {:?}",
         self.signs, self.terms
     )}

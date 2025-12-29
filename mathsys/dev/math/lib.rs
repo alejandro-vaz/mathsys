@@ -5,6 +5,20 @@
 //> HEAD -> FLAGS
 #![allow(unused_variables)]
 #![allow(non_snake_case)]
+#![feature(linkage)]
+#![feature(try_trait_v2)]
+#![feature(never_type)]
+
+//> HEAD -> PRELUDE
+mod prelude;
+use prelude::{
+    login,
+    Reparser,
+    Runtime,
+    crash,
+    Code,
+    Instant
+};
 
 //> HEAD -> CONTEXT
 mod context {
@@ -46,56 +60,15 @@ mod lib {
     pub mod class;
     pub mod group;
     pub mod object;
+    pub mod pointer;
     pub mod reparser;
     pub mod runtime;
+    pub mod sign;
     pub mod stack;
     pub mod stdout;
     pub mod tip;
-    pub mod types;
     pub mod value;
 }
-
-
-//^
-//^ PULLS
-//^
-
-//> PULLS -> CONTEXT
-use context::infinite::Infinite;
-use context::integer::Integer;
-use context::natural::Natural;
-use context::nexists::Nexists;
-use context::rational::Rational;
-use context::tensor::Tensor;
-use context::undefined::Undefined;
-use context::variable::Variable;
-use context::whole::Whole;
-
-//> PULLS -> DATA
-use data::_absolute::_Absolute;
-use data::_annotation::_Annotation;
-use data::_comment::_Comment;
-use data::_declaration::_Declaration;
-use data::_definition::_Definition;
-use data::_equation::_Equation;
-use data::_expression::_Expression;
-use data::_factor::_Factor;
-use data::_infinite::_Infinite;
-use data::_limit::_Limit;
-use data::_nest::_Nest;
-use data::_node::_Node;
-use data::_start::_Start;
-use data::_tensor::_Tensor;
-use data::_term::_Term;
-use data::_use::_Use;
-use data::_variable::_Variable;
-use data::_whole::_Whole;
-
-//> PULLS -> LIB
-use lib::*;
-
-//> PULLS -> STD
-use std::fmt::{Display, Debug, Formatter, Result};
 
 
 //^
@@ -113,12 +86,16 @@ pub struct Settings {
 //^ ENTRY
 //^
 
+//> RUNTIME -> NOW
+pub static mut NOW: Option<Instant> = None;
+
 //> RUNTIME -> FUNCTION
 pub fn run(settings: Settings) -> () {
-    stdout::login(&settings);
-    let mut reparser = reparser::Reparser::new();
+    unsafe {NOW = Some(Instant::now())};
+    login(settings.ir, settings.version);
+    let mut reparser = Reparser::new();
     let memory = reparser.run(settings.ir);
-    let mut runtime = runtime::Runtime::new();
+    let mut runtime = Runtime::new();
     runtime.start(&memory);
-    stdout::crash(stdout::Code::Success);
+    crash(Code::Success);
 }

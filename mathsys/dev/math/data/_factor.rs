@@ -2,15 +2,18 @@
 //^ HEAD
 //^
 
-//> HEAD -> CROSS-SCOPE TRAIT
-use crate::{Infinite, Integer, Natural, Nexists, Rational, Tensor, Undefined, Variable, Whole};
-use crate::class::Class;
-use crate::object::Object;
-use crate::runtime::Runtime;
-use crate::tip::Tip;
-use crate::group::Group;
-use crate::stdout::{crash, Code};
-use crate::types::Pointer;
+//> HEAD -> PRELUDE
+use crate::prelude::{
+    Pointer,
+    Runtime,
+    Class,
+    Object,
+    crash,
+    Code,
+    fmt,
+    Tip,
+    Group
+};
 
 
 //^
@@ -39,13 +42,13 @@ impl _Factor {pub fn evaluate(&self, runtime: &mut Runtime, id: Pointer, memory:
 }}
 
 //> FACTOR -> REPRESENTATION
-impl crate::Display for _Factor {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.display(formatter)}}
-impl crate::Debug for _Factor {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.debug(formatter)}} 
+impl fmt::Display for _Factor {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.display(formatter)}}
+impl fmt::Debug for _Factor {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.debug(formatter)}} 
 
 //> FACTOR -> COMMON
 impl Tip for _Factor {} impl _Factor {
-    pub fn display(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "_Factor")}
-    pub fn debug(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
+    pub fn display(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter, "_Factor")}
+    pub fn debug(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter,
         "value = {}, exponent = {}",
         self.value, self.exponent
     )}

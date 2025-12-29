@@ -20,6 +20,8 @@ version = "5.0.0"
 dependencies = [
  "miniz_oxide",
  "num-bigint",
+ "num-integer",
+ "num-traits",
 ]
 
 [[package]]

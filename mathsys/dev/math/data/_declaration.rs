@@ -2,15 +2,19 @@
 //^ HEAD
 //^
 
-//> HEAD -> CROSS-SCOPE TRAIT
-use crate::{Infinite, Integer, Natural, Nexists, Rational, Tensor, Undefined, Variable, Whole};
-use crate::class::Class;
-use crate::object::Object;
-use crate::runtime::Runtime;
-use crate::tip::Tip;
-use crate::group::Group;
-use crate::stdout::{crash, Code};
-use crate::types::Pointer;
+//> HEAD -> PRELUDE
+use crate::prelude::{
+    Group,
+    Pointer,
+    Runtime,
+    Class,
+    Object,
+    crash,
+    Code,
+    Undefined,
+    fmt,
+    Tip
+};
 
 
 //^
@@ -37,13 +41,13 @@ impl _Declaration {pub fn evaluate(&self, runtime: &mut Runtime, id: Pointer, me
 }}
 
 //> DECLARATION -> REPRESENTATION
-impl crate::Display for _Declaration {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.display(formatter)}}
-impl crate::Debug for _Declaration {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.debug(formatter)}} 
+impl fmt::Display for _Declaration {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.display(formatter)}}
+impl fmt::Debug for _Declaration {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.debug(formatter)}} 
 
 //> DECLARATION -> COMMON
 impl Tip for _Declaration {} impl _Declaration {
-    pub fn display(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "_Declaration")}
-    pub fn debug(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
+    pub fn display(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter, "_Declaration")}
+    pub fn debug(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter,
         "group = {}, variable = {}, expression = {}",
         self.group, self.variable, self.expression
     )}

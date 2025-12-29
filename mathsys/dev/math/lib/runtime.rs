@@ -2,16 +2,17 @@
 //^ HEAD
 //^
 
-//> HEAD -> CRATES
-use std::collections::HashMap;
-
-//> HEAD -> CROSS-SCOPE TRAIT
-use crate::{Infinite, Integer, Natural, Nexists, Rational, Tensor, Undefined, Variable, Whole};
-use crate::object::Object;
-use crate::class::Class;
-use crate::group::Group;
-use crate::stdout::{crash, Code};
-use crate::types::Pointer;
+//> HEAD -> PRELUDE
+use crate::prelude::{
+    HashMap,
+    Object,
+    Group,
+    crash,
+    Code,
+    Pointer,
+    Nexists,
+    Class
+};
 
 
 //^

@@ -2,12 +2,32 @@
 //^ HEAD
 //^
 
-//> HEAD -> CROSS-SCOPE TRAIT
-use crate::{_Absolute, _Annotation, _Comment, _Declaration, _Definition, _Equation, _Expression, _Factor, _Infinite, _Limit, _Nest, _Node, _Start, _Tensor, _Term, _Use, _Variable, _Whole};
-use crate::runtime::Runtime;
-use crate::object::Object;
-use crate::stdout::class;
-use crate::types::Pointer;
+//> HEAD -> PRELUDE
+use crate::prelude::{
+    _Absolute,
+    _Annotation,
+    _Comment,
+    _Declaration,
+    _Definition,
+    _Equation,
+    _Expression,
+    _Factor,
+    _Infinite,
+    _Limit,
+    _Nest,
+    _Node,
+    _Start,
+    _Tensor,
+    _Term,
+    _Use,
+    _Variable,
+    _Whole,
+    Runtime,
+    Pointer,
+    Object,
+    fmt,
+    point
+};
 
 
 //^
@@ -62,7 +82,7 @@ impl Class {
 }
 
 //> CLASS -> REPRESENTATION
-impl crate::Display for Class {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {return match self {
+impl fmt::Display for Class {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {return match self {
     Class::_Absolute(class) => class.display(formatter),
     Class::_Annotation(class) => class.display(formatter),
     Class::_Comment(class) => class.display(formatter),
@@ -81,7 +101,7 @@ impl crate::Display for Class {fn fmt(&self, formatter: &mut crate::Formatter<'_
     Class::_Use(class) => class.display(formatter),
     Class::_Variable(class) => class.display(formatter),
     Class::_Whole(class) => class.display(formatter)
-}}} impl crate::Debug for Class {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {return match self {
+}}} impl fmt::Debug for Class {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {return match self {
     Class::_Absolute(class) => class.debug(formatter),
     Class::_Annotation(class) => class.debug(formatter),
     Class::_Comment(class) => class.debug(formatter),
@@ -104,9 +124,9 @@ impl crate::Display for Class {fn fmt(&self, formatter: &mut crate::Formatter<'_
 
 //> CLASS -> COMMON
 impl Class {fn result(&self, value: Object) -> Object {
-    class(format!(
-        "{} > {:?}",
-        value, value
+    point(format!(
+        "{:?}",
+        value
     ));
     return value;
 }}

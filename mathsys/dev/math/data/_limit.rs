@@ -2,15 +2,19 @@
 //^ HEAD
 //^
 
-//> HEAD -> CROSS-SCOPE TRAIT
-use crate::{Infinite, Integer, Natural, Nexists, Rational, Tensor, Undefined, Variable, Whole};
-use crate::class::Class;
-use crate::object::Object;
-use crate::runtime::Runtime;
-use crate::tip::Tip;
-use crate::group::Group;
-use crate::stdout::{crash, Code};
-use crate::types::Pointer;
+//> HEAD -> PRELUDE
+use crate::prelude::{
+    Pointer,
+    Sign,
+    Runtime,
+    fmt,
+    crash,
+    Class,
+    Code,
+    Object,
+    Undefined,
+    Tip
+};
 
 
 //^
@@ -22,7 +26,7 @@ use crate::types::Pointer;
 pub struct _Limit {
     pub variable: Pointer,
     pub approach: Pointer,
-    pub direction: u8,
+    pub direction: Sign,
     pub nest: Pointer,
     pub exponent: Pointer
 }
@@ -38,13 +42,13 @@ impl _Limit {pub fn evaluate(&self, runtime: &mut Runtime, id: Pointer, memory: 
 }}
 
 //> LIMIT -> REPRESENTATION
-impl crate::Display for _Limit {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.display(formatter)}}
-impl crate::Debug for _Limit {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.debug(formatter)}} 
+impl fmt::Display for _Limit {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.display(formatter)}}
+impl fmt::Debug for _Limit {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.debug(formatter)}} 
 
 //> LIMIT -> COMMON
 impl Tip for _Limit {} impl _Limit {
-    pub fn display(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "_Limit")}
-    pub fn debug(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
+    pub fn display(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter, "_Limit")}
+    pub fn debug(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter,
         "variable = {}, approach = {}, direction = {}, nest = {}, exponent = {}",
         self.variable, self.approach, self.direction, self.nest, self.exponent
     )}

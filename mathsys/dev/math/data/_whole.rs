@@ -2,15 +2,17 @@
 //^ HEAD
 //^
 
-//> HEAD -> CROSS-SCOPE TRAIT
-use crate::{Infinite, Integer, Natural, Nexists, Rational, Tensor, Undefined, Variable, Whole};
-use crate::class::Class;
-use crate::object::Object;
-use crate::runtime::Runtime;
-use crate::tip::Tip;
-use crate::group::Group;
-use crate::stdout::{crash, Code};
-use crate::types::Pointer;
+//> HEAD -> PRELUDE
+use crate::prelude::{
+    Runtime,
+    Pointer,
+    Class,
+    Object,
+    Whole,
+    fmt,
+    Tip,
+    BigUint
+};
 
 
 //^
@@ -20,7 +22,7 @@ use crate::types::Pointer;
 //> WHOLE -> STRUCT
 #[derive(Clone)]
 pub struct _Whole {
-    pub value: u32
+    pub value: BigUint
 }
 
 //> WHOLE -> EVALUATE
@@ -28,18 +30,18 @@ impl _Whole {pub fn evaluate(&self, runtime: &mut Runtime, id: Pointer, memory: 
     //~ EVALUATE -> OPERATIONS
     self.section("Whole value", id);
     return Whole::new(
-        self.value.into()
+        self.value.clone()
     )
 }}
 
 //> WHOLE -> REPRESENTATION
-impl crate::Display for _Whole {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.display(formatter)}}
-impl crate::Debug for _Whole {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.debug(formatter)}} 
+impl fmt::Display for _Whole {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.display(formatter)}}
+impl fmt::Debug for _Whole {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.debug(formatter)}} 
 
 //> WHOLE -> COMMON
 impl Tip for _Whole {} impl _Whole {
-    pub fn display(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "_Whole")}
-    pub fn debug(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
+    pub fn display(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter, "_Whole")}
+    pub fn debug(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter,
         "value = {}",
         self.value
     )}

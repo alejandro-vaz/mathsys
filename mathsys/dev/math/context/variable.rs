@@ -2,13 +2,17 @@
 //^ HEAD
 //^
 
-//> HEAD -> CROSS-SCOPE TRAIT
-use crate::{Infinite, Integer, Natural, Nexists, Rational, Tensor, Undefined, Whole};
-use crate::runtime::Runtime;
-use crate::value::Value;
-use crate::object::Object;
-use crate::group::Group;
-use crate::stdout::{crash, Code};
+//> HEAD -> PRELUDE
+use crate::prelude::{
+    Object,
+    Group,
+    crash,
+    Code,
+    Undefined,
+    Value,
+    fmt,
+    Runtime
+};
 
 
 //^
@@ -19,9 +23,12 @@ use crate::stdout::{crash, Code};
 #[derive(Clone)]
 pub struct Variable {
     pub name: String
-} impl Variable {pub fn new(name: String) -> Object {return Object::Variable(Variable {
-    name: name
-})}}
+} impl Variable {pub fn new(name: String) -> Object {
+    let name0 = name;
+    return Object::Variable(Variable {
+        name: name0
+    })
+}}
 
 //> VARIABLE -> CASTING
 impl Variable {pub fn cast(&self, group: Group) -> Object {return match group {
@@ -32,19 +39,19 @@ impl Variable {pub fn cast(&self, group: Group) -> Object {return match group {
     Group::Rational => crash(Code::FailedCast),
     Group::Tensor => crash(Code::FailedCast),
     Group::Undefined => Undefined::new(),
-    Group::Variable => self.to(),
+    Group::Variable => self.into(),
     Group::Whole => crash(Code::FailedCast)
 }}}
 
 //> VARIABLE -> EQUIVALENCY
 impl Variable {pub fn equivalency(&self, to: &Object) -> bool {return match to {
-    Object::Infinite(item) => item.equivalency(&self.to()),
-    Object::Integer(item) => item.equivalency(&self.to()),
-    Object::Natural(item) => item.equivalency(&self.to()),
-    Object::Nexists(item) => item.equivalency(&self.to()),
-    Object::Rational(item) => item.equivalency(&self.to()),
-    Object::Tensor(item) => item.equivalency(&self.to()),
-    Object::Undefined(item) => item.equivalency(&self.to()),
+    Object::Infinite(item) => item.equivalency(&self.into()),
+    Object::Integer(item) => item.equivalency(&self.into()),
+    Object::Natural(item) => item.equivalency(&self.into()),
+    Object::Nexists(item) => item.equivalency(&self.into()),
+    Object::Rational(item) => item.equivalency(&self.into()),
+    Object::Tensor(item) => item.equivalency(&self.into()),
+    Object::Undefined(item) => item.equivalency(&self.into()),
     Object::Variable(item) => self.name == item.name,
     Object::Whole(item) => false
 }}}
@@ -54,13 +61,13 @@ impl Variable {
     pub fn absolute(&self) -> Object {crash(Code::NoVariableOperation)}
     pub fn negate(&self) -> Object {crash(Code::NoVariableOperation)}
     pub fn summation(&self, to: &Object) -> Object {return match to {
-        Object::Infinite(item) => item.summation(&self.to()),
-        Object::Integer(item) => item.summation(&self.to()),
-        Object::Natural(item) => item.summation(&self.to()),
-        Object::Nexists(item) => item.summation(&self.to()),
-        Object::Rational(item) => item.summation(&self.to()),
-        Object::Tensor(item) => item.summation(&self.to()),
-        Object::Undefined(item) => item.summation(&self.to()),
+        Object::Infinite(item) => item.summation(&self.into()),
+        Object::Integer(item) => item.summation(&self.into()),
+        Object::Natural(item) => item.summation(&self.into()),
+        Object::Nexists(item) => item.summation(&self.into()),
+        Object::Rational(item) => item.summation(&self.into()),
+        Object::Tensor(item) => item.summation(&self.into()),
+        Object::Undefined(item) => item.summation(&self.into()),
         Object::Variable(item) => crash(Code::NoVariableOperation),
         Object::Whole(item) => crash(Code::NoVariableOperation)
     }}
@@ -70,13 +77,13 @@ impl Variable {
 impl Variable {
     pub fn invert(&self) -> Object {crash(Code::NoVariableOperation)}
     pub fn multiplication(&self, to: &Object) -> Object {return match to {
-        Object::Infinite(item) => item.multiplication(&self.to()),
-        Object::Integer(item) => item.multiplication(&self.to()),
-        Object::Natural(item) => item.multiplication(&self.to()),
-        Object::Nexists(item) => item.multiplication(&self.to()),
-        Object::Rational(item) => item.multiplication(&self.to()),
-        Object::Tensor(item) => item.multiplication(&self.to()),
-        Object::Undefined(item) => item.multiplication(&self.to()),
+        Object::Infinite(item) => item.multiplication(&self.into()),
+        Object::Integer(item) => item.multiplication(&self.into()),
+        Object::Natural(item) => item.multiplication(&self.into()),
+        Object::Nexists(item) => item.multiplication(&self.into()),
+        Object::Rational(item) => item.multiplication(&self.into()),
+        Object::Tensor(item) => item.multiplication(&self.into()),
+        Object::Undefined(item) => item.multiplication(&self.into()),
         Object::Variable(item) => crash(Code::NoVariableOperation),
         Object::Whole(item) => crash(Code::NoVariableOperation)
     }}
@@ -114,16 +121,15 @@ impl Variable {
 }
 
 //> VARIABLE -> REPRESENTATION
-impl crate::Display for Variable {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.display(formatter)}}
-impl crate::Debug for Variable {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.debug(formatter)}} 
+impl fmt::Display for Variable {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.display(formatter)}}
+impl fmt::Debug for Variable {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.debug(formatter)}} 
 
 //> VARIABLE -> COMMON
 impl Value for Variable {} impl Variable {
-    pub fn to(&self) -> Object {return Object::Variable(self.clone())}
     pub fn info(&self) -> () {self.data()}
-    pub fn display(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "Variable")}
-    pub fn debug(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
-        "name = \"{}\"",
-        self.name
+    pub fn display(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter, "Variable")}
+    pub fn debug(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter,
+        "{} > name = \"{}\"",
+        self, self.name
     )}
 }

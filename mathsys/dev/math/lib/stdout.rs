@@ -2,9 +2,13 @@
 //^ HEAD
 //^
 
-//> HEAD -> CROSS-SCOPE TRAIT
-use crate::Settings;
-use crate::stack::{exit, write};
+//> HEAD -> PRELUDE
+use crate::prelude::{
+    write,
+    exit,
+    fmt,
+    NOW
+};
 
 
 //^
@@ -28,17 +32,17 @@ fn print(string: &str, append: &[u8]) -> () {
 //^
 
 //> CALLS -> LOGIN
-pub fn login(settings: &Settings) -> () {print(&format!(
+pub fn login(ir: &'static [u8], version: &'static str) -> () {print(&format!(
     "LOGIN: Running Mathsys {}, consuming {} tokens.",
-    settings.version,
-    settings.ir.len()
+    version,
+    ir.len()
 ), &[0x1B, 0x5B, 0x31, 0x3B, 0x39, 0x32, 0x3B, 0x34, 0x39, 0x6D])}
 
 //> CALLS -> CRASH
 pub fn crash(code: Code) -> ! {
     let value = code.clone() as u8;
     print(&format!(
-        "CRASH: {{{}}} {}.",
+        "CRASH: {{{}}} {}{}.",
         value,
         match code {
             Code::Success => "Run finished successfully",
@@ -54,8 +58,13 @@ pub fn crash(code: Code) -> ! {
             Code::RationalDenominatorCannotBeZero => "Tried to create a rational number with denominator zero",
             Code::FailedIRDecompression => "Failed to decompress IR",
             Code::RuntimeHigherObject => "ID of runtime object supplied higher than memory length",
+            Code::UnknownSignValue => "Unknown sign value in IR",
             Code::Todo => "Todo"
-        }
+        },
+        unsafe {match NOW {
+            None => format!(""),
+            Some(instant) => format!(" ({})", instant.elapsed().as_micros())
+        }}
     ), &[0x0A, 0x1B, 0x5B, 0x31, 0x3B, 0x39, 0x31, 0x3B, 0x34, 0x39, 0x6D]);
     exit(value);
 }
@@ -76,6 +85,7 @@ pub enum Code {
     RationalDenominatorCannotBeZero = 10,
     FailedIRDecompression = 11,
     RuntimeHigherObject = 12,
+    UnknownSignValue = 13,
     Todo = 255
 }
 
@@ -85,7 +95,7 @@ pub enum Code {
 //^
 
 //> DETAIL -> SPACE
-pub fn space<Type: crate::Display>(message: Type) -> () {print(&format!(
+pub fn space<Type: fmt::Display>(message: Type) -> () {print(&format!(
     "SPACE: {}.",
     message
 ), &[0x0A, 0x1B, 0x5B, 0x30, 0x3B, 0x33, 0x33, 0x3B, 0x34, 0x39, 0x6D])}
@@ -96,31 +106,37 @@ pub fn space<Type: crate::Display>(message: Type) -> () {print(&format!(
 //^
 
 //> LOOKUP -> DEBUG
-pub fn debug<Type: crate::Display>(message: Type) -> () {print(&format!(
+pub fn debug<Type: fmt::Display>(message: Type) -> () {print(&format!(
     "    DEBUG: {}.",
     message
 ), &[0x1B, 0x5B, 0x32, 0x3B, 0x33, 0x35, 0x3B, 0x34, 0x39, 0x6D])}
 
 //> LOOKUP -> ALERT
-pub fn alert<Type: crate::Display>(message: Type) -> () {print(&format!(
+pub fn alert<Type: fmt::Display>(message: Type) -> () {print(&format!(
     "    ALERT: {}.",
     message
 ), &[0x1B, 0x5B, 0x32, 0x3B, 0x33, 0x38, 0x3B, 0x35, 0x3B, 0x32, 0x30, 0x38, 0x3B, 0x34, 0x39, 0x6D])}
 
 //> LOOKUP -> TRACE
-pub fn trace<Type: crate::Display>(message: Type) -> () {print(&format!(
+pub fn trace<Type: fmt::Display>(message: Type) -> () {print(&format!(
     "    TRACE: {}.",
     message
 ), &[0x1B, 0x5B, 0x32, 0x3B, 0x33, 0x36, 0x3B, 0x34, 0x39, 0x6D])}
 
 //> LOOKUP -> CHORE
-pub fn chore<Type: crate::Display>(message: Type) -> () {print(&format!(
+pub fn chore<Type: fmt::Display>(message: Type) -> () {print(&format!(
     "    CHORE: {}.",
     message
 ), &[0x1B, 0x5B, 0x32, 0x3B, 0x33, 0x33, 0x3B, 0x34, 0x39, 0x6D])}
 
 //> LOOKUP -> CLASS
-pub fn class<Type: crate::Display>(message: Type) -> () {print(&format!(
+pub fn class<Type: fmt::Display>(message: Type) -> () {print(&format!(
     "    CLASS: {}.",
     message
 ), &[0x1B, 0x5B, 0x32, 0x3B, 0x33, 0x32, 0x6D])}
+
+//> LOOKUP -> POINT
+pub fn point<Type: fmt::Display>(message: Type) -> () {print(&format!(
+    "    POINT: {}.",
+    message
+), &[0x1B, 0x5B, 0x32, 0x3B, 0x33, 0x37, 0x6D])}

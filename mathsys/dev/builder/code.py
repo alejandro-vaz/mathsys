@@ -24,7 +24,7 @@ class Builder:
     def run(self, data: bytes, target: str, optimize: bool) -> bytes:
         descriptor, ir = tempfile.mkstemp(dir = tempfile.gettempdir(), suffix = ".ir")
         with os.fdopen(descriptor, "wb") as file: file.write(data)
-        environment = self.config(ir)
+        environment = self.config(ir, target)
         try: 
             self.execute([
                 "cargo",
@@ -85,8 +85,9 @@ class Builder:
         check = True
     )
     #~ CLASS -> CONFIGURATION
-    def config(self, ir: str) -> dict:
+    def config(self, ir: str, target: str) -> dict:
         env = os.environ.copy()
         env["MathsysSource"] = ir
         env["MathsysVersion"] = __version__
+        env["RUSTFLAGS"] = "-Clink-arg=" + os.path.join(os.path.dirname(__file__), "..", "bin", f"{target}.o")
         return env

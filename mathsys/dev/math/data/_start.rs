@@ -2,15 +2,16 @@
 //^ HEAD
 //^
 
-//> HEAD -> CROSS-SCOPE TRAIT
-use crate::{Infinite, Integer, Natural, Nexists, Rational, Tensor, Undefined, Variable, Whole};
-use crate::class::Class;
-use crate::object::Object;
-use crate::runtime::Runtime;
-use crate::tip::Tip;
-use crate::group::Group;
-use crate::stdout::{crash, Code};
-use crate::types::Pointer;
+//> HEAD -> PRELUDE
+use crate::prelude::{
+    Pointer,
+    Runtime,
+    Class,
+    Object,
+    Undefined,
+    fmt,
+    Tip
+};
 
 
 //^
@@ -26,21 +27,20 @@ pub struct _Start {
 //> START -> EVALUATE
 impl _Start {pub fn evaluate(&self, runtime: &mut Runtime, id: Pointer, memory: &Vec<Class>) -> Object {
     //~ EVALUATE -> RETRIEVAL
-    let mut statements = Vec::with_capacity(self.statements.len());
-    for &statement in &self.statements {statements.push(runtime.get(statement, memory))}
+    let statements: Vec<Object> = self.statements.iter().map(|&statement| runtime.get(statement, memory)).collect();
     //~ EVALUATE -> OPERATIONS
     self.section("End", id);
     return Undefined::new();
 }}
 
 //> START -> REPRESENTATION
-impl crate::Display for _Start {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.display(formatter)}}
-impl crate::Debug for _Start {fn fmt(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {self.debug(formatter)}} 
+impl fmt::Display for _Start {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.display(formatter)}}
+impl fmt::Debug for _Start {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.debug(formatter)}} 
 
 //> START -> COMMON
 impl Tip for _Start {} impl _Start {
-    pub fn display(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter, "_Start")}
-    pub fn debug(&self, formatter: &mut crate::Formatter<'_>) -> crate::Result {write!(formatter,
+    pub fn display(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter, "_Start")}
+    pub fn debug(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter,
         "statements = {:?}",
         self.statements
     )}
