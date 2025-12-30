@@ -6,7 +6,7 @@
 from dataclasses import dataclass
 
 #> HEAD -> DATA
-from .local import join, u8, null8, u32, null32
+from .local import Opcode, Pointer, Sign, Option, BigUint, String, Group, Vec
 
 
 #^
@@ -16,10 +16,10 @@ from .local import join, u8, null8, u32, null32
 #> START -> CLASS
 @dataclass(kw_only = True, frozen = True)
 class Start:
-    code = u8(0x01)
-    statements: list[u32]
-    def __bytes__(self) -> bytes:
-        return self.code + join(self.statements, null32())
+    binary = lambda self: self.code + self.statements
+    code = Opcode(0x01).binary()
+    statements: Vec[Pointer]
+    
 
 
 #^
@@ -29,65 +29,60 @@ class Start:
 #> 1ºLEVEL -> DECLARATION
 @dataclass(kw_only = True, frozen = True)
 class Declaration:
-    code = u8(0x02)
-    group: u8 | null8
-    variable: u32
-    expression: u32
-    def __bytes__(self) -> bytes:
-        return self.code + self.group + self.variable + self.expression
+    binary = lambda self: self.code + self.group + self.variable + self.expression
+    code = Opcode(0x02).binary()
+    group: Group
+    variable: Pointer
+    expression: Pointer
 
 #> 1ºLEVEL -> DEFINITION
 @dataclass(kw_only = True, frozen = True)
 class Definition:
-    code = u8(0x03)
-    group: u8 | null8
-    variable: u32
-    expression: u32
-    def __bytes__(self) -> bytes:
-        return self.code + self.group + self.variable + self.expression
+    binary = lambda self: self.code + self.group + self.variable + self.expression
+    code = Opcode(0x03).binary()
+    group: Group
+    variable: Pointer
+    expression: Pointer
+
+
 
 #> 1ºLEVEL -> ANNOTATION
 @dataclass(kw_only = True, frozen = True)
 class Annotation:
-    code = u8(0x04)
-    group: u8 | null8
-    variables: list[u32]
-    def __bytes__(self) -> bytes:
-        return self.code + self.group + join(self.variables, null32())
+    binary = lambda self: self.code + self.group + self.variables
+    code = Opcode(0x04).binary()
+    group: Group
+    variables: Vec[Pointer]
 
 #> 1ºLEVEL -> NODE
 @dataclass(kw_only = True, frozen = True)
 class Node:
-    code = u8(0x05)
-    expression: u32
-    def __bytes__(self) -> bytes:
-        return self.code + self.expression
+    binary = lambda self: self.code + self.expression
+    code = Opcode(0x05).binary()
+    expression: Pointer
 
 #> 1ºLEVEL -> EQUATION
 @dataclass(kw_only = True, frozen = True)
 class Equation:
-    code = u8(0x06)
-    leftexpression: u32
-    rightexpression: u32
-    def __bytes__(self) -> bytes:
-        return self.code + self.leftexpression + self.rightexpression
+    binary = lambda self: self.code + self.leftexpression + self.rightexpression
+    code = Opcode(0x06).binary()
+    leftexpression: Pointer
+    rightexpression: Pointer
 
 #> 1ºLEVEL -> COMMENT
 @dataclass(kw_only = True, frozen = True)
 class Comment:
-    code = u8(0x07)
-    text: list[u8]
-    def __bytes__(self) -> bytes:
-        return self.code + join(self.text, null8())
+    binary = lambda self: self.code + self.text
+    code = Opcode(0x07).binary()
+    text: String
 
 #> 1ºLEVEL -> USE
 @dataclass(kw_only = True, frozen = True)
 class Use:
-    code = u8(0x08)
-    name: list[u8]
-    start: u32 | null32
-    def __bytes__(self) -> bytes:
-        return self.code + join(self.name, null8()) + self.start
+    binary = lambda self: self.code + self.name + self.start
+    code = Opcode(0x08).binary()
+    name: String
+    start: Option[Pointer]
 
 
 #^
@@ -97,11 +92,10 @@ class Use:
 #> 2ºLEVEL -> EXPRESSION
 @dataclass(kw_only = True, frozen = True)
 class Expression:
-    code = u8(0x09)
-    signs: list[u8]
-    terms: list[u32]
-    def __bytes__(self) -> bytes:
-        return self.code + join(self.signs, null8()) + join(self.terms, null32())
+    binary = lambda self: self.code + self.signs + self.terms
+    code = Opcode(0x09).binary()
+    signs: Vec[Option[Sign]]
+    terms: Vec[Pointer]
 
 
 #^
@@ -111,11 +105,10 @@ class Expression:
 #> 3ºLEVEL -> TERM
 @dataclass(kw_only = True, frozen = True)
 class Term:
-    code = u8(0x0A)
-    numerator: list[u32]
-    denominator: list[u32]
-    def __bytes__(self) -> bytes:
-        return self.code + join(self.numerator, null32()) + join(self.denominator, null32())
+    binary = lambda self: self.code + self.numerator + self.denominator
+    code = Opcode(0x0A).binary()
+    numerator: Vec[Pointer]
+    denominator: Vec[Pointer]
 
 
 #^
@@ -125,23 +118,21 @@ class Term:
 #> 4ºLEVEL -> FACTOR
 @dataclass(kw_only = True, frozen = True)
 class Factor:
-    code = u8(0x0B)
-    value: u32
-    exponent: u32 | null32
-    def __bytes__(self) -> bytes:
-        return self.code + self.value + self.exponent
+    binary = lambda self: self.code + self.value + self.exponent
+    code = Opcode(0x0B).binary()
+    value: Pointer
+    exponent: Option[Pointer]
 
 #> 4ºLEVEL -> LIMIT
 @dataclass(kw_only = True, frozen = True)
 class Limit:
-    code = u8(0x0C)
-    variable: u32
-    approach: u32
-    direction: u8 | null8
-    nest: u32
-    exponent: u32 | null32
-    def __bytes__(self) -> bytes:
-        return self.code + self.variable + self.approach + self.direction + self.nest + self.exponent
+    binary = lambda self: self.code + self.variable + self.approach + self.direction + self.nest + self.exponent
+    code = Opcode(0x0C).binary()
+    variable: Pointer
+    approach: Pointer
+    direction: Option[Sign]
+    nest: Pointer
+    exponent: Option[Pointer]
 
 
 #^
@@ -151,46 +142,40 @@ class Limit:
 #> 5ºLEVEL -> INFINITE
 @dataclass(kw_only = True, frozen = True)
 class Infinite:
-    code = u8(0x0D)
-    def __bytes__(self) -> bytes:
-        return self.code
+    binary = lambda self: self.code
+    code = Opcode(0x0D).binary()
 
 #> 5ºLEVEL -> VARIABLE
 @dataclass(kw_only = True, frozen = True)
 class Variable:
-    code = u8(0x0E)
-    representation: list[u8]
-    def __bytes__(self) -> bytes:
-        return self.code + join(self.representation, null8())
+    binary = lambda self: self.code + self.representation
+    code = Opcode(0x0E).binary()
+    representation: String
 
 #> 5ºLEVEL -> NEST
 @dataclass(kw_only = True, frozen = True)
 class Nest:
-    code = u8(0x0F)
-    expression: u32 | null32
-    def __bytes__(self) -> bytes:
-        return self.code + self.expression
+    binary = lambda self: self.code + self.expression
+    code = Opcode(0x0F).binary()
+    expression: Option[Pointer]
 
 #> 5ºLEVEL -> TENSOR
 @dataclass(kw_only = True, frozen = True)
 class Tensor:
-    code = u8(0x10)
-    values: list[u32]
-    def __bytes__(self) -> bytes:
-        return self.code + join(self.values, null32())
+    binary = lambda self: self.code + self.values
+    code = Opcode(0x10).binary()
+    values: Vec[Pointer]
 
 #> 5ºLEVEL -> WHOLE
 @dataclass(kw_only = True, frozen = True)
 class Whole:
-    code = u8(0x11)
-    value: u32 | null32
-    def __bytes__(self) -> bytes:
-        return self.code + self.value
+    binary = lambda self: self.code + self.value
+    code = Opcode(0x11).binary()
+    value: BigUint
 
 #> 5ºLEVEL -> ABSOLUTE
 @dataclass(kw_only = True, frozen = True)
 class Absolute:
-    code = u8(0x12)
-    expression: u32
-    def __bytes__(self) -> bytes:
-        return self.code + self.expression
+    binary = lambda self: self.code + self.expression
+    code = Opcode(0x12).binary()
+    expression: Pointer

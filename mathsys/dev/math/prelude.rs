@@ -2,8 +2,8 @@
 //^ PULLS
 //^
 
-//> PULLS -> NOW
-pub use crate::NOW;
+//> PULLS -> SETTINGS
+pub use crate::Settings;
 
 //> PULLS -> CONTEXT
 pub use crate::context::infinite::Infinite;
@@ -41,12 +41,13 @@ pub use crate::lib::{
     class::Class,
     group::Group,
     object::Object,
+    opcode::Opcode,
     pointer::Pointer,
     reparser::Reparser,
     runtime::Runtime,
     sign::Sign,
     stack::{exit, write},
-    stdout::{Code, chore, crash, space, debug, trace, login, class, point},
+    stdout::{Code, init, login, crash, space, debug, alert, trace, chore, class, point},
     tip::Tip,
     value::Value
 };
@@ -64,9 +65,17 @@ pub use num_traits::{Zero, One};
 pub use std::{
     fmt,
     ops::Not,
-    collections::HashMap,
+    collections::{HashMap, HashSet},
     time::Instant
 };
 
 //> PULLS -> MINIZ_OXIDE
 pub use miniz_oxide::inflate::{decompress_to_vec as decompress};
+
+//> PULLS -> BITVEC
+pub use bitvec::{
+    prelude::BitVec,
+    prelude::Lsb0,
+    prelude::BitSlice,
+    field::BitField
+};

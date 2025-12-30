@@ -1,37 +1,123 @@
 //^
+//^ INTERFACE
+//^
+
+//> INTERFACE -> DEFINITION
+export interface BinaryEncodable {
+    binary(): Binary;
+}
+
+
+//^
 //^ TYPES
 //^
 
-//> TYPES -> U8
-export type u8 = Uint8Array;
-export function u8(value: number): u8 {
-    if (!Number.isInteger(value) || value < 1 || value > 0xff) {
-        throw new RangeError(`'${value}' is outside range for u8.`);
+//> TYPES -> BINARY
+export class Binary {
+    constructor(
+        readonly value: bigint,
+        readonly width: number
+    ) {}
+    __bytes__(): Uint8Array {
+        if (this.width % 8 !== 0) {throw new RangeError(`Cannot convert Binary to Uint8Array: width ${this.width} is not a multiple of 8`)};
+        const width = this.width / 8;
+        const bytes = new Uint8Array(width);
+        let temp = this.value;
+        for (let index = 0; index < width; index++) {
+            bytes[index] = Number(temp & 0xFFn);
+            temp >>= 8n;
+        }
+        return bytes;
     }
-    return new Uint8Array([value]);
 }
 
-//> TYPES -> NULL8
-export type null8 = Uint8Array;
-export function null8(): null8 {return new Uint8Array([0])}
-
-//> TYPES -> U32
-export type u32 = Uint8Array;
-export function u32(value: number): u32 {
-    if (!Number.isInteger(value) || value < 1 || value > 0xffffffff) {
-      throw new RangeError(`'${value}' is outside range for u32.`);
-    }
-    return new Uint8Array([
-        value & 0xFF,
-        (value >> 8) & 0xFF,
-        (value >> 16) & 0xFF,
-        (value >> 24) & 0xFF
-    ]);
+//> TYPES -> OPCODE
+export class Opcode implements BinaryEncodable {
+    constructor(
+        readonly value: number
+    ) {}
+    binary(): Binary {return new Binary(BigInt(this.value), 5)}
 }
 
-//> TYPES -> NULL32
-export type null32 = Uint8Array;
-export function null32(): null32 {return new Uint8Array([0, 0, 0, 0])}
+//> TYPES -> POINTER
+export class Pointer implements BinaryEncodable {
+    constructor(
+        readonly value: number
+    ) {}
+    binary(): Binary {return new Binary(BigInt(this.value), 32)}
+}
+
+//> TYPES -> SIGN
+export class Sign implements BinaryEncodable {
+    constructor(
+        readonly value: boolean
+    ) {}
+    binary(): Binary {return new Binary(BigInt(this.value ? 1 : 0), 1)}
+}
+
+//> TYPES -> OPTION
+export class Option<Type extends BinaryEncodable> implements BinaryEncodable {
+    constructor(
+        readonly value: Binary | BinaryEncodable | null
+    ) {}
+    binary(): Binary {if (this.value === null) {
+        return new Binary(BigInt(0), 1)
+    } else {
+        return join(new Binary(BigInt(1), 1), this.value)
+    }}
+}
+
+//> TYPES -> BIGUINT
+export class BigUint implements BinaryEncodable {
+    constructor(
+        readonly value: bigint
+    ) {}
+    binary(): Binary {return new Binary(this.value, 128)}
+}
+
+//> TYPES -> STRING
+export class String implements BinaryEncodable {
+    constructor(
+        readonly value: string
+    ) {}
+    binary(): Binary {
+        const data = new TextEncoder().encode(this.value);
+        const length = data.length;
+        let databig = 0n;
+        for (let index = 0; index < length; index++) {databig |= BigInt(data[index]) << BigInt(8 * index)}
+        return join(
+            new Binary(BigInt(length), 16),
+            new Binary(databig, length * 8)
+        )
+    }
+}
+
+//> TYPES -> GROUP
+export class Group implements BinaryEncodable {
+    constructor(
+        readonly value: string | null
+    ) {}
+    binary(): Binary {return new Binary(BigInt({
+        null: 0,
+        "@Infinite": 1,
+        "@Integer": 2,
+        "@Natural": 3,
+        "@Nexists": 4,
+        "@Rational": 5,
+        "@Tensor": 6,
+        "@Undefined": 0,
+        "@Variable": 7,
+        "@Whole": 8
+    }[this.value ?? "null"] as number), 4)}
+}
+
+//> TYPES -> VEC
+export class Vec<Type extends BinaryEncodable> implements BinaryEncodable {
+    constructor(
+        readonly values: (Binary | BinaryEncodable)[]
+    ) {}
+    binary(): Binary {return join(new Binary(BigInt(this.values.length), 32), ...this.values)}
+}
 
 
 //^
@@ -39,48 +125,13 @@ export function null32(): null32 {return new Uint8Array([0, 0, 0, 0])}
 //^
 
 //> HELPERS -> JOIN
-export function join(binary: u8[] | u32[], delimiter: Uint8Array): Uint8Array {
-    const nullTerminator = delimiter;
-    let totalLength = nullTerminator.length;
-    for (const item of binary) {
-        totalLength += item.length;
+export function join(...binaries: (Binary | BinaryEncodable)[]): Binary {
+    let value = 0n;
+    let width = 0;
+    for (let binary of binaries) {
+        binary = binary instanceof Binary ? binary : binary.binary();
+        value |= binary.value << BigInt(width);
+        width += binary.width;
     }
-    const combined = new Uint8Array(totalLength);
-    let offset = 0;
-    for (const item of binary) {
-        combined.set(item, offset);
-        offset += item.length;
-    }
-    combined.set(nullTerminator, offset);
-    return combined;
-}
-
-//> HELPERS -> CLAMP
-export function clamp(...arrays: Uint8Array[]): Uint8Array {
-    let result = new Uint8Array(arrays.reduce((sum, arr) => sum + arr.length, 0));
-    let offset = 0;
-    for (const arr of arrays) {
-        result.set(arr, offset);
-        offset += arr.length;
-    }
-    return result;
-}
-
-
-//^
-//^ MAPPINGS
-//^
-
-//> MAPPINGS -> OBJECTTYPE
-export const OBJECTTYPE: Record<string, Uint8Array> = {
-    null: null8(),
-    "@Infinite": u8(1),
-    "@Integer": u8(2),
-    "@Natural": u8(3),
-    "@Nexists": u8(4),
-    "@Rational": u8(5),
-    "@Tensor": u8(6),
-    "@Undefined": null8(),
-    "@Variable": u8(7),
-    "@Whole": u8(8)
+    return new Binary(value, width);
 }

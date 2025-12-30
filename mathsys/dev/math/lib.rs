@@ -8,16 +8,17 @@
 #![feature(linkage)]
 #![feature(try_trait_v2)]
 #![feature(never_type)]
+#![allow(static_mut_refs)]
 
 //> HEAD -> PRELUDE
 mod prelude;
 use prelude::{
+    init,
     login,
     Reparser,
     Runtime,
-    crash,
     Code,
-    Instant
+    crash
 };
 
 //> HEAD -> CONTEXT
@@ -60,6 +61,7 @@ mod lib {
     pub mod class;
     pub mod group;
     pub mod object;
+    pub mod opcode;
     pub mod pointer;
     pub mod reparser;
     pub mod runtime;
@@ -78,7 +80,13 @@ mod lib {
 //> GLOBALS -> SETTINGS STRUCT
 pub struct Settings {
     pub ir: &'static [u8],
-    pub version: &'static str
+    pub version: &'static str,
+    pub debug: bool,
+    pub class: bool,
+    pub chore: bool,
+    pub trace: bool,
+    pub alert: bool,
+    pub point: bool
 }
 
 
@@ -86,13 +94,11 @@ pub struct Settings {
 //^ ENTRY
 //^
 
-//> RUNTIME -> NOW
-pub static mut NOW: Option<Instant> = None;
 
 //> RUNTIME -> FUNCTION
 pub fn run(settings: Settings) -> () {
-    unsafe {NOW = Some(Instant::now())};
-    login(settings.ir, settings.version);
+    init(&settings);
+    login();
     let mut reparser = Reparser::new();
     let memory = reparser.run(settings.ir);
     let mut runtime = Runtime::new();

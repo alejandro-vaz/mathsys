@@ -4,8 +4,6 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    crash,
-    Code,
     fmt,
     Not
 };
@@ -22,19 +20,8 @@ pub enum Sign {
     Negative
 }
 
-//> SIGN -> FROM U8
-impl From<u8> for Sign {fn from(value: u8) -> Self {return match value {
-    1 => Sign::Positive,
-    2 => Sign::Negative,
-    other => crash(Code::UnknownSignValue)
-}}}
-
 //> SIGN -> BOOL
 impl Into<bool> for Sign {fn into(self) -> bool {return match self {
-    Sign::Positive => true,
-    Sign::Negative => false
-}}}
-impl Into<bool> for &Sign {fn into(self) -> bool {return match self {
     Sign::Positive => true,
     Sign::Negative => false
 }}}
@@ -48,9 +35,9 @@ impl Not for Sign {type Output = Sign; fn not(self) -> Self::Output {
 //> SIGN -> REPRESENTATION
 impl fmt::Display for Sign {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter,
     "{}",
-    if self.into() {"+"} else {"-"}
+    if self.clone().into() {"+"} else {"-"}
 )}}
 impl fmt::Debug for Sign {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter,
     "{}",
-    if self.into() {"+"} else {"-"}
+    if self.clone().into() {"+"} else {"-"}
 )}}

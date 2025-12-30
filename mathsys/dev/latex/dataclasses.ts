@@ -243,7 +243,7 @@ export class Tensor {
 //> 5ºLEVEL -> WHOLE
 export class Whole {
     constructor(
-        readonly value: number
+        readonly value: bigint
     ) {}
     toString(): string {
         return `${this.value}`;

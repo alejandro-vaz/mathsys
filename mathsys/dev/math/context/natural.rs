@@ -123,7 +123,7 @@ impl Natural {
             item.sign
         ),
         Object::Tensor(item) => Tensor::new(
-            item.values.iter().map(|value| value.multiplication(&self.into())).collect()
+            item.values.iter().map(|value| self.multiplication(value)).collect()
         ),
         Object::Undefined(item) => item.into(),
         Object::Variable(item) => crash(Code::NoVariableOperation),

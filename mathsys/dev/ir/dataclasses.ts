@@ -3,7 +3,7 @@
 //^
 
 //> HEAD -> DATA
-import {clamp, join, u8, null8, u32, null32} from "./local.js";
+import {join, Binary, Opcode, Pointer, Sign, Option, BigUint, String, Group, Vec} from "./local.js";
 
 
 //^
@@ -12,13 +12,11 @@ import {clamp, join, u8, null8, u32, null32} from "./local.js";
 
 //> START -> CLASS
 export class Start {
-    static code = u8(0x01);
+    binary = (): Binary => join(Start.code, this.statements);
+    static code = new Opcode(0x01);
     constructor(
-        readonly statements: u32[]
+        readonly statements: Vec<Pointer>
     ) {}
-    bytes(): Uint8Array {return clamp(
-        Start.code, join(this.statements, null32())
-    )}
 }
 
 
@@ -28,86 +26,72 @@ export class Start {
 
 //> 1ºLEVEL -> DECLARATION
 export class Declaration {
-    static code = u8(0x02);
+    binary = (): Binary => join(Declaration.code, this.group, this.variable, this.expression);
+    static code = new Opcode(0x02);
     constructor(
-        readonly group: u8 | null8,
-        readonly variable: u32,
-        readonly expression: u32
+        readonly group: Group,
+        readonly variable: Pointer,
+        readonly expression: Pointer
     ) {}
-    bytes(): Uint8Array {return clamp(
-        Declaration.code, this.group, this.variable, this.expression
-    )}
 }
 
 //> 1ºLEVEL -> DEFINITION
 export class Definition {
-    static code = u8(0x03);
+    binary = (): Binary => join(Definition.code, this.group, this.variable, this.expression);
+    static code = new Opcode(0x03);
     constructor(
-        readonly group: u8 | null8,
-        readonly variable: u32,
-        readonly expression: u32
+        readonly group: Group,
+        readonly variable: Pointer,
+        readonly expression: Pointer
     ) {}
-    bytes(): Uint8Array {return clamp(
-        Definition.code, this.group, this.variable, this.expression
-    )}
 }
 
 //> 1ºLEVEL -> ANNOTATION
 export class Annotation {
-    static code = u8(0x04);
+    binary = (): Binary => join(Annotation.code, this.group, this.variables);
+    static code = new Opcode(0x04);
     constructor(
-        readonly group: u8 | null8,
-        readonly variables: u32[]
+        readonly group: Group,
+        readonly variables: Vec<Pointer>
     ) {}
-    bytes(): Uint8Array {return clamp(
-        Annotation.code, this.group, join(this.variables, null32())
-    )}
 }
 
 //> 1ºLEVEL -> NODE
 export class Node {
-    static code = u8(0x05);
+    binary = (): Binary => join(Node.code, this.expression);
+    static code = new Opcode(0x05);
     constructor(
-        readonly expression: u32
+        readonly expression: Pointer
     ) {}
-    bytes(): Uint8Array {return clamp(
-        Node.code, this.expression
-    )}
 }
 
 //> 1ºLEVEL -> EQUATION
 export class Equation {
-    static code = u8(0x06);
+    binary = (): Binary => join(Equation.code, this.leftexpression, this.rightexpression);
+    static code = new Opcode(0x06);
     constructor(
-        readonly leftexpression: u32,
-        readonly rightexpression: u32
+        readonly leftexpression: Pointer,
+        readonly rightexpression: Pointer
     ) {}
-    bytes(): Uint8Array {return clamp(
-        Equation.code, this.leftexpression, this.rightexpression
-    )}
 }
 
 //> 1ºLEVEL -> COMMENT
 export class Comment {
-    static code = u8(0x07);
+    binary = (): Binary => join(Comment.code, this.text);
+    static code = new Opcode(0x07);
     constructor(
-        readonly text: u8[]
+        readonly text: String
     ) {}
-    bytes(): Uint8Array {return clamp(
-        Comment.code, join(this.text, null8())
-    )}
 }
 
 //> 1ºLEVEL -> USE
 export class Use {
-    static code = u8(0x08);
+    binary = (): Binary => join(Use.code, this.name, this.start);
+    static code = new Opcode(0x08);
     constructor(
-        readonly name: u8[],
-        readonly start: u32 | null32
+        readonly name: String,
+        readonly start: Option<Pointer>
     ) {}
-    bytes(): Uint8Array {return clamp(
-        Use.code, join(this.name, null8()), this.start
-    )}
 }
 
 
@@ -117,14 +101,12 @@ export class Use {
 
 //> 2ºLEVEL -> EXPRESSION
 export class Expression {
-    static code = u8(0x09);
+    binary = (): Binary => join(Expression.code, this.signs, this.terms);
+    static code = new Opcode(0x09);
     constructor(
-        readonly signs: u8[],
-        readonly terms: u32[]
+        readonly signs: Vec<Option<Sign>>,
+        readonly terms: Vec<Pointer>
     ) {}
-    bytes(): Uint8Array {return clamp(
-        Expression.code, join(this.signs, null8()), join(this.terms, null32())
-    )}
 }
 
 
@@ -134,14 +116,12 @@ export class Expression {
 
 //> 3ºLEVEL -> TERM
 export class Term {
-    static code = u8(0x0A);
+    binary = (): Binary => join(Term.code, this.numerator, this.denominator);
+    static code = new Opcode(0x0A);
     constructor(
-        readonly numerator: u32[],
-        readonly denominator: u32[]
+        readonly numerator: Vec<Pointer>,
+        readonly denominator: Vec<Pointer>
     ) {}
-    bytes(): Uint8Array {return clamp(
-        Term.code, join(this.numerator, null32()), join(this.denominator, null32())
-    )}
 }
 
 
@@ -151,29 +131,25 @@ export class Term {
 
 //> 4ºLEVEL -> FACTOR
 export class Factor {
-    static code = u8(0x0B);
+    binary = (): Binary => join(Factor.code, this.value, this.exponent);
+    static code = new Opcode(0x0B);
     constructor(
-        readonly value: u32,
-        readonly exponent: u32 | null32
+        readonly value: Pointer,
+        readonly exponent: Option<Pointer>
     ) {}
-    bytes(): Uint8Array {return clamp(
-        Factor.code, this.value, this.exponent
-    )}
 }
 
 //> 4ºLEVEL -> LIMIT
 export class Limit {
-    static code = u8(0x0C);
+    binary = (): Binary => join(Limit.code, this.variable, this.approach, this.direction, this.nest, this.exponent);
+    static code = new Opcode(0x0C);
     constructor(
-        readonly variable: u32,
-        readonly approach: u32,
-        readonly direction: u8 | null8,
-        readonly nest: u32,
-        readonly exponent: u32 | null32
+        readonly variable: Pointer,
+        readonly approach: Pointer,
+        readonly direction: Option<Sign>,
+        readonly nest: Pointer,
+        readonly exponent: Option<Pointer>
     ) {}
-    bytes(): Uint8Array {return clamp(
-        Limit.code, this.variable, this.approach, this.direction, this.nest, this.exponent
-    )}
 }
 
 
@@ -183,64 +159,52 @@ export class Limit {
 
 //> 5ºLEVEL -> INFINITE
 export class Infinite {
-    static code = u8(0x0D);
+    binary = (): Binary => join(Infinite.code);
+    static code = new Opcode(0x0D);
     constructor() {}
-    bytes(): Uint8Array {return clamp(
-        Infinite.code
-    )}
 }
 
 //> 5ºLEVEL -> VARIABLE
 export class Variable {
-    static code = u8(0x0E);
+    binary = (): Binary => join(Variable.code, this.representation);
+    static code = new Opcode(0x0E);
     constructor(
-        readonly representation: u8[]
+        readonly representation: String
     ) {}
-    bytes(): Uint8Array {return clamp(
-        Variable.code, join(this.representation, null8())
-    )}
 }
 
 //> 5ºLEVEL -> NEST
 export class Nest {
-    static code = u8(0x0F);
+    binary = (): Binary => join(Nest.code, this.expression);
+    static code = new Opcode(0x0F);
     constructor(
-        readonly expression: u32 | null32
+        readonly expression: Option<Pointer>
     ) {}
-    bytes(): Uint8Array {return clamp(
-        Nest.code, this.expression
-    )}
 }
 
 //> 5ºLEVEL -> TENSOR
 export class Tensor {
-    static code = u8(0x10);
+    binary = (): Binary => join(Tensor.code, this.values);
+    static code = new Opcode(0x10);
     constructor(
-        readonly values: u32[]
+        readonly values: Vec<Pointer>
     ) {}
-    bytes(): Uint8Array {return clamp(
-        Tensor.code, join(this.values, null32())
-    )}
 }
 
 //> 5ºLEVEL -> WHOLE
 export class Whole {
-    static code = u8(0x11);
+    binary = (): Binary => join(Whole.code, this.value);
+    static code = new Opcode(0x11);
     constructor(
-        readonly value: u32 | null32
+        readonly value: BigUint
     ) {}
-    bytes() {return clamp(
-        Whole.code, this.value
-    )}
 }
 
 //> 5ºLEVEL -> ABSOLUTE
 export class Absolute {
-    static code = u8(0x12);
+    binary = (): Binary => join(Absolute.code, this.expression);
+    static code = new Opcode(0x12);
     constructor(
-        readonly expression: u32
+        readonly expression: Pointer
     ) {}
-    bytes() {return clamp(
-        Absolute.code, this.expression
-    )}
 }

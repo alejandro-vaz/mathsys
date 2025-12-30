@@ -22,13 +22,13 @@ use crate::prelude::{
 #[derive(Clone)]
 pub struct _Use {
     pub name: String,
-    pub start: Pointer
+    pub start: Option<Pointer>
 }
 
 //> USE -> EVALUATE
 impl _Use {pub fn evaluate(&self, runtime: &mut Runtime, id: Pointer, memory: &Vec<Class>) -> Object {
     //~ EVALUATE -> RETRIEVAL
-    let start = runtime.get(self.start, memory);
+    if let Some(start) = self.start {runtime.get(start, memory);};
     //~ EVALUATE -> OPERATIONS
     self.section("Use being", id);
     return Undefined::new();
@@ -42,7 +42,7 @@ impl fmt::Debug for _Use {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> f
 impl Tip for _Use {} impl _Use {
     pub fn display(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter, "_Use")}
     pub fn debug(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter,
-        "name = \"{}\", start = {}",
+        "name = \"{}\", start = {:?}",
         self.name, self.start
     )}
 }

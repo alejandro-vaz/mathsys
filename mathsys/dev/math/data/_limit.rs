@@ -26,16 +26,15 @@ use crate::prelude::{
 pub struct _Limit {
     pub variable: Pointer,
     pub approach: Pointer,
-    pub direction: Sign,
+    pub direction: Option<Sign>,
     pub nest: Pointer,
-    pub exponent: Pointer
+    pub exponent: Option<Pointer>
 }
 
 //> LIMIT -> EVALUATE
 impl _Limit {pub fn evaluate(&self, runtime: &mut Runtime, id: Pointer, memory: &Vec<Class>) -> Object {
     //~ EVALUATE -> RETRIEVAL
     let Object::Variable(variable) = runtime.get(self.variable, memory) else {crash(Code::FailedNamedRetrieval)};
-    let approach = runtime.get(self.approach, memory);
     //~ EVALUATE -> OPERATIONS
     self.section("Placeholder for limit ops", id);
     return Undefined::new();
@@ -49,7 +48,7 @@ impl fmt::Debug for _Limit {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) ->
 impl Tip for _Limit {} impl _Limit {
     pub fn display(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter, "_Limit")}
     pub fn debug(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter,
-        "variable = {}, approach = {}, direction = {}, nest = {}, exponent = {}",
+        "variable = {}, approach = {}, direction = {:?}, nest = {}, exponent = {:?}",
         self.variable, self.approach, self.direction, self.nest, self.exponent
     )}
 }

@@ -8,11 +8,8 @@ use crate::prelude::{
     Runtime,
     Class,
     Object,
-    crash,
-    Code,
     fmt,
-    Tip,
-    Group
+    Tip
 };
 
 
@@ -24,20 +21,16 @@ use crate::prelude::{
 #[derive(Clone)]
 pub struct _Factor {
     pub value: Pointer,
-    pub exponent: Pointer
+    pub exponent: Option<Pointer>
 }
 
 //> FACTOR -> EVALUATE
 impl _Factor {pub fn evaluate(&self, runtime: &mut Runtime, id: Pointer, memory: &Vec<Class>) -> Object {
     //~ EVALUATE -> RETRIEVAL
     let mut value = runtime.get(self.value, memory);
-    let Object::Nexists(exponent) = runtime.get(self.exponent, memory) else {crash(Code::FailedNamedRetrieval)};
+    if let Object::Variable(variable) = value {value = variable.get(runtime)}
     //~ EVALUATE -> OPERATIONS
     self.section("Computing exponentiation", id);
-    if value.is(Group::Variable) {
-        let Object::Variable(variable) = value else {crash(Code::FailedNamedRetrieval)};
-        value = variable.get(runtime);
-    }
     return value;
 }}
 
@@ -49,7 +42,7 @@ impl fmt::Debug for _Factor {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -
 impl Tip for _Factor {} impl _Factor {
     pub fn display(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter, "_Factor")}
     pub fn debug(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter,
-        "value = {}, exponent = {}",
+        "value = {}, exponent = {:?}",
         self.value, self.exponent
     )}
 }

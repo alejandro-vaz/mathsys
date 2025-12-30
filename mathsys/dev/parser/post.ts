@@ -170,7 +170,7 @@ export function tensor(items: parser.Expression[]): parser.Tensor {
 //> 5ºLEVEL -> WHOLE
 export function whole(items: Token[]): parser.Whole {
     return new parser.Whole(
-        +ñ(items[0])
+        BigInt(ñ(items[0]))
     );
 }
 

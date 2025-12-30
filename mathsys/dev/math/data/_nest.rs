@@ -9,7 +9,8 @@ use crate::prelude::{
     Class,
     Object,
     fmt,
-    Tip
+    Tip,
+    Nexists
 };
 
 
@@ -20,13 +21,13 @@ use crate::prelude::{
 //> NEST -> STRUCT
 #[derive(Clone)]
 pub struct _Nest {
-    pub expression: Pointer
+    pub expression: Option<Pointer>
 }
 
 //> NEST -> EVALUATE
 impl _Nest {pub fn evaluate(&self, runtime: &mut Runtime, id: Pointer, memory: &Vec<Class>) -> Object {
     //~ EVALUATE -> RETRIEVAL
-    let expression = runtime.get(self.expression, memory);
+    let expression = if let Some(expression) = self.expression {runtime.get(expression, memory)} else {Nexists::new()};
     //~ EVALUATE -> OPERATIONS
     self.section("Computing nest placeholder", id);
     return expression;
@@ -40,7 +41,7 @@ impl fmt::Debug for _Nest {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> 
 impl Tip for _Nest {} impl _Nest {
     pub fn display(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter, "_Nest")}
     pub fn debug(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter,
-        "expression = {}",
+        "expression = {:?}",
         self.expression
     )}
 }

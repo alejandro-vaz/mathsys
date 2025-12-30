@@ -51,7 +51,7 @@ impl Tensor {pub fn equivalency(&self, to: &Object) -> bool {return match to {
     Object::Rational(item) => item.equivalency(&self.into()),
     Object::Tensor(item) => if self.values.len() == item.values.len() {
         let mut state = true;
-        for index in 0..self.values.len() {state = state && self.values[index].equivalency(&item.values[index])};
+        for index in 0..self.values.len() {state = state && self.values[index].equivalency(&item.values[index]); if !state {break}};
         state
     } else {false},
     Object::Undefined(item) => false,

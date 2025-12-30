@@ -136,7 +136,7 @@ export class Tensor extends Level5 {constructor(
 
 //> 5ºLEVEL -> WHOLE
 export class Whole extends Level5 {constructor(
-    readonly value: number
+    readonly value: bigint
 ) {super()}}
 
 //> 5ºLEVEL -> ABSOLUTE

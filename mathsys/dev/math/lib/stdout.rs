@@ -7,8 +7,57 @@ use crate::prelude::{
     write,
     exit,
     fmt,
-    NOW
+    Instant,
+    Settings
 };
+
+
+//^
+//^ STDOUT
+//^
+
+//> STDOUT -> INSTANCE
+static mut STDOUT: Stdout = Stdout::new();
+
+//> STDOUT -> STRUCT
+struct Stdout {
+    length: usize,
+    version: &'static str,
+    start: Option<Instant>,
+    _debug: bool,
+    _class: bool,
+    _chore: bool,
+    _trace: bool,
+    _alert: bool,
+    _point: bool
+}
+
+//> STDOUT -> NEW
+impl Stdout {pub const fn new() -> Stdout {return Stdout {
+    length: 0,
+    version: "?",
+    start: None,
+    _debug: true,
+    _class: true,
+    _chore: true,
+    _trace: true,
+    _alert: true,
+    _point: true
+}}}
+
+//> STDOUT -> INIT
+impl Stdout {pub fn init(&mut self, settings: &Settings) -> () {
+    self.length = settings.ir.len();
+    self.version = settings.version;
+    self.start = Some(Instant::now());
+    self._debug = settings.debug;
+    self._class = settings.class;
+    self._chore = settings.chore;
+    self._trace = settings.trace;
+    self._alert = settings.alert;
+    self._point = settings.point;
+}}
+pub fn init(settings: &Settings) -> () {unsafe {STDOUT.init(settings)}}
 
 
 //^
@@ -16,7 +65,7 @@ use crate::prelude::{
 //^
 
 //> FORMATTING -> FUNCTION
-fn print(string: &str, append: &[u8]) -> () {
+impl Stdout {fn print(&self, string: &str, append: &[u8]) -> () {
     let mut bytes = Vec::with_capacity(
         append.len() + string.len() + 6
     );
@@ -24,7 +73,7 @@ fn print(string: &str, append: &[u8]) -> () {
     bytes.extend_from_slice(string.as_bytes());
     bytes.extend_from_slice(&[0x1B, 0x5B, 0x30, 0x6D, 0x0A, 0x00]);
     write(bytes.as_ptr());
-}
+}}
 
 
 //^
@@ -32,16 +81,17 @@ fn print(string: &str, append: &[u8]) -> () {
 //^
 
 //> CALLS -> LOGIN
-pub fn login(ir: &'static [u8], version: &'static str) -> () {print(&format!(
+impl Stdout {pub fn login(&self) -> () {self.print(&format!(
     "LOGIN: Running Mathsys {}, consuming {} tokens.",
-    version,
-    ir.len()
-), &[0x1B, 0x5B, 0x31, 0x3B, 0x39, 0x32, 0x3B, 0x34, 0x39, 0x6D])}
+    self.version,
+    self.length
+), &[0x1B, 0x5B, 0x31, 0x3B, 0x39, 0x32, 0x3B, 0x34, 0x39, 0x6D])}}
+pub fn login() -> () {unsafe {STDOUT.login()}}
 
 //> CALLS -> CRASH
-pub fn crash(code: Code) -> ! {
+impl Stdout {pub fn crash(&self, code: Code) -> ! {
     let value = code.clone() as u8;
-    print(&format!(
+    self.print(&format!(
         "CRASH: {{{}}} {}{}.",
         value,
         match code {
@@ -58,16 +108,17 @@ pub fn crash(code: Code) -> ! {
             Code::RationalDenominatorCannotBeZero => "Tried to create a rational number with denominator zero",
             Code::FailedIRDecompression => "Failed to decompress IR",
             Code::RuntimeHigherObject => "ID of runtime object supplied higher than memory length",
-            Code::UnknownSignValue => "Unknown sign value in IR",
+            Code::CyclicEvaluation => "Ran into runtime cyclic evaluation",
             Code::Todo => "Todo"
         },
-        unsafe {match NOW {
+        match self.start {
             None => format!(""),
             Some(instant) => format!(" ({})", instant.elapsed().as_micros())
-        }}
+        }
     ), &[0x0A, 0x1B, 0x5B, 0x31, 0x3B, 0x39, 0x31, 0x3B, 0x34, 0x39, 0x6D]);
     exit(value);
-}
+}}
+pub fn crash(code: Code) -> ! {unsafe {STDOUT.crash(code)}}
 
 //> CALLS -> CRASH ENUM
 #[derive(Clone)]
@@ -85,7 +136,7 @@ pub enum Code {
     RationalDenominatorCannotBeZero = 10,
     FailedIRDecompression = 11,
     RuntimeHigherObject = 12,
-    UnknownSignValue = 13,
+    CyclicEvaluation = 13,
     Todo = 255
 }
 
@@ -95,10 +146,11 @@ pub enum Code {
 //^
 
 //> DETAIL -> SPACE
-pub fn space<Type: fmt::Display>(message: Type) -> () {print(&format!(
+impl Stdout {pub fn space<Type: fmt::Display>(&self, message: Type) -> () {self.print(&format!(
     "SPACE: {}.",
     message
-), &[0x0A, 0x1B, 0x5B, 0x30, 0x3B, 0x33, 0x33, 0x3B, 0x34, 0x39, 0x6D])}
+), &[0x0A, 0x1B, 0x5B, 0x30, 0x3B, 0x33, 0x33, 0x3B, 0x34, 0x39, 0x6D])}}
+pub fn space<Type: fmt::Display>(message: Type) -> () {unsafe {STDOUT.space(message)}}
 
 
 //^
@@ -106,37 +158,43 @@ pub fn space<Type: fmt::Display>(message: Type) -> () {print(&format!(
 //^
 
 //> LOOKUP -> DEBUG
-pub fn debug<Type: fmt::Display>(message: Type) -> () {print(&format!(
+impl Stdout {pub fn debug<Type: fmt::Display>(&self, message: Type) -> () {if !self._debug {return} self.print(&format!(
     "    DEBUG: {}.",
     message
-), &[0x1B, 0x5B, 0x32, 0x3B, 0x33, 0x35, 0x3B, 0x34, 0x39, 0x6D])}
+), &[0x1B, 0x5B, 0x32, 0x3B, 0x33, 0x35, 0x3B, 0x34, 0x39, 0x6D])}}
+pub fn debug<Type: fmt::Display>(message: Type) -> () {unsafe {STDOUT.debug(message)}}
 
 //> LOOKUP -> ALERT
-pub fn alert<Type: fmt::Display>(message: Type) -> () {print(&format!(
+impl Stdout {pub fn alert<Type: fmt::Display>(&self, message: Type) -> () {if !self._alert {return} self.print(&format!(
     "    ALERT: {}.",
     message
-), &[0x1B, 0x5B, 0x32, 0x3B, 0x33, 0x38, 0x3B, 0x35, 0x3B, 0x32, 0x30, 0x38, 0x3B, 0x34, 0x39, 0x6D])}
+), &[0x1B, 0x5B, 0x32, 0x3B, 0x33, 0x38, 0x3B, 0x35, 0x3B, 0x32, 0x30, 0x38, 0x3B, 0x34, 0x39, 0x6D])}}
+pub fn alert<Type: fmt::Display>(message: Type) -> () {unsafe {STDOUT.alert(message)}}
 
 //> LOOKUP -> TRACE
-pub fn trace<Type: fmt::Display>(message: Type) -> () {print(&format!(
+impl Stdout {pub fn trace<Type: fmt::Display>(&self, message: Type) -> () {if !self._trace {return} self.print(&format!(
     "    TRACE: {}.",
     message
-), &[0x1B, 0x5B, 0x32, 0x3B, 0x33, 0x36, 0x3B, 0x34, 0x39, 0x6D])}
+), &[0x1B, 0x5B, 0x32, 0x3B, 0x33, 0x36, 0x3B, 0x34, 0x39, 0x6D])}}
+pub fn trace<Type: fmt::Display>(message: Type) -> () {unsafe {STDOUT.trace(message)}}
 
 //> LOOKUP -> CHORE
-pub fn chore<Type: fmt::Display>(message: Type) -> () {print(&format!(
+impl Stdout {pub fn chore<Type: fmt::Display>(&self, message: Type) -> () {if !self._chore {return} self.print(&format!(
     "    CHORE: {}.",
     message
-), &[0x1B, 0x5B, 0x32, 0x3B, 0x33, 0x33, 0x3B, 0x34, 0x39, 0x6D])}
+), &[0x1B, 0x5B, 0x32, 0x3B, 0x33, 0x33, 0x3B, 0x34, 0x39, 0x6D])}}
+pub fn chore<Type: fmt::Display>(message: Type) -> () {unsafe {STDOUT.chore(message)}}
 
 //> LOOKUP -> CLASS
-pub fn class<Type: fmt::Display>(message: Type) -> () {print(&format!(
+impl Stdout {pub fn class<Type: fmt::Display>(&self, message: Type) -> () {if !self._class {return} self.print(&format!(
     "    CLASS: {}.",
     message
-), &[0x1B, 0x5B, 0x32, 0x3B, 0x33, 0x32, 0x6D])}
+), &[0x1B, 0x5B, 0x32, 0x3B, 0x33, 0x32, 0x6D])}}
+pub fn class<Type: fmt::Display>(message: Type) -> () {unsafe {STDOUT.class(message)}}
 
 //> LOOKUP -> POINT
-pub fn point<Type: fmt::Display>(message: Type) -> () {print(&format!(
+impl Stdout {pub fn point<Type: fmt::Display>(&self, message: Type) -> () {if !self._point {return} self.print(&format!(
     "    POINT: {}.",
     message
-), &[0x1B, 0x5B, 0x32, 0x3B, 0x33, 0x37, 0x6D])}
+), &[0x1B, 0x5B, 0x32, 0x3B, 0x33, 0x37, 0x6D])}}
+pub fn point<Type: fmt::Display>(message: Type) -> () {unsafe {STDOUT.point(message)}}

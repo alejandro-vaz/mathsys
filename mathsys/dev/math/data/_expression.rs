@@ -22,7 +22,7 @@ use crate::prelude::{
 //> EXPRESSION -> STRUCT
 #[derive(Clone)]
 pub struct _Expression {
-    pub signs: Vec<Sign>,
+    pub signs: Vec<Option<Sign>>,
     pub terms: Vec<Pointer>
 }
 
@@ -36,7 +36,7 @@ impl _Expression {pub fn evaluate(&self, runtime: &mut Runtime, id: Pointer, mem
     let mut current = Nexists::new();
     for index in 0..terms.len() {
         let next = &terms[index];
-        let value = if self.signs[index].into() {next} else {&next.negate()};
+        let value = if let Some(item) = self.signs[index] {if item.into() {&next.negate()} else {next}} else {next};
         current = current.summation(value);
     }
     return current;
