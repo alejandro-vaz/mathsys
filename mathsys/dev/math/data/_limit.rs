@@ -4,16 +4,7 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    Pointer,
-    Sign,
-    Runtime,
-    fmt,
-    crash,
-    Class,
-    Code,
-    Object,
-    Undefined,
-    Tip
+    Pointer, Sign, Runtime, crash, Class, Code, Object, Undefined, Tip
 };
 
 
@@ -22,7 +13,7 @@ use crate::prelude::{
 //^
 
 //> LIMIT -> STRUCT
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct _Limit {
     pub variable: Pointer,
     pub approach: Pointer,
@@ -37,18 +28,6 @@ impl _Limit {pub fn evaluate(&self, runtime: &mut Runtime, id: Pointer, memory: 
     let Object::Variable(variable) = runtime.get(self.variable, memory) else {crash(Code::FailedNamedRetrieval)};
     //~ EVALUATE -> OPERATIONS
     self.section("Placeholder for limit ops", id);
+    crash(Code::Todo);
     return Undefined::new();
 }}
-
-//> LIMIT -> REPRESENTATION
-impl fmt::Display for _Limit {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.display(formatter)}}
-impl fmt::Debug for _Limit {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.debug(formatter)}} 
-
-//> LIMIT -> COMMON
-impl Tip for _Limit {} impl _Limit {
-    pub fn display(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter, "_Limit")}
-    pub fn debug(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter,
-        "variable = {}, approach = {}, direction = {:?}, nest = {}, exponent = {:?}",
-        self.variable, self.approach, self.direction, self.nest, self.exponent
-    )}
-}

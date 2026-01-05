@@ -4,40 +4,7 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    Class,
-    decompress,
-    space,
-    crash,
-    Code,
-    trace,
-    _Start,
-    _Declaration,
-    _Definition,
-    _Annotation,
-    _Node,
-    _Equation,
-    _Comment,
-    _Use,
-    _Expression,
-    _Term,
-    _Factor,
-    _Limit,
-    _Infinite,
-    _Variable,
-    _Nest,
-    _Tensor,
-    _Whole,
-    _Absolute,
-    Group,
-    Sign,
-    Pointer,
-    BigUint,
-    BitVec,
-    BitSlice,
-    Lsb0,
-    Opcode,
-    BitField,
-    class
+    Class, decompress, space, crash, Code, trace, _Start, _Declaration, _Definition, _Annotation, _Node, _Equation, _Use, _Expression, _Term, _Factor, _Limit, _Infinite, _Variable, _Nest, _Tensor, _Whole, _Absolute, _Undefined, _Rational, _Casts, Group, Sign, Pointer, BigUint, BitVec, BitSlice, Lsb0, Opcode, BitField, class
 };
 
 
@@ -55,16 +22,16 @@ impl Reparser {
     pub fn run(&mut self, ir: &'static [u8]) -> Vec<Class> {
         space("{REPARSER} Processing IR");
         let mut memory = Vec::with_capacity(ir.len());
+        trace("Decompressing IR");
         let Ok(bytes) = decompress(ir) else {crash(Code::FailedIRDecompression)};
         let binary = BitVec::<u8, Lsb0>::from_vec(bytes);
+        trace(format!(
+            "Parsing {} data bits",
+            binary.len()
+        ));
         let mut counter = 0;
         while self.locus < binary.len() {
-            let code = self.takeOpcode(&binary);
-            if let Opcode::Continue = code {} else {trace(format!(
-                "Creating {} data structure",
-                code
-            ))};
-            let object = match code {
+            let object = match self.takeOpcode(&binary) {
                 Opcode::Continue => continue,
                 Opcode::Start => Class::_Start(self.Start(&binary)),
                 Opcode::Declaration => Class::_Declaration(self.Declaration(&binary)),
@@ -72,7 +39,6 @@ impl Reparser {
                 Opcode::Annotation => Class::_Annotation(self.Annotation(&binary)),
                 Opcode::Node => Class::_Node(self.Node(&binary)),
                 Opcode::Equation => Class::_Equation(self.Equation(&binary)),
-                Opcode::Comment => Class::_Comment(self.Comment(&binary)),
                 Opcode::Use => Class::_Use(self.Use(&binary)),
                 Opcode::Expression => Class::_Expression(self.Expression(&binary)),
                 Opcode::Term => Class::_Term(self.Term(&binary)),
@@ -83,40 +49,40 @@ impl Reparser {
                 Opcode::Nest => Class::_Nest(self.Nest(&binary)),
                 Opcode::Tensor => Class::_Tensor(self.Tensor(&binary)),
                 Opcode::Whole => Class::_Whole(self.Whole(&binary)),
-                Opcode::Absolute => Class::_Absolute(self.Absolute(&binary))
+                Opcode::Absolute => Class::_Absolute(self.Absolute(&binary)),
+                Opcode::Undefined => Class::_Undefined(self.Undefined(&binary)),
+                Opcode::Rational => Class::_Rational(self.Rational(&binary)),
+                Opcode::Casts => Class::_Casts(self.Casts(&binary))
             };
-            class(format!("{}{} > {:?}", counter, object, object));
+            class(format!("{counter}{object:?}"));
             counter += 1;
             memory.push(object);
         };
         return memory
     }
     fn Absolute(&mut self, binary: &BitVec<u8, Lsb0>) -> _Absolute {return _Absolute {
-        expression: self.takePointer(binary)
+        value: self.takePointer(binary)
     }}
     fn Annotation(&mut self, binary: &BitVec<u8, Lsb0>) -> _Annotation {return _Annotation {
         group: self.takeGroup(binary),
         variables: self.takeVec(binary, |self1, binary1| self1.takePointer(binary1))
     }}
-    fn Comment(&mut self, binary: &BitVec<u8, Lsb0>) -> _Comment {return _Comment {
-        text: self.takeString(binary)
-    }}
     fn Declaration(&mut self, binary: &BitVec<u8, Lsb0>) -> _Declaration {return _Declaration {
-        group: self.takeGroup(binary),
+        group: self.takeOption(binary, |self1, binary1| self1.takeGroup(binary1)),
         variable: self.takePointer(binary),
-        expression: self.takePointer(binary)
+        value: self.takePointer(binary)
     }}
     fn Definition(&mut self, binary: &BitVec<u8, Lsb0>) -> _Definition {return _Definition {
-        group: self.takeGroup(binary),
+        group: self.takeOption(binary, |self1, binary1| self1.takeGroup(binary1)),
         variable: self.takePointer(binary),
-        expression: self.takePointer(binary)
+        value: self.takePointer(binary)
     }}
-    fn Equation(&mut self, binary: &BitVec<u8, Lsb0>) -> _Equation {_Equation {
-        leftexpression: self.takePointer(binary),
-        rightexpression: self.takePointer(binary)
+    fn Equation(&mut self, binary: &BitVec<u8, Lsb0>) -> _Equation {return _Equation {
+        leftside: self.takePointer(binary),
+        rightside: self.takePointer(binary)
     }}
     fn Expression(&mut self, binary: &BitVec<u8, Lsb0>) -> _Expression {return _Expression {
-        signs: self.takeVec(binary, |self1, binary1| self1.takeOption(binary1, |self2, binary2| self2.takeSign(binary2))),
+        signs: self.takeVec(binary, |self1, binary1| self1.takeVec(binary1, |self2, binary2| self2.takeSign(binary2))),
         terms: self.takeVec(binary, |self1, binary1| self1.takePointer(binary1))
     }}
     fn Factor(&mut self, binary: &BitVec<u8, Lsb0>) -> _Factor {return _Factor {
@@ -132,13 +98,17 @@ impl Reparser {
         exponent: self.takeOption(binary, |self1, binary1| self1.takePointer(binary1))
     }}
     fn Nest(&mut self, binary: &BitVec<u8, Lsb0>) -> _Nest {return _Nest {
-        expression: self.takeOption(binary, |self1, binary1| self1.takePointer(binary1))
+        value: self.takeOption(binary, |self1, binary1| self1.takePointer(binary1))
     }}
     fn Node(&mut self, binary: &BitVec<u8, Lsb0>) -> _Node {return _Node {
-        expression: self.takePointer(binary)
+        value: self.takePointer(binary)
+    }}
+    fn Rational(&mut self, binary: &BitVec<u8, Lsb0>) -> _Rational {return _Rational {
+        whole: self.takeBigUint(binary),
+        decimal: self.takeBigUint(binary)
     }}
     fn Start(&mut self, binary: &BitVec<u8, Lsb0>) -> _Start {return _Start {
-        statements: self.takeVec(binary, |self1, binary1| self1.takePointer(binary1))
+        stream: self.takeVec(binary, |self1, binary1| self1.takePointer(binary1))
     }}
     fn Tensor(&mut self, binary: &BitVec<u8, Lsb0>) -> _Tensor {return _Tensor {
         values: self.takeVec(binary, |self1, binary1| self1.takePointer(binary1))
@@ -147,6 +117,7 @@ impl Reparser {
         numerator: self.takeVec(binary, |self1, binary1| self1.takePointer(binary1)),
         denominator: self.takeVec(binary, |self1, binary1| self1.takePointer(binary1))
     }}
+    fn Undefined(&mut self, binary: &BitVec<u8, Lsb0>) -> _Undefined {return _Undefined {}}
     fn Use(&mut self, binary: &BitVec<u8, Lsb0>) -> _Use {return _Use {
         name: self.takeString(binary),
         start: self.takeOption(binary, |self1, binary1| self1.takePointer(binary1))
@@ -156,6 +127,10 @@ impl Reparser {
     }}
     fn Whole(&mut self, binary: &BitVec<u8, Lsb0>) -> _Whole {return _Whole {
         value: self.takeBigUint(binary)
+    }}
+    fn Casts(&mut self, binary: &BitVec<u8, Lsb0>) -> _Casts {return _Casts {
+        element: self.takePointer(binary),
+        to: self.takeGroup(binary)
     }}
 }
 

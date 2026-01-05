@@ -16,3 +16,6 @@ dist/
 
 # IGNORE -> CARGO
 **/target/
+
+# IGNORE -> PERF
+perf.*

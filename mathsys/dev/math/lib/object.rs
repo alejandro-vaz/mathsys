@@ -4,19 +4,7 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    Infinite,
-    Integer,
-    Natural,
-    Nexists,
-    Rational,
-    Tensor,
-    Undefined,
-    Variable,
-    Whole,
-    Group,
-    fmt,
-    chore,
-    trace
+    Infinite, Integer, Natural, Nexists, Rational, Tensor, Undefined, Variable, Whole, Group, fmt, chore, trace, debug, AsRefStr
 };
 
 
@@ -25,7 +13,7 @@ use crate::prelude::{
 //^
 
 //> OBJECT -> ENUM
-#[derive(Clone)]
+#[derive(Clone, AsRefStr)]
 pub enum Object {
     Infinite(Infinite),
     Integer(Integer),
@@ -123,78 +111,56 @@ impl Object {
         Object::Tensor(item) => item.multiplication(to),
         Object::Undefined(item) => item.multiplication(to),
         Object::Variable(item) => item.multiplication(to),
-        Object::Whole(item) => item.multiplication(to)
+        Object::Whole(item) => item.multiplication(to),
     })}
 } 
 
-//> OBJECT -> REPRESENTATION
-impl fmt::Display for Object {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {match self {
-    Object::Infinite(item) => item.display(formatter),
-    Object::Integer(item) => item.display(formatter),
-    Object::Natural(item) => item.display(formatter),
-    Object::Nexists(item) => item.display(formatter),
-    Object::Rational(item) => item.display(formatter),
-    Object::Tensor(item) => item.display(formatter),
-    Object::Undefined(item) => item.display(formatter),
-    Object::Variable(item) => item.display(formatter),
-    Object::Whole(item) => item.display(formatter)
-}}} impl fmt::Debug for Object {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {match self {
-    Object::Infinite(item) => item.debug(formatter),
-    Object::Integer(item) => item.debug(formatter),
-    Object::Natural(item) => item.debug(formatter),
-    Object::Nexists(item) => item.debug(formatter),
-    Object::Rational(item) => item.debug(formatter),
-    Object::Tensor(item) => item.debug(formatter),
-    Object::Undefined(item) => item.debug(formatter),
-    Object::Variable(item) => item.debug(formatter),
-    Object::Whole(item) => item.debug(formatter)
+//> OBJECT -> DEBUG
+impl fmt::Debug for Object {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {match self {
+    Object::Infinite(item) => fmt::Debug::fmt(item, formatter),
+    Object::Integer(item) => fmt::Debug::fmt(item, formatter),
+    Object::Natural(item) => fmt::Debug::fmt(item, formatter),
+    Object::Nexists(item) => fmt::Debug::fmt(item, formatter),
+    Object::Rational(item) => fmt::Debug::fmt(item, formatter),
+    Object::Tensor(item) => fmt::Debug::fmt(item, formatter),
+    Object::Undefined(item) => fmt::Debug::fmt(item, formatter),
+    Object::Variable(item) => fmt::Debug::fmt(item, formatter),
+    Object::Whole(item) => fmt::Debug::fmt(item, formatter)
 }}}
 
 //> OBJECT -> COMMON
 impl Object {
-    fn partial<Type: fmt::Display + fmt::Debug>(&self, value: Type) -> Type {chore(format!(
-        "{:?}",
-        value
-    )); return value}
+    fn partial<Type: fmt::Debug>(&self, value: Type) -> Type {chore(format!("{value:?}")); return value}
     fn castLocale(&self, group: &Group) -> () {trace(format!(
-        "Casting {} to {}",
-        self, group
+        "Casting {} to {group:?}",
+        self.name()
     )); self.info()}
     fn equivalencyLocale(&self, to: &Object) -> () {trace(format!(
         "Checking equivalency of {} and {}",
-        self, to
+        self.name(), to.name()
     )); self.info(); to.info()}
     fn absoluteLocale(&self) -> () {trace(format!(
         "Taking absolute value of {}",
-        self
+        self.name()
     )); self.info()}
     fn negateLocale(&self) -> () {trace(format!(
         "Negating {}",
-        self
+        self.name()
     )); self.info()}
     fn summationLocale(&self, to: &Object) -> () {trace(format!(
         "Adding {} and {}",
-        self, to
+        self.name(), to.name()
     )); self.info(); to.info()}
     fn invertLocale(&self) -> () {trace(format!(
         "Inverting {}",
-        self
+        self.name()
     )); self.info()}
     fn multiplicationLocale(&self, to: &Object) -> () {trace(format!(
         "Multiplying {} and {}",
-        self, to
+        self.name(), to.name()
     )); self.info(); to.info()}
-    pub fn info(&self) -> () {match self {
-        Object::Infinite(item) => item.info(),
-        Object::Integer(item) => item.info(),
-        Object::Natural(item) => item.info(),
-        Object::Nexists(item) => item.info(),
-        Object::Rational(item) => item.info(),
-        Object::Tensor(item) => item.info(),
-        Object::Undefined(item) => item.info(),
-        Object::Variable(item) => item.info(),
-        Object::Whole(item) => item.info()
-    }}
+    pub fn name(&self) -> &str {return self.as_ref()}
+    pub fn info(&self) -> () {debug(format!("{self:?}"))}
     pub fn is(&self, group: Group) -> bool {return match self {
         Object::Infinite(item) => group == Group::Undefined || group == Group::Infinite,
         Object::Integer(item) => group == Group::Undefined || group == Group::Integer,
@@ -209,6 +175,7 @@ impl Object {
 }
 
 //> OBJECT -> FROM BORROWED TO OWNED
+impl From<&Object> for Object {fn from(value: &Object) -> Object {return value.clone()}}
 impl From<&Infinite> for Object {fn from(value: &Infinite) -> Object {return Object::Infinite(value.clone())}}
 impl From<&Integer> for Object {fn from(value: &Integer) -> Object {return Object::Integer(value.clone())}}
 impl From<&Natural> for Object {fn from(value: &Natural) -> Object {return Object::Natural(value.clone())}}

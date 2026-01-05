@@ -4,14 +4,7 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    HashMap,
-    Object,
-    Group,
-    crash,
-    Code,
-    Pointer,
-    Class,
-    HashSet
+    HashMap, Object, Group, crash, Code, Pointer, Class, HashSet
 };
 
 

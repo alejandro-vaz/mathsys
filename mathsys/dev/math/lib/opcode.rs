@@ -4,9 +4,7 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    crash,
-    Code,
-    fmt
+    crash, Code
 };
 
 //^
@@ -23,7 +21,6 @@ pub enum Opcode {
     Annotation,
     Node,
     Equation,
-    Comment,
     Use,
     Expression,
     Term,
@@ -34,7 +31,10 @@ pub enum Opcode {
     Nest,
     Tensor,
     Whole,
-    Absolute
+    Absolute,
+    Undefined,
+    Rational,
+    Casts
 }
 
 //> OPCODE -> BUILD
@@ -46,43 +46,19 @@ impl From<u8> for Opcode {fn from(value: u8) -> Self {match value {
     0x04 => Opcode::Annotation,
     0x05 => Opcode::Node,
     0x06 => Opcode::Equation,
-    0x07 => Opcode::Comment,
-    0x08 => Opcode::Use,
-    0x09 => Opcode::Expression,
-    0x0A => Opcode::Term,
-    0x0B => Opcode::Factor,
-    0x0C => Opcode::Limit,
-    0x0D => Opcode::Infinite,
-    0x0E => Opcode::Variable,
-    0x0F => Opcode::Nest,
-    0x10 => Opcode::Tensor,
-    0x11 => Opcode::Whole,
-    0x12 => Opcode::Absolute,
+    0x07 => Opcode::Use,
+    0x08 => Opcode::Expression,
+    0x09 => Opcode::Term,
+    0x0A => Opcode::Factor,
+    0x0B => Opcode::Limit,
+    0x0C => Opcode::Infinite,
+    0x0D => Opcode::Variable,
+    0x0E => Opcode::Nest,
+    0x0F => Opcode::Tensor,
+    0x10 => Opcode::Whole,
+    0x11 => Opcode::Absolute,
+    0x12 => Opcode::Undefined,
+    0x13 => Opcode::Rational,
+    0x14 => Opcode::Casts,
     other => crash(Code::UnknownIRObject)
 }}}
-
-//> OPCODE -> DISPLAY
-impl fmt::Display for Opcode {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter,
-    "{}",
-    match self {
-        Opcode::Continue => "",
-        Opcode::Start => "_Start",
-        Opcode::Declaration => "_Declaration",
-        Opcode::Definition => "_Definition",
-        Opcode::Annotation => "_Annotation",
-        Opcode::Node => "_Node",
-        Opcode::Equation => "_Equation",
-        Opcode::Comment => "_Comment",
-        Opcode::Use => "_Use",
-        Opcode::Expression => "_Expression",
-        Opcode::Term => "_Term",
-        Opcode::Factor => "_Factor",
-        Opcode::Limit => "_Limit",
-        Opcode::Infinite => "_Infinite",
-        Opcode::Variable => "_Variable",
-        Opcode::Nest => "_Nest",
-        Opcode::Tensor => "_Tensor",
-        Opcode::Whole => "_Whole",
-        Opcode::Absolute => "_Absolute"
-    }
-)}}

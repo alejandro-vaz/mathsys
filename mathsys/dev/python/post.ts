@@ -12,9 +12,9 @@ import {ñ, Token, istoken} from "./local.js";
 //^
 
 //> START -> POSTPROCESS
-export function start(items: parser.Level1[]): parser.Start {
+export function start(items: (parser.Level1 | Token)[]): parser.Start {
     return new parser.Start(
-        items
+        items.map(item => istoken(item) ? ñ(item) : item)
     );
 }
 
@@ -64,13 +64,6 @@ export function equation(items: parser.Expression[]): parser.Equation {
     );
 }
 
-//> 1ºLEVEL -> COMMENT
-export function comment(items: Token[]): parser.Comment {
-    return new parser.Comment(
-        items[0].value.slice(1).trim()
-    );
-}
-
 //> 1ºLEVEL -> USE
 export function use(items: Token[]): parser.Use {
     return new parser.Use(
@@ -89,6 +82,13 @@ export function expression(items: (Token | parser.Level3)[]): parser.Expression 
     return new parser.Expression(
         [...(istoken(items[0]) ? [] : [null]), ...items.filter(item => istoken(item)).map(item => ñ(item) === "+")],
         items.filter(item => item instanceof parser.Level3)
+    );
+}
+
+//> 2ºLEVEL -> GROUPING
+export function grouping(items: Token[]): parser.Grouping {
+    return new parser.Grouping(
+        ñ(items[0])
     );
 }
 
@@ -178,5 +178,18 @@ export function whole(items: Token[]): parser.Whole {
 export function absolute(items: parser.Expression[]): parser.Absolute {
     return new parser.Absolute(
         items[0]
-    )
+    );
+}
+
+//> 5ºLEVEL -> UNDEFINED
+export function undefined(items: Token[]): parser.Undefined {
+    return new parser.Undefined();
+}
+
+//> 5ºLEVEL -> RATIONAL
+export function rational(items: Token[]): parser.Rational {
+    return new parser.Rational(
+        BigInt(ñ(items[0]).replace(".", "").replace(/^0+|0+$/g, '')),
+        BigInt(ñ(items[0]).split(".")[1].replace(/0+$/, "").length)
+    );
 }

@@ -17,10 +17,6 @@ use crate::prelude::{
 pub struct Pointer(pub u32);
 
 //> POINTER -> REPRESENTATION
-impl fmt::Display for Pointer {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter,
-    "#{}",
-    self.0
-)}}
 impl fmt::Debug for Pointer {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter,
     "#{}",
     self.0

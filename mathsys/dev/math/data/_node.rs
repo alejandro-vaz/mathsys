@@ -4,12 +4,7 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    Pointer,
-    Runtime,
-    Class,
-    Object,
-    fmt,
-    Tip
+    Pointer, Runtime, Class, Object, Tip
 };
 
 
@@ -18,29 +13,16 @@ use crate::prelude::{
 //^
 
 //> NODE -> STRUCT
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct _Node {
-    pub expression: Pointer
+    pub value: Pointer
 }
 
 //> NODE -> EVALUATE
 impl _Node {pub fn evaluate(&self, runtime: &mut Runtime, id: Pointer, memory: &Vec<Class>) -> Object {
     //~ EVALUATE -> RETRIEVAL
-    let expression = runtime.get(self.expression, memory);
+    let value = runtime.get(self.value, memory);
     //~ EVALUATE -> OPERATIONS
     self.section("Returning node value", id);
-    return expression;
+    return value;
 }}
-
-//> NODE -> REPRESENTATION
-impl fmt::Display for _Node {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.display(formatter)}}
-impl fmt::Debug for _Node {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.debug(formatter)}} 
-
-//> NODE -> COMMON
-impl Tip for _Node {} impl _Node {
-    pub fn display(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter, "_Node")}
-    pub fn debug(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter,
-        "expression = {}",
-        self.expression
-    )}
-}

@@ -4,7 +4,7 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    BigUint, Code, Group, Integer, Natural, Number, Object, One, Sign, Tensor, Undefined, Value, Whole, Zero, crash, fmt
+    BigUint, Code, Group, Integer, Natural, Number, Object, One, Sign, Tensor, Undefined, Whole, Zero, crash
 };
 
 
@@ -13,15 +13,15 @@ use crate::prelude::{
 //^
 
 //> RATIONAL -> STRUCT
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Rational {
     pub numerator: BigUint,
     pub denominator: BigUint,
     pub sign: Sign
-} impl Rational {pub fn new(numerator: impl Into<BigUint>, denominator: impl Into<BigUint>, sign: impl Into<Sign>) -> Object {
+} impl Rational {pub fn new(numerator: impl Into<BigUint>, denominator: impl Into<BigUint>, sign: Sign) -> Object {
     let numerator0 = numerator.into();
     let denominator0 = denominator.into();
-    let sign0 = if numerator0.is_zero() {Sign::Positive} else {sign.into()};
+    let sign0 = if numerator0.is_zero() {Sign::Positive} else {sign};
     let denominator1 = if !denominator0.is_zero() {denominator0} else {crash(Code::RationalDenominatorCannotBeZero)};
     let gcd = numerator0.gcd(&denominator1);
     let numerator1 = &numerator0 / &gcd;
@@ -71,7 +71,7 @@ impl Rational {
     pub fn absolute(&self) -> Object {return Rational::new(
         self.numerator.clone(),
         self.denominator.clone(),
-        true
+        Sign::Positive
     )}
     pub fn negate(&self) -> Object {return Rational::new(
         self.numerator.clone(),
@@ -92,13 +92,13 @@ impl Rational {
             &self.denominator * &item.denominator,
             if &self.numerator * &item.denominator >= &self.denominator * &item.numerator {self.sign} else {item.sign}
         )},
-        Object::Tensor(item) => crash(Code::Todo),
+        Object::Tensor(item) => Undefined::new(),
         Object::Undefined(item) => item.into(),
         Object::Variable(item) => crash(Code::NoVariableOperation),
         Object::Whole(item) => if self.sign.into() {Rational::new(
             &self.numerator + &self.denominator * &item.value,
             self.denominator.clone(),
-            true
+            Sign::Positive
         )} else {Rational::new(
             if self.numerator >= &self.denominator * &item.value {&self.numerator - &self.denominator * &item.value} else {&self.denominator * &item.value - &self.numerator},
             self.denominator.clone(),
@@ -122,7 +122,7 @@ impl Rational {
         Object::Rational(item) => Rational::new(
             &self.numerator * &item.numerator,
             &self.denominator * &item.denominator,
-            self.sign == item.sign
+            (self.sign == item.sign).into()
         ),
         Object::Tensor(item) => Tensor::new(
             item.values.iter().map(|value| self.multiplication(value)).collect()
@@ -135,20 +135,4 @@ impl Rational {
             self.sign
         )
     }}
-}
-
-
-
-//> RATIONAL -> REPRESENTATION
-impl fmt::Display for Rational {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.display(formatter)}}
-impl fmt::Debug for Rational {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.debug(formatter)}} 
-
-//> RATIONAL -> COMMON
-impl Value for Rational {} impl Rational {
-    pub fn info(&self) -> () {self.data()}
-    pub fn display(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter, "Rational")}
-    pub fn debug(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter,
-        "{} > numerator = {} ~ denominator = {} ~ sign = {}",
-        self, self.numerator, self.denominator, self.sign
-    )}
 }

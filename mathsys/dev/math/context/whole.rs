@@ -2,20 +2,9 @@
 //^ HEAD
 //^
 
-//> HEAD -> CROSS-SCOPE TRAIT
+//> HEAD -> PRELUDE
 use crate::prelude::{
-    BigUint,
-    Object,
-    Group,
-    crash,
-    Integer,
-    Natural,
-    Rational,
-    Undefined,
-    Code,
-    fmt,
-    Value,
-    Zero
+    BigUint, Object, Group, crash, Integer, Natural, Rational, Undefined, Code, Zero, Sign
 };
 
 
@@ -24,14 +13,14 @@ use crate::prelude::{
 //^
 
 //> WHOLE -> STRUCT
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Whole {
     pub value: BigUint
 } impl Whole {pub fn new(value: impl Into<BigUint>) -> Object {
     let value0 = value.into();
     return Object::Whole(Whole {
         value: value0
-    })
+    });
 }}
 
 //> WHOLE -> CASTING
@@ -39,7 +28,7 @@ impl Whole {pub fn cast(&self, group: Group) -> Object {return match group {
     Group::Infinite => crash(Code::FailedCast),
     Group::Integer => Integer::new(
         self.value.clone(),
-        true
+        Sign::Positive
     ),
     Group::Natural => Natural::new(
         self.value.clone()
@@ -48,7 +37,7 @@ impl Whole {pub fn cast(&self, group: Group) -> Object {return match group {
     Group::Rational => Rational::new(
         self.value.clone(),
         1u32,
-        true
+        Sign::Positive
     ),
     Group::Tensor => crash(Code::FailedCast),
     Group::Undefined => Undefined::new(),
@@ -74,9 +63,9 @@ impl Whole {
     pub fn absolute(&self) -> Object {return self.into()}
     pub fn negate(&self) -> Object {return Integer::new(
         self.value.clone(),
-        false
+        Sign::Negative
     )}
-    pub fn summation(&self, to: &Object) -> Object {return match to {
+    pub fn summation(&self, to: &Object) -> Object {return match &to.into() {
         Object::Infinite(item) => item.summation(&self.into()),
         Object::Integer(item) => item.summation(&self.into()),
         Object::Natural(item) => item.summation(&self.into()),
@@ -96,9 +85,9 @@ impl Whole {
     pub fn invert(&self) -> Object {return if !self.value.is_zero() {Rational::new(
         1u32,
         self.value.clone(),
-        true
+        Sign::Positive
     )} else {Undefined::new()}}
-    pub fn multiplication(&self, to: &Object) -> Object {return match to {
+    pub fn multiplication(&self, to: &Object) -> Object {return match to.into() {
         Object::Infinite(item) => item.multiplication(&self.into()),
         Object::Integer(item) => item.multiplication(&self.into()),
         Object::Natural(item) => item.multiplication(&self.into()),
@@ -111,18 +100,4 @@ impl Whole {
             &self.value * &item.value
         )
     }}
-}
-
-//> WHOLE -> REPRESENTATION
-impl fmt::Display for Whole {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.display(formatter)}}
-impl fmt::Debug for Whole {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.debug(formatter)}} 
-
-//> WHOLE -> COMMON
-impl Value for Whole {} impl Whole {
-    pub fn info(&self) -> () {self.data()}
-    pub fn display(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter, "Whole")}
-    pub fn debug(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter,
-        "{} > value = {}",
-        self, self.value
-    )}
 }

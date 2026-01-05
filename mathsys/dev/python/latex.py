@@ -65,7 +65,7 @@ VARIABLES = {
     "Xi": r"\Xi ",
     "pi": r"\pi ",
     "Pi": r"\Pi ",
-    #~ VARIABLES -> WEIERSTRASS
+    #~ VARIABLES -> 2 WEIERSTRASS
     "wp": r"\wp "
 }
 
@@ -79,22 +79,13 @@ SPECIAL = {
 
 #> MAPPINGS -> CONVERSION TABLE
 CONVERSION = {
-    None: lambda name: name,
     "@Infinite": lambda name: fr"\overset{{\infty}}{{{name}}}",
     "@Integer": lambda name: name,
     "@Natural": lambda name: name,
     "@Nexists": lambda name: fr"\color{{gray}}{name}\color{{black}}",
     "@Rational": lambda name: name,
-    "@Tensor": lambda name: fr"\overline{{{name}}}",
+    "@Tensor": lambda name: fr"\mathbf{{{name}}}",
     "@Undefined": lambda name: fr"\overset{{?}}{{{name}}}",
     "@Variable": lambda name: fr"{{^{{*}}{name}}}",
     "@Whole": lambda name: name
 }
-
-
-#^
-#^  TYPES 
-#^
-
-#> TYPES -> REGISTER
-types = {}

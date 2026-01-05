@@ -4,13 +4,7 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    Pointer,
-    Runtime,
-    Class,
-    Object,
-    Nexists,
-    fmt,
-    Tip
+    Pointer, Runtime, Class, Object, Nexists, Tip
 };
 
 
@@ -19,7 +13,7 @@ use crate::prelude::{
 //^
 
 //> TERM -> STRUCT
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct _Term {
     pub numerator: Vec<Pointer>,
     pub denominator: Vec<Pointer>
@@ -35,7 +29,7 @@ impl _Term {pub fn evaluate(&self, runtime: &mut Runtime, id: Pointer, memory: &
     //~ EVALUATE -> OPERATIONS
     self.section("Calculating numerator", id);
     let mut up = Nexists::new();
-    for factor in numerator {up = up.multiplication(&factor)};
+    for factor in numerator {up = up.multiplication(&factor)}
     self.section("Calculating denominator", id);
     let mut down = Nexists::new();
     for factor in denominator {down = down.multiplication(&factor)};
@@ -43,16 +37,3 @@ impl _Term {pub fn evaluate(&self, runtime: &mut Runtime, id: Pointer, memory: &
     let inverse = down.invert();
     return up.multiplication(&inverse);
 }}
-
-//> TERM -> REPRESENTATION
-impl fmt::Display for _Term {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.display(formatter)}}
-impl fmt::Debug for _Term {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.debug(formatter)}} 
-
-//> TERM -> COMMON
-impl Tip for _Term {} impl _Term {
-    pub fn display(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter, "_Term")}
-    pub fn debug(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter,
-        "numerator = {:?}, denominator = {:?}",
-        self.numerator, self.denominator
-    )}
-}

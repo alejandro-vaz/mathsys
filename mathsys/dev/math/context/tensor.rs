@@ -4,13 +4,7 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    Object,
-    Group,
-    crash,
-    Code,
-    fmt,
-    Undefined,
-    Value
+    Object, Group, crash, Code, Undefined, Whole
 };
 
 
@@ -19,7 +13,7 @@ use crate::prelude::{
 //^
 
 //> TENSOR -> STRUCT
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Tensor {
     pub values: Vec<Object>
 } impl Tensor {pub fn new(values: Vec<Object>) -> Object {
@@ -73,14 +67,12 @@ impl Tensor {
         Object::Natural(item) => item.summation(&self.into()),
         Object::Nexists(item) => item.summation(&self.into()),
         Object::Rational(item) => item.summation(&self.into()),
-        Object::Tensor(item) => if self.values.len() == item.values.len() {
-            let mut values = Vec::<Object>::new();
-            for index in 0..self.values.len() {values.push(self.values[index].summation(&item.values[index]))};
-            Tensor::new(values)
-        } else {Undefined::new()},
+        Object::Tensor(item) => if self.values.len() == item.values.len() {Tensor::new(
+            (0..self.values.len()).into_iter().map(|index| self.values[index].summation(&item.values[index])).collect()
+        )} else {Undefined::new()},
         Object::Undefined(item) => item.into(),
         Object::Variable(item) => crash(Code::NoVariableOperation),
-        Object::Whole(item) => crash(Code::Todo)
+        Object::Whole(item) => Undefined::new()
     }}
 }
 
@@ -93,25 +85,13 @@ impl Tensor {
         Object::Natural(item) => item.multiplication(&self.into()),
         Object::Nexists(item) => item.multiplication(&self.into()),
         Object::Rational(item) => item.multiplication(&self.into()),
-        Object::Tensor(item) => crash(Code::Todo),
+        Object::Tensor(item) => if self.values.len() == item.values.len() {
+            self.values.iter().zip(item.values.iter()).map(|(first, second)| first.multiplication(second)).fold(Whole::new(0u32), |sum, new| sum.summation(&new))
+        } else {Undefined::new()},
         Object::Undefined(item) => item.into(),
         Object::Variable(item) => crash(Code::NoVariableOperation),
         Object::Whole(item) => Tensor::new(
-            self.values.iter().map(|value| value.multiplication(&item.into())).collect()
+            self.values.iter().map(|value| item.multiplication(value)).collect()
         )
     }}
-}
-
-//> TENSOR -> REPRESENTATION
-impl fmt::Display for Tensor {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.display(formatter)}}
-impl fmt::Debug for Tensor {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.debug(formatter)}} 
-
-//> TENSOR -> COMMON
-impl Value for Tensor {} impl Tensor {
-    pub fn info(&self) -> () {self.data()}
-    pub fn display(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter, "Tensor")}
-    pub fn debug(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter, 
-        "{} > values = {:?}",
-        self, self.values
-    )}
 }

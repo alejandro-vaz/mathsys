@@ -4,16 +4,7 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    Group,
-    Pointer,
-    Runtime,
-    Class,
-    Object,
-    Undefined,
-    fmt,
-    Tip,
-    crash,
-    Code
+    Class, Code, Group, Object, Pointer, Runtime, Tip, Undefined, Variable, crash
 };
 
 
@@ -22,7 +13,7 @@ use crate::prelude::{
 //^
 
 //> ANNOTATION -> STRUCT
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct _Annotation {
     pub group: Group,
     pub variables: Vec<Pointer>
@@ -31,26 +22,12 @@ pub struct _Annotation {
 //> ANNOTATION -> EVALUATE
 impl _Annotation {pub fn evaluate(&self, runtime: &mut Runtime, id: Pointer, memory: &Vec<Class>) -> Object {
     //~ EVALUATE -> RETRIEVAL
-    let mut variables = Vec::with_capacity(self.variables.len());
-    for &variable in &self.variables {
-        let Object::Variable(item) = runtime.get(variable, memory) else {crash(Code::FailedNamedRetrieval)};
-        variables.push(item)
-    }
+    let variables = self.variables.iter().map(|variable| {
+        let Object::Variable(item) = runtime.get(*variable, memory) else {crash(Code::FailedNamedRetrieval)};
+        item
+    }).collect::<Vec<Variable>>();
     //~ EVALUATE -> OPERATIONS
     self.section("Setting class of variables", id);
-    for variable in variables {variable.set(Undefined::new(), true, runtime, self.group)}
+    variables.iter().for_each(|variable| variable.set(Undefined::new(), true, runtime, self.group));
     return Undefined::new();
 }}
-
-//> ANNOTATION -> REPRESENTATION
-impl fmt::Display for _Annotation {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.display(formatter)}}
-impl fmt::Debug for _Annotation {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.debug(formatter)}} 
-
-//> ANNOTATION -> COMMON
-impl Tip for _Annotation {} impl _Annotation {
-    pub fn display(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter, "_Annotation")}
-    pub fn debug(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter,
-        "group = {}, variables = {:?}",
-        self.group, self.variables
-    )}
-}

@@ -4,16 +4,7 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    Object,
-    Group,
-    crash,
-    Code,
-    Undefined,
-    Whole,
-    fmt,
-    Value,
-    Zero,
-    Sign
+    Object, Group, crash, Code, Undefined, Whole, Zero, Sign, Tensor
 };
 
 
@@ -22,11 +13,11 @@ use crate::prelude::{
 //^
 
 //> INFINITE -> STRUCT
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Infinite {
     pub sign: Sign
-} impl Infinite {pub fn new(sign: impl Into<Sign>) -> Object {
-    let sign0 = sign.into();
+} impl Infinite {pub fn new(sign: Sign) -> Object {
+    let sign0 = sign;
     return Object::Infinite(Infinite {
         sign: sign0
     });
@@ -72,7 +63,7 @@ impl Infinite {
         Object::Natural(item) => self.into(),
         Object::Nexists(item) => self.into(),
         Object::Rational(item) => self.into(),
-        Object::Tensor(item) => crash(Code::Todo),
+        Object::Tensor(item) => Undefined::new(),
         Object::Undefined(item) => item.into(),
         Object::Variable(item) => crash(Code::NoVariableOperation),
         Object::Whole(item) => self.into()
@@ -86,33 +77,21 @@ impl Infinite {
     )}
     pub fn multiplication(&self, to: &Object) -> Object {return match to {
         Object::Infinite(item) => Infinite::new(
-            self.sign == item.sign
+            (self.sign == item.sign).into()
         ),
         Object::Integer(item) => if item.value.is_zero() {Undefined::new()} else {Infinite::new(
-            self.sign == item.sign
+            (self.sign == item.sign).into()
         )},
         Object::Natural(item) => self.into(),
         Object::Nexists(item) => self.into(),
         Object::Rational(item) => if item.numerator.is_zero() {Undefined::new()} else {Infinite::new(
-            self.sign == item.sign
+            (self.sign == item.sign).into()
         )},
-        Object::Tensor(item) => crash(Code::Todo),
+        Object::Tensor(item) => Tensor::new(
+            item.values.iter().map(|value| self.multiplication(value)).collect()
+        ),
         Object::Undefined(item) => item.into(),
         Object::Variable(item) => crash(Code::NoVariableOperation),
         Object::Whole(item) => if item.value.is_zero() {Undefined::new()} else {self.into()}
     }}
-}
-
-//> INFINITE -> REPRESENTATION
-impl fmt::Display for Infinite {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.display(formatter)}}
-impl fmt::Debug for Infinite {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.debug(formatter)}} 
-
-//> INFINITE -> COMMON
-impl Value for Infinite {} impl Infinite {
-    pub fn info(&self) -> () {self.data()}
-    pub fn display(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter, "Infinite")}
-    pub fn debug(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter,
-        "{} > sign = {}",
-        self, self.sign    
-    )}
 }

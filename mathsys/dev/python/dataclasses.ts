@@ -4,7 +4,7 @@
 
 //> START -> CLASS
 export class Start {constructor(
-    readonly statements: Level1[]
+    readonly stream: (Level1 | string)[]
 ) {}}
 
 
@@ -46,11 +46,6 @@ export class Equation extends Level1 {constructor(
     readonly rightexpression: Expression
 ) {super()}}
 
-//> 1ºLEVEL -> COMMENT
-export class Comment extends Level1 {constructor(
-    readonly text: string
-) {super()}}
-
 //> 1ºLEVEL -> USE
 export class Use extends Level1 {constructor(
     readonly name: string,
@@ -69,6 +64,11 @@ export abstract class Level2 {constructor() {}}
 export class Expression extends Level2 {constructor(
     readonly signs: (boolean | null)[],
     readonly terms: Level3[]
+) {super()}}
+
+//> 2ºLEVEL -> GROUPING
+export class Grouping extends Level2 {constructor(
+    readonly group: string
 ) {super()}}
 
 
@@ -142,4 +142,13 @@ export class Whole extends Level5 {constructor(
 //> 5ºLEVEL -> ABSOLUTE
 export class Absolute extends Level5 {constructor(
     readonly expression: Expression
+) {super()}}
+
+//> 5ºLEVEL -> UNDEFINED
+export class Undefined extends Level5 {constructor() {super()}}
+
+//> 5ºLEVEL -> RATIONAL
+export class Rational extends Level5 {constructor(
+    readonly value: bigint,
+    readonly decimals: bigint
 ) {super()}}

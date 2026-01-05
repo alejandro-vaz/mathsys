@@ -4,13 +4,7 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    Object,
-    Group,
-    crash,
-    Code,
-    Undefined,
-    Value,
-    fmt
+    Object, Group, crash, Code, Undefined
 };
 
 
@@ -19,7 +13,7 @@ use crate::prelude::{
 //^
 
 //> NEXISTS -> STRUCT
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Nexists {} impl Nexists {pub fn new() -> Object {
     return Object::Nexists(Nexists {})
 }}
@@ -81,18 +75,4 @@ impl Nexists {
         Object::Variable(item) => crash(Code::NoVariableOperation),
         Object::Whole(item) => item.into()
     }}
-}
-
-//> NEXISTS -> REPRESENTATION
-impl fmt::Display for Nexists {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.display(formatter)}}
-impl fmt::Debug for Nexists {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.debug(formatter)}} 
-
-//> NEXISTS -> COMMON
-impl Value for Nexists {} impl Nexists {
-    pub fn info(&self) -> () {self.data()}
-    pub fn display(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter, "Nexists")}
-    pub fn debug(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter, 
-        "{}",
-        self
-    )}
 }

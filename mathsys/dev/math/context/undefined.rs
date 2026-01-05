@@ -4,12 +4,7 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    Object,
-    Group,
-    crash,
-    Code,
-    Value,
-    fmt
+    Object, Group, crash, Code
 };
 
 
@@ -18,7 +13,7 @@ use crate::prelude::{
 //^
 
 //> UNDEFINED -> STRUCT
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Undefined {} impl Undefined {pub fn new() -> Object {
     return Object::Undefined(Undefined {})
 }}
@@ -80,18 +75,4 @@ impl Undefined {
         Object::Variable(item) => crash(Code::NoVariableOperation),
         Object::Whole(item) => self.into()
     }}
-}
-
-//> UNDEFINED -> REPRESENTATION
-impl fmt::Display for Undefined {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.display(formatter)}}
-impl fmt::Debug for Undefined {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.debug(formatter)}} 
-
-//> UNDEFINED -> COMMON
-impl Value for Undefined {} impl Undefined {
-    pub fn info(&self) -> () {self.data()}
-    pub fn display(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter, "Undefined")}
-    pub fn debug(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter, 
-        "{}",
-        self
-    )}
 }

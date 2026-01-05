@@ -4,20 +4,7 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    BigUint,
-    Object,
-    Group,
-    Natural,
-    Rational,
-    crash,
-    Code,
-    Undefined,
-    Whole,
-    fmt,
-    Value,
-    Zero,
-    Sign,
-    Tensor
+    BigUint, Code, Group, Natural, Object, Rational, Sign, Tensor, Undefined, Whole, Zero, crash
 };
 
 
@@ -26,13 +13,13 @@ use crate::prelude::{
 //^
 
 //> INTEGER -> STRUCT
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Integer {
     pub value: BigUint,
     pub sign: Sign
-} impl Integer {pub fn new(value: impl Into<BigUint>, sign: impl Into<Sign>) -> Object {
+} impl Integer {pub fn new(value: impl Into<BigUint>, sign: Sign) -> Object {
     let value0 = value.into();
-    let sign0 = if value0.is_zero() {Sign::Positive} else {sign.into()};
+    let sign0 = if value0.is_zero() {Sign::Positive} else {sign};
     return Object::Integer(Integer {
         value: value0,
         sign: sign0
@@ -77,7 +64,7 @@ impl Integer {pub fn equivalency(&self, to: &Object) -> bool {return match to {
 impl Integer {
     pub fn absolute(&self) -> Object {return Integer::new(
         self.value.clone(),
-        true
+        Sign::Positive
     )}
     pub fn negate(&self) -> Object {return Integer::new(
         self.value.clone(),
@@ -94,7 +81,7 @@ impl Integer {
         )},
         Object::Natural(item) => Integer::new(
             if self.sign.into() {&self.value + &item.value} else {if self.value >= item.value {&self.value - &item.value} else {&item.value - &self.value}},
-            if self.sign.into() {true} else {item.value >= self.value}
+            (if self.sign.into() {true} else {item.value >= self.value}).into()
         ),
         Object::Nexists(item) => self.into(),
         Object::Rational(item) => if self.sign == item.sign {Rational::new(
@@ -106,12 +93,12 @@ impl Integer {
             item.denominator.clone(),
             if &self.value * &item.denominator >= item.numerator {self.sign} else {item.sign}
         )}
-        Object::Tensor(item) => crash(Code::Todo),
+        Object::Tensor(item) => Undefined::new(),
         Object::Undefined(item) => item.into(),
         Object::Variable(item) => crash(Code::NoVariableOperation),
         Object::Whole(item) => Integer::new(
             if self.sign.into() {&self.value + &item.value} else {if self.value >= item.value {&self.value - &item.value} else {&item.value - &self.value}},
-            if self.sign.into() {true} else {item.value >= self.value}
+            (if self.sign.into() {true} else {item.value >= self.value}).into()
         )
     }}
 }
@@ -127,7 +114,7 @@ impl Integer {
         Object::Infinite(item) => item.multiplication(&self.into()),
         Object::Integer(item) => Integer::new(
             &self.value * &item.value,
-            self.sign == item.sign
+            (self.sign == item.sign).into()
         ),
         Object::Natural(item) => Integer::new(
             &self.value * &item.value,
@@ -137,7 +124,7 @@ impl Integer {
         Object::Rational(item) => Rational::new(
             &item.numerator * &self.value,
             item.denominator.clone(),
-            self.sign == item.sign
+            (self.sign == item.sign).into()
         ),
         Object::Tensor(item) => Tensor::new(
             item.values.iter().map(|value| self.multiplication(value)).collect()
@@ -149,18 +136,4 @@ impl Integer {
             self.sign
         )
     }}
-}
-
-//> INTEGER -> REPRESENTATION
-impl fmt::Display for Integer {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.display(formatter)}}
-impl fmt::Debug for Integer {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.debug(formatter)}} 
-
-//> INTEGER -> COMMON
-impl Value for Integer {} impl Integer {
-    pub fn info(&self) -> () {self.data()}
-    pub fn display(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter, "Integer")}
-    pub fn debug(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter,
-        "{} > value = {} ~ sign = {}",
-        self, self.value, self.sign
-    )}
 }

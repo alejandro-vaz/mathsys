@@ -4,29 +4,7 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    _Absolute,
-    _Annotation,
-    _Comment,
-    _Declaration,
-    _Definition,
-    _Equation,
-    _Expression,
-    _Factor,
-    _Infinite,
-    _Limit,
-    _Nest,
-    _Node,
-    _Start,
-    _Tensor,
-    _Term,
-    _Use,
-    _Variable,
-    _Whole,
-    Runtime,
-    Pointer,
-    Object,
-    fmt,
-    point
+    _Absolute, _Annotation, _Casts, _Declaration, _Definition, _Equation, _Expression, _Factor, _Infinite, _Limit, _Nest, _Node, _Rational, _Start, _Tensor, _Term, _Undefined, _Use, _Variable, _Whole, Runtime, Pointer, Object, fmt, point
 };
 
 
@@ -39,7 +17,7 @@ use crate::prelude::{
 pub enum Class {
     _Absolute(_Absolute),
     _Annotation(_Annotation),
-    _Comment(_Comment),
+    _Casts(_Casts),
     _Declaration(_Declaration),
     _Definition(_Definition),
     _Equation(_Equation),
@@ -49,20 +27,21 @@ pub enum Class {
     _Limit(_Limit),
     _Nest(_Nest),
     _Node(_Node),
+    _Rational(_Rational),
     _Start(_Start),
     _Tensor(_Tensor),
     _Term(_Term),
+    _Undefined(_Undefined),
     _Use(_Use),
     _Variable(_Variable),
     _Whole(_Whole)
 }
 
 //> CLASS -> EVALUATE
-impl Class {
-    pub fn evaluate(&self, runtime: &mut Runtime, id: Pointer, memory: &Vec<Class>) -> Object {return self.result(match self {
+impl Class {pub fn evaluate(&self, runtime: &mut Runtime, id: Pointer, memory: &Vec<Class>) -> Object {return self.result(match self {
         Class::_Absolute(class) => class.evaluate(runtime, id, memory),
         Class::_Annotation(class) => class.evaluate(runtime, id, memory),
-        Class::_Comment(class) => class.evaluate(runtime, id, memory),
+        Class::_Casts(class) => class.evaluate(runtime, id, memory),
         Class::_Declaration(class) => class.evaluate(runtime, id, memory),
         Class::_Definition(class) => class.evaluate(runtime, id, memory),
         Class::_Equation(class) => class.evaluate(runtime, id, memory),
@@ -72,61 +51,42 @@ impl Class {
         Class::_Limit(class) => class.evaluate(runtime, id, memory),
         Class::_Nest(class) => class.evaluate(runtime, id, memory),
         Class::_Node(class) => class.evaluate(runtime, id, memory),
+        Class::_Rational(class) => class.evaluate(runtime, id, memory),
         Class::_Start(class) => class.evaluate(runtime, id, memory),
         Class::_Tensor(class) => class.evaluate(runtime, id, memory),
         Class::_Term(class) => class.evaluate(runtime, id, memory),
+        Class::_Undefined(class) => class.evaluate(runtime, id, memory),
         Class::_Use(class) => class.evaluate(runtime, id, memory),
         Class::_Variable(class) => class.evaluate(runtime, id, memory),
         Class::_Whole(class) => class.evaluate(runtime, id, memory)
-    })}
-}
+})}}
 
-//> CLASS -> REPRESENTATION
-impl fmt::Display for Class {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {return match self {
-    Class::_Absolute(class) => class.display(formatter),
-    Class::_Annotation(class) => class.display(formatter),
-    Class::_Comment(class) => class.display(formatter),
-    Class::_Declaration(class) => class.display(formatter),
-    Class::_Definition(class) => class.display(formatter),
-    Class::_Equation(class) => class.display(formatter),
-    Class::_Expression(class) => class.display(formatter),
-    Class::_Factor(class) => class.display(formatter),
-    Class::_Infinite(class) => class.display(formatter),
-    Class::_Limit(class) => class.display(formatter),
-    Class::_Nest(class) => class.display(formatter),
-    Class::_Node(class) => class.display(formatter),
-    Class::_Start(class) => class.display(formatter),
-    Class::_Tensor(class) => class.display(formatter),
-    Class::_Term(class) => class.display(formatter),
-    Class::_Use(class) => class.display(formatter),
-    Class::_Variable(class) => class.display(formatter),
-    Class::_Whole(class) => class.display(formatter)
-}}} impl fmt::Debug for Class {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {return match self {
-    Class::_Absolute(class) => class.debug(formatter),
-    Class::_Annotation(class) => class.debug(formatter),
-    Class::_Comment(class) => class.debug(formatter),
-    Class::_Declaration(class) => class.debug(formatter),
-    Class::_Definition(class) => class.debug(formatter),
-    Class::_Equation(class) => class.debug(formatter),
-    Class::_Expression(class) => class.debug(formatter),
-    Class::_Factor(class) => class.debug(formatter),
-    Class::_Infinite(class) => class.debug(formatter),
-    Class::_Limit(class) => class.debug(formatter),
-    Class::_Nest(class) => class.debug(formatter),
-    Class::_Node(class) => class.debug(formatter),
-    Class::_Start(class) => class.debug(formatter),
-    Class::_Tensor(class) => class.debug(formatter),
-    Class::_Term(class) => class.debug(formatter),
-    Class::_Use(class) => class.debug(formatter),
-    Class::_Variable(class) => class.debug(formatter),
-    Class::_Whole(class) => class.debug(formatter)
+//> CLASS -> DEBUG
+impl fmt::Debug for Class {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {match self {
+    Class::_Absolute(item) => fmt::Debug::fmt(item, formatter),
+    Class::_Annotation(item) => fmt::Debug::fmt(item, formatter),
+    Class::_Casts(item) => fmt::Debug::fmt(item, formatter),
+    Class::_Declaration(item) => fmt::Debug::fmt(item, formatter),
+    Class::_Definition(item) => fmt::Debug::fmt(item, formatter),
+    Class::_Equation(item) => fmt::Debug::fmt(item, formatter),
+    Class::_Expression(item) => fmt::Debug::fmt(item, formatter),
+    Class::_Factor(item) => fmt::Debug::fmt(item, formatter),
+    Class::_Infinite(item) => fmt::Debug::fmt(item, formatter),
+    Class::_Limit(item) => fmt::Debug::fmt(item, formatter),
+    Class::_Nest(item) => fmt::Debug::fmt(item, formatter),
+    Class::_Node(item) => fmt::Debug::fmt(item, formatter),
+    Class::_Rational(item) => fmt::Debug::fmt(item, formatter),
+    Class::_Start(item) => fmt::Debug::fmt(item, formatter),
+    Class::_Tensor(item) => fmt::Debug::fmt(item, formatter),
+    Class::_Term(item) => fmt::Debug::fmt(item, formatter),
+    Class::_Undefined(item) => fmt::Debug::fmt(item, formatter),
+    Class::_Use(item) => fmt::Debug::fmt(item, formatter),
+    Class::_Variable(item) => fmt::Debug::fmt(item, formatter),
+    Class::_Whole(item) => fmt::Debug::fmt(item, formatter),
 }}}
 
 //> CLASS -> COMMON
 impl Class {fn result(&self, value: Object) -> Object {
-    point(format!(
-        "{:?}",
-        value
-    ));
+    point(format!("{value:?}"));
     return value;
 }}

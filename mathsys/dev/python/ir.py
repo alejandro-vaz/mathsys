@@ -6,6 +6,20 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import Protocol, TypeVar, Generic
+from zlib import compress
+
+
+#^
+#^  HELPERS
+#^
+
+#> HELPERS -> NODE
+def node(node: Binary, binary: list[Binary], nodes: list[Binary]) -> Pointer:
+    try: return Pointer(nodes.index(node))
+    except ValueError: 
+        nodes.append(node)
+        binary.append(node)
+        return Pointer(len(nodes) - 1)
 
 
 #^
@@ -30,18 +44,18 @@ class Binary:
     value: int
     width: int
     def __bytes__(self) -> bytes:
-        if self.width % 8 != 0: raise ValueError(f"Cannot convert Binary to bytes: width {self.width} is not a multiple of 8")
-        return self.value.to_bytes(self.width // 8, byteorder="little")
-    def __add__(self, other: Binary | BinaryEncodable) -> "Binary":
-        if not isinstance(other, Binary):
-            other = other.binary()
-        return Binary(
-            value=self.value | (other.value << self.width),
-            width=self.width + other.width
+        value = Binary(
+            value = self.value,
+            width = self.width
         )
-    def __radd__(self, other: Binary | BinaryEncodable) -> "Binary":
-        if other == 0: return self
-        return other + self
+        while value.width % 8 != 0: value = value + Opcode(0x00)
+        return compress(value.value.to_bytes(value.width // 8, byteorder = "little"), level = 9, wbits = -15)
+    def __add__(self, other: Binary | BinaryEncodable) -> "Binary":
+        if not isinstance(other, Binary): other = other.binary()
+        return Binary(
+            value = self.value | (other.value << self.width),
+            width = self.width + other.width
+        )
 
 #> TYPES -> OPCODE
 @dataclass(frozen = True)
@@ -111,23 +125,21 @@ class String:
 #> TYPES -> GROUP
 @dataclass(frozen = True)
 class Group:
-    value: str | None
-    def binary(self) -> Binary:
-        return Binary(
-            value = {
-                None: 0,
-                "@Infinite": 1,
-                "@Integer": 2,
-                "@Natural": 3,
-                "@Nexists": 4,
-                "@Rational": 5,
-                "@Tensor": 6,
-                "@Undefined": 0,
-                "@Variable": 7,
-                "@Whole": 8
-            }[self.value],
-            width = 4
-        )
+    value: str
+    def binary(self) -> Binary: return Binary(
+        value = {
+            "@Infinite": 1,
+            "@Integer": 2,
+            "@Natural": 3,
+            "@Nexists": 4,
+            "@Rational": 5,
+            "@Tensor": 6,
+            "@Undefined": 0,
+            "@Variable": 7,
+            "@Whole": 8
+        }[self.value],
+        width = 4
+    )
 
 #> TYPES -> VEC
 @dataclass(frozen = True)

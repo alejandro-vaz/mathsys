@@ -4,14 +4,7 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    Object,
-    Group,
-    crash,
-    Code,
-    Undefined,
-    Value,
-    fmt,
-    Runtime
+    Object, Group, crash, Code, Undefined, Runtime
 };
 
 
@@ -20,7 +13,7 @@ use crate::prelude::{
 //^
 
 //> VARIABLE -> STRUCT
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Variable {
     pub name: String
 } impl Variable {pub fn new(name: String) -> Object {
@@ -118,18 +111,4 @@ impl Variable {
         Some(thing) => thing.clone(),
         None => Group::Undefined
     }}
-}
-
-//> VARIABLE -> REPRESENTATION
-impl fmt::Display for Variable {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.display(formatter)}}
-impl fmt::Debug for Variable {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.debug(formatter)}} 
-
-//> VARIABLE -> COMMON
-impl Value for Variable {} impl Variable {
-    pub fn info(&self) -> () {self.data()}
-    pub fn display(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter, "Variable")}
-    pub fn debug(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter,
-        "{} > name = \"{}\"",
-        self, self.name
-    )}
 }

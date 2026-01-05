@@ -4,13 +4,7 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    Runtime,
-    Infinite,
-    Pointer,
-    Class,
-    Object,
-    fmt,
-    Tip
+    Runtime, Infinite, Pointer, Class, Object, Tip, Sign
 };
 
 
@@ -19,7 +13,7 @@ use crate::prelude::{
 //^
 
 //> INFINITE -> STRUCT
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct _Infinite {}
 
 //> INFINITE -> EVALUATE
@@ -27,18 +21,6 @@ impl _Infinite {pub fn evaluate(&self, runtime: &mut Runtime, id: Pointer, memor
     //~ INFINITE -> OPERATIONS
     self.section("Getting infinite value", id);
     return Infinite::new(
-        true
-    )
+        Sign::Positive
+    );
 }}
-
-//> INFINITE -> REPRESENTATION
-impl fmt::Display for _Infinite {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.display(formatter)}}
-impl fmt::Debug for _Infinite {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {self.debug(formatter)}} 
-
-//> INFINITE -> COMMON
-impl Tip for _Infinite {} impl _Infinite {
-    pub fn display(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter, "_Infinite")}
-    pub fn debug(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {write!(formatter,
-        ""
-    )}
-}

@@ -5,9 +5,9 @@
     "strict": true,
     "esModuleInterop": true,
     "moduleResolution": "node",
-    "allowJs": true,
-    "checkJs": false,
-    "noEmit": true
+    "noEmit": true,
+    "noUnusedLocals": true,
+    "ignoreDeprecations": "6.0"
   },
   "include": ["mathsys"],
   "exclude": [

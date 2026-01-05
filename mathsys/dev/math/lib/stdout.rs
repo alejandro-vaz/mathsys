@@ -4,11 +4,7 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    write,
-    exit,
-    fmt,
-    Instant,
-    Settings
+    write, exit, fmt, Instant, Settings
 };
 
 
@@ -21,8 +17,7 @@ static mut STDOUT: Stdout = Stdout::new();
 
 //> STDOUT -> STRUCT
 struct Stdout {
-    length: usize,
-    version: &'static str,
+    cache: Vec<u8>,
     start: Option<Instant>,
     _debug: bool,
     _class: bool,
@@ -34,8 +29,7 @@ struct Stdout {
 
 //> STDOUT -> NEW
 impl Stdout {pub const fn new() -> Stdout {return Stdout {
-    length: 0,
-    version: "?",
+    cache: Vec::new(),
     start: None,
     _debug: true,
     _class: true,
@@ -47,8 +41,6 @@ impl Stdout {pub const fn new() -> Stdout {return Stdout {
 
 //> STDOUT -> INIT
 impl Stdout {pub fn init(&mut self, settings: &Settings) -> () {
-    self.length = settings.ir.len();
-    self.version = settings.version;
     self.start = Some(Instant::now());
     self._debug = settings.debug;
     self._class = settings.class;
@@ -56,23 +48,31 @@ impl Stdout {pub fn init(&mut self, settings: &Settings) -> () {
     self._trace = settings.trace;
     self._alert = settings.alert;
     self._point = settings.point;
+    self.print(format!(
+        "LOGIN: Running Mathsys v{}, consuming {} tokens.",
+        settings.version, settings.ir.len()
+    ), &[0x1B, 0x5B, 0x31, 0x3B, 0x39, 0x32, 0x3B, 0x34, 0x39, 0x6D]);
+    for call in [("Debug", settings.debug), ("Class", settings.class), ("Chore", settings.chore), ("Trace", settings.trace), ("Alert", settings.alert), ("Point", settings.point)] {self.debug(format!(
+        "{} calls are {}",
+        call.0, if call.1 {"activated"} else {"deactivated"}
+    ))}
 }}
 pub fn init(settings: &Settings) -> () {unsafe {STDOUT.init(settings)}}
 
 
 //^
-//^ FORMATTING
+//^ PRINT
 //^
 
-//> FORMATTING -> FUNCTION
-impl Stdout {fn print(&self, string: &str, append: &[u8]) -> () {
+//> PRINT -> FUNCTION
+impl Stdout {fn print(&mut self, string: String, append: &[u8]) -> () {
     let mut bytes = Vec::with_capacity(
         append.len() + string.len() + 6
     );
     bytes.extend_from_slice(append);
     bytes.extend_from_slice(string.as_bytes());
-    bytes.extend_from_slice(&[0x1B, 0x5B, 0x30, 0x6D, 0x0A, 0x00]);
-    write(bytes.as_ptr());
+    bytes.extend_from_slice(&[0x1B, 0x5B, 0x30, 0x6D, 0x0A]);
+    self.cache.extend_from_slice(&bytes);
 }}
 
 
@@ -80,20 +80,11 @@ impl Stdout {fn print(&self, string: &str, append: &[u8]) -> () {
 //^ CALLS
 //^
 
-//> CALLS -> LOGIN
-impl Stdout {pub fn login(&self) -> () {self.print(&format!(
-    "LOGIN: Running Mathsys {}, consuming {} tokens.",
-    self.version,
-    self.length
-), &[0x1B, 0x5B, 0x31, 0x3B, 0x39, 0x32, 0x3B, 0x34, 0x39, 0x6D])}}
-pub fn login() -> () {unsafe {STDOUT.login()}}
-
 //> CALLS -> CRASH
-impl Stdout {pub fn crash(&self, code: Code) -> ! {
+impl Stdout {pub fn crash(&mut self, code: Code) -> ! {
     let value = code.clone() as u8;
-    self.print(&format!(
-        "CRASH: {{{}}} {}{}.",
-        value,
+    self.print(format!(
+        "CRASH: {{{value}}} {}{}.",
         match code {
             Code::Success => "Run finished successfully",
             Code::UnknownIRObject => "Attempted to parse an unknown IR object",
@@ -111,11 +102,13 @@ impl Stdout {pub fn crash(&self, code: Code) -> ! {
             Code::CyclicEvaluation => "Ran into runtime cyclic evaluation",
             Code::Todo => "Todo"
         },
-        match self.start {
-            None => format!(""),
-            Some(instant) => format!(" ({})", instant.elapsed().as_micros())
+        if let Some(instant) = self.start {format!(" ({})", instant.elapsed().as_micros())} else {
+            alert("Program timer not initialized");
+            String::new()
         }
     ), &[0x0A, 0x1B, 0x5B, 0x31, 0x3B, 0x39, 0x31, 0x3B, 0x34, 0x39, 0x6D]);
+    self.cache.push(0x00);
+    write(self.cache.as_ptr());
     exit(value);
 }}
 pub fn crash(code: Code) -> ! {unsafe {STDOUT.crash(code)}}
@@ -137,6 +130,7 @@ pub enum Code {
     FailedIRDecompression = 11,
     RuntimeHigherObject = 12,
     CyclicEvaluation = 13,
+    #[allow(unused)]
     Todo = 255
 }
 
@@ -146,9 +140,12 @@ pub enum Code {
 //^
 
 //> DETAIL -> SPACE
-impl Stdout {pub fn space<Type: fmt::Display>(&self, message: Type) -> () {self.print(&format!(
-    "SPACE: {}.",
-    message
+impl Stdout {pub fn space<Type: fmt::Display>(&mut self, message: Type) -> () {self.print(format!(
+    "SPACE: {message}{}.",
+    if let Some(instant) = self.start {format!(" ({})", instant.elapsed().as_micros())} else {
+        alert("Program timer not initialized");
+        String::new()
+    }
 ), &[0x0A, 0x1B, 0x5B, 0x30, 0x3B, 0x33, 0x33, 0x3B, 0x34, 0x39, 0x6D])}}
 pub fn space<Type: fmt::Display>(message: Type) -> () {unsafe {STDOUT.space(message)}}
 
@@ -158,43 +155,37 @@ pub fn space<Type: fmt::Display>(message: Type) -> () {unsafe {STDOUT.space(mess
 //^
 
 //> LOOKUP -> DEBUG
-impl Stdout {pub fn debug<Type: fmt::Display>(&self, message: Type) -> () {if !self._debug {return} self.print(&format!(
-    "    DEBUG: {}.",
-    message
+impl Stdout {pub fn debug<Type: fmt::Display>(&mut self, message: Type) -> () {if !self._debug {return} self.print(format!(
+    "    DEBUG: {message}.",
 ), &[0x1B, 0x5B, 0x32, 0x3B, 0x33, 0x35, 0x3B, 0x34, 0x39, 0x6D])}}
 pub fn debug<Type: fmt::Display>(message: Type) -> () {unsafe {STDOUT.debug(message)}}
 
 //> LOOKUP -> ALERT
-impl Stdout {pub fn alert<Type: fmt::Display>(&self, message: Type) -> () {if !self._alert {return} self.print(&format!(
-    "    ALERT: {}.",
-    message
+impl Stdout {pub fn alert<Type: fmt::Display>(&mut self, message: Type) -> () {if !self._alert {return} self.print(format!(
+    "    ALERT: {message}.",
 ), &[0x1B, 0x5B, 0x32, 0x3B, 0x33, 0x38, 0x3B, 0x35, 0x3B, 0x32, 0x30, 0x38, 0x3B, 0x34, 0x39, 0x6D])}}
 pub fn alert<Type: fmt::Display>(message: Type) -> () {unsafe {STDOUT.alert(message)}}
 
 //> LOOKUP -> TRACE
-impl Stdout {pub fn trace<Type: fmt::Display>(&self, message: Type) -> () {if !self._trace {return} self.print(&format!(
-    "    TRACE: {}.",
-    message
+impl Stdout {pub fn trace<Type: fmt::Display>(&mut self, message: Type) -> () {if !self._trace {return} self.print(format!(
+    "    TRACE: {message}.",
 ), &[0x1B, 0x5B, 0x32, 0x3B, 0x33, 0x36, 0x3B, 0x34, 0x39, 0x6D])}}
 pub fn trace<Type: fmt::Display>(message: Type) -> () {unsafe {STDOUT.trace(message)}}
 
 //> LOOKUP -> CHORE
-impl Stdout {pub fn chore<Type: fmt::Display>(&self, message: Type) -> () {if !self._chore {return} self.print(&format!(
-    "    CHORE: {}.",
-    message
+impl Stdout {pub fn chore<Type: fmt::Display>(&mut self, message: Type) -> () {if !self._chore {return} self.print(format!(
+    "    CHORE: {message}.",
 ), &[0x1B, 0x5B, 0x32, 0x3B, 0x33, 0x33, 0x3B, 0x34, 0x39, 0x6D])}}
 pub fn chore<Type: fmt::Display>(message: Type) -> () {unsafe {STDOUT.chore(message)}}
 
 //> LOOKUP -> CLASS
-impl Stdout {pub fn class<Type: fmt::Display>(&self, message: Type) -> () {if !self._class {return} self.print(&format!(
-    "    CLASS: {}.",
-    message
+impl Stdout {pub fn class<Type: fmt::Display>(&mut self, message: Type) -> () {if !self._class {return} self.print(format!(
+    "    CLASS: {message}.",
 ), &[0x1B, 0x5B, 0x32, 0x3B, 0x33, 0x32, 0x6D])}}
 pub fn class<Type: fmt::Display>(message: Type) -> () {unsafe {STDOUT.class(message)}}
 
 //> LOOKUP -> POINT
-impl Stdout {pub fn point<Type: fmt::Display>(&self, message: Type) -> () {if !self._point {return} self.print(&format!(
-    "    POINT: {}.",
-    message
+impl Stdout {pub fn point<Type: fmt::Display>(&mut self, message: Type) -> () {if !self._point {return} self.print(format!(
+    "    POINT: {message}.",
 ), &[0x1B, 0x5B, 0x32, 0x3B, 0x33, 0x37, 0x6D])}}
 pub fn point<Type: fmt::Display>(message: Type) -> () {unsafe {STDOUT.point(message)}}

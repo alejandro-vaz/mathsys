@@ -61,7 +61,7 @@ impl Infinite {
         Object::Natural(item) => self.to(),
         Object::Nexists(item) => self.to(),
         Object::Rational(item) => self.to(),
-        Object::Tensor(item) => crash(Code::Todo),
+        Object::Tensor(item) => Undefined::new(),
         Object::Undefined(item) => item.to(),
         Object::Variable(item) => crash(Code::NoVariableOperation),
         Object::Whole(item) => self.to()
