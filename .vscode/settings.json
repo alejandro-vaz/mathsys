@@ -29,7 +29,7 @@
           "italic": false
         },
         {
-          "tag": "~",
+          "tag": "=",
           "color": "#474747",
           "strikethrough": false,
           "underline": false,

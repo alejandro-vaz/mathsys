@@ -50,6 +50,9 @@ class _TO(Token): pattern = r"->"
 class _UNDEFINED(Token): pattern = r"\?"
 class _USE(Token): pattern = r"use"
 
+#> TOKENS -> EOF
+class _EOF(Token): pattern = r"(?!)"
+
 #> TOKENS -> ORDER
 ORDER = [
     _UNDEFINED,
@@ -76,11 +79,12 @@ ORDER = [
     _SPACES,
     _NEWLINES,
     MODULE,
-    QUOTE
+    QUOTE,
+    _EOF
 ]
 
 #> TOKENS -> PATTERNS
-PATTERNS = dict(zip(ORDER, [compile(item.pattern) for item in ORDER]))
+PATTERNS = {item: compile(item.pattern) for item in ORDER}
 
 
 #^
@@ -104,7 +108,11 @@ class Tokenizer:
             if not isinstance(token, _NEWLINES): self.column += len(token.value)
             else: self.line += len(token.value)
             self.left = self.left[len(token.value):]
-        return self.tokens.copy()
+        return self.tokens.copy() + [_EOF(
+            column = self.column,
+            line = self.line,
+            value = ""
+        )]
     def next(self) -> Token:
         status = {}
         for token, pattern in PATTERNS.items():

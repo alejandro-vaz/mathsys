@@ -1,14 +1,4 @@
 #^
-#^  HEAD
-#^
-
-#> HEAD -> TOKENS
-from __future__ import annotations
-from tokenizer import IDENTIFIER, MODULE, NUMBER, OPERATOR, RATIONAL, SIGN, TYPE, _BINDING, _CLOSE, _COMMA, _ENTER, _EQUALITY, _EXIT, _EXPONENTIATION, _INF, _LIM, _NEWLINES, _OF, _OPEN, _PIPE, _SPACES, _TO, _UNDEFINED, _USE, Token
-from dataclasses import dataclass
-
-
-#^
 #^  NONTERMINAL
 #^
 
@@ -56,74 +46,46 @@ class Level5(NonTerminal): pass
 
 
 #^
-#^  MODIFIERS
-#^
-
-#> MODIFIERS -> BRANCH
-@dataclass(frozen = True)
-class Branch:
-    options: tuple[type[NonTerminal], ...]
-
-#> MODIFIERS -> OPTIONAL
-@dataclass(frozen = True)
-class Optional:
-    element: type[NonTerminal | Token] | Sequence | More
-
-#> MODIFIERS -> SEQUENCE
-@dataclass(frozen = True)
-class Sequence:
-    items: tuple[type[Token | NonTerminal] | Optional | More, ...]
-
-#> MODIFIERS -> MORE
-@dataclass(frozen = True)
-class More:
-    of: Sequence
-
-
-#^
 #^  SYNTAX
 #^
 
-#> SYNTAX -> DEFINITION
-syntax = {
-    #~ SYNTAX -> START
-    Start: (Optional(_NEWLINES), Optional(Sequence(
-        (Level1, Optional(_SPACES), Optional(More(Sequence(
-            (_NEWLINES, Level1, Optional(_SPACES))
-        ))), Optional(_NEWLINES))
-    ))),
-    #~ SYNTAX -> 1ºLEVEL
-    Declaration: (Optional(Sequence((TYPE, _SPACES))), Variable, Optional(_SPACES), _EQUALITY, Optional(_SPACES), Level2),
-    Definition: (Optional(Sequence((TYPE, _SPACES))), Variable, Optional(_SPACES), _BINDING, Optional(_SPACES), Level2),
-    Annotation: (TYPE, _SPACES, Variable, Optional(More(Sequence((Optional(_SPACES), _COMMA, Optional(_SPACES), Variable))))),
-    Node: (Level2,),
-    Equation: (Level2, Optional(_SPACES), _EQUALITY, Optional(_SPACES), Level2),
-    Use: (_USE, _SPACES, MODULE),
-    #~ SYNTAX -> 2ºLEVEL
-    Expression: (Optional(More(Sequence((SIGN, Optional(_SPACES))))), Level3, Optional(More(Sequence((More(Sequence((Optional(_SPACES), SIGN))), Optional(_SPACES), Level3))))),
-    #~ SYNTAX -> 3ºLEVEL
-    Term: (Level4, Optional(More(Sequence((Optional(Sequence((Optional(_SPACES), OPERATOR))), Optional(_SPACES), Level4))))),
-    #~ SYNTAX -> 4ºLEVEL
-    Factor: (Level5, Optional(Sequence((_EXPONENTIATION, Optional(_SPACES), Level2, Optional(_SPACES), _EXPONENTIATION)))),
-    Limit: (_LIM, _SPACES, Variable, Optional(_SPACES), _TO, Optional(_SPACES), Level2, Optional(SIGN), _SPACES, _OF, _SPACES, Nest, Optional(Sequence((_EXPONENTIATION, Optional(_SPACES), Level2, Optional(_SPACES), _EXPONENTIATION)))),
-    #~ SYNTAX -> 5ºLEVEL
-    Infinite: (_INF,),
-    Variable: (IDENTIFIER,),
-    Nest: (_OPEN, Optional(_SPACES), Optional(Level2), Optional(_SPACES), _CLOSE),
-    Tensor: (_ENTER, Optional(_SPACES), Optional(Sequence(
-        (Level2, Optional(More(Sequence(
-            (Optional(_SPACES), _COMMA, Optional(_SPACES), Level2)
-        ))), Optional(_SPACES))
-    )), _EXIT),
-    Whole: (NUMBER,),
-    Absolute: (_PIPE, Optional(_SPACES), Level2, Optional(_SPACES), _PIPE),
-    Undefined: (_UNDEFINED,),
-    Rational: (RATIONAL,),
-    Casts: (Level5, TYPE),
-    #~ SYNTAX -> LEVELS
-    Level1: (Branch((Declaration, Definition, Annotation, Node, Equation, Use)),),
-    Level2: (Expression,),
-    Level3: (Term,),
-    Level4: (Branch((Factor, Limit)),),
-    Level5: (Branch((Infinite, Variable, Nest, Tensor, Whole, Absolute, Undefined, Rational, Casts)),)
-}
+syntax = r"""
+#> SYNTAX -> START
+Start -> (_NEWLINES? Level1 _SPACES?)* _NEWLINES? _EOF
+
+#> SYNTAX -> 1ºLEVEL
+Declaration -> (TYPE _SPACES)? Variable _SPACES? _EQUALITY _SPACES? Level2
+Definition -> (TYPE _SPACES)? Variable _SPACES? _BINDING _SPACES? Level2
+Annotation -> TYPE _SPACES Variable (_SPACES? _COMMA _SPACES? Variable)*
+Node -> Level2
+Equation -> Level2 _SPACES? _EQUALITY _SPACES? Level2
+Use -> _USE _SPACES MODULE
+
+#> SYNTAX -> 2ºLEVEL
+Expression -> (SIGN _SPACES?)* Level3 ((_SPACES? SIGN)+ _SPACES? Level3)*
+
+#> SYNTAX -> 3ºLEVEL
+Term -> Level4 ((_SPACES? OPERATOR)? _SPACES? Level4)*
+
+#> SYNTAX -> 4ºLEVEL
+Factor -> Level5 (_EXPONENTIATION _SPACES? Level2 _SPACES? _EXPONENTIATION)?
+Limit -> _LIM _SPACES Variable _SPACES? _TO _SPACES? Level2 SIGN? _SPACES _OF _SPACES Nest (_EXPONENTIATION _SPACES? Level2 _SPACES? _EXPONENTIATION)?
+
+#> SYNTAX -> 5ºLEVEL
+Infinite -> _INF
+Variable -> IDENTIFIER
+Nest -> _OPEN _SPACES? Level2? _SPACES? _CLOSE
+Tensor -> _ENTER _SPACES? (Level2 (_SPACES? _COMMA _SPACES? Level2)* _SPACES?)? _EXIT
+Whole -> NUMBER
+Absolute -> _PIPE _SPACES? Level2 _SPACES? _PIPE
+Undefined -> _UNDEFINED
+Rational -> RATIONAL
+Casts -> Level5 TYPE
+
+#> SYNTAX -> LEVELS
+Level1 -> Declaration | Definition | Annotation | Node | Equation | Use
+Level2 -> expression
+Level3 -> Term
+Level4 -> Factor | Limit
+Level5 -> Infinite | Variable | Nest | Tensor | Whole | Absolute | Undefined | Rational | Casts
+"""
