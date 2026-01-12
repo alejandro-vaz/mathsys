@@ -1,0 +1,10 @@
+[package]
+name = "wrapper"
+edition = "2024"
+
+[[bin]]
+name = "wrapper"
+path = "main.rs"
+
+[dependencies]
+mathsys = {package = "mathsys", path = "../math"}

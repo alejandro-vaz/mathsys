@@ -1,0 +1,19 @@
+[workspace]
+members = [
+    "main",
+    "math"
+]
+resolver = "3"
+
+[profile.dev]
+panic = "abort"
+strip = false
+debug = true
+
+[profile.release]
+opt-level = 3
+panic = "abort"
+lto = "fat"
+codegen-units = 1
+strip = true
+debug = false

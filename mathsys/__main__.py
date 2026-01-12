@@ -40,6 +40,7 @@ def call(version: str, arguments: list[File | Flag | Alias | Target]) -> None:
         case "4": from .v4 import wrapper; wrapper(*argv[1:])
         case "5": from .v5 import wrapper; run(wrapper(*argv[1:]))
         case "6": from .v6 import wrapper; run(wrapper(*arguments))
-        case "r": from .release import wrapper; run(wrapper(*argv[1:]))
+        case "7": from .v7 import wrapper; run(wrapper(*arguments))
+        case "r": from .release import wrapper; run(wrapper(*arguments))
         case "d": from .dev import wrapper; run(wrapper(*arguments))
         case other: pass

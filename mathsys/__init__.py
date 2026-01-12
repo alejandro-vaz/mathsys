@@ -3,24 +3,32 @@
 #^
 
 #> EXPORTS -> VERSION
-__version__ = "5"
+__version__ = "6"
 
 #> EXPORTS -> LATEST
 from .release import (
-    help, 
-    validate, 
-    binary,
     tokens,
+    ast,
+    valid,
+    binary,
+    size,
     latex,
+    unix_x86_64,
+    wasm,
+    darwin,
     native
 )
 
 #> EXPORTS -> ALL
 __all__ = [
-    "help",
-    "validate",
-    "binary",
     "tokens",
+    "ast",
+    "valid",
+    "binary",
+    "size",
     "latex",
+    "unix_x86_64",
+    "wasm",
+    "darwin",
     "native"
 ]

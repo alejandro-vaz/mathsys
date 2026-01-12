@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mathsys"
-version = "5"
+version = "6"
 description = "The Domain Specific Language for math."
 readme = ".github/README.md"
 license = {file = ".github/LICENSE"}

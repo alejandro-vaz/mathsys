@@ -1,21 +1,24 @@
-#
-#   IGNORE
-#
+#^
+#^  IGNORE
+#^
 
-# IGNORE -> NODE
+#> IGNORE -> NODE
 node_modules/
 
-# IGNORE -> BUILD
+#> IGNORE -> BUILD
 *.js
 *.cjs
 dist/
 **/**.egg-info
 
-# IGNORE -> PYCACHE
+#> IGNORE -> PYCACHE
 **/__pycache__/
 
-# IGNORE -> CARGO
+#> IGNORE -> CARGO
 **/target/
 
-# IGNORE -> PERF
+#> IGNORE -> PERF
 perf.*
+
+#> IGNORE -> ENVIRONMENT
+.venv/

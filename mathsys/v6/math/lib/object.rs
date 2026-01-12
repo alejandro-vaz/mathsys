@@ -1,0 +1,187 @@
+//^
+//^ HEAD
+//^
+
+//> HEAD -> PRELUDE
+use crate::prelude::{
+    Infinite, Integer, Natural, Nexists, Rational, Tensor, Undefined, Variable, Whole, Group, fmt, chore, trace, debug, AsRefStr
+};
+
+
+//^
+//^ OBJECT
+//^
+
+//> OBJECT -> ENUM
+#[derive(Clone, AsRefStr)]
+pub enum Object {
+    Infinite(Infinite),
+    Integer(Integer),
+    Natural(Natural),
+    Nexists(Nexists),
+    Rational(Rational),
+    Tensor(Tensor),
+    Undefined(Undefined),
+    Variable(Variable),
+    Whole(Whole)
+} 
+
+//> OBJECT -> CASTING
+impl Object {pub fn cast(&self, group: Group) -> Object {self.castLocale(&group); return self.partial(match self {
+    Object::Infinite(item) => item.cast(group),
+    Object::Integer(item) => item.cast(group),
+    Object::Natural(item) => item.cast(group),
+    Object::Nexists(item) => item.cast(group),
+    Object::Rational(item) => item.cast(group),
+    Object::Tensor(item) => item.cast(group),
+    Object::Undefined(item) => item.cast(group),
+    Object::Variable(item) => item.cast(group),
+    Object::Whole(item) => item.cast(group)
+})}}
+
+//> OBJECT -> EQUIVALENCY
+impl Object {pub fn equivalency(&self, to: &Object) -> bool {self.equivalencyLocale(to); return self.partial(match self {
+    Object::Infinite(item) => item.equivalency(to),
+    Object::Integer(item) => item.equivalency(to),
+    Object::Natural(item) => item.equivalency(to),
+    Object::Nexists(item) => item.equivalency(to),
+    Object::Rational(item) => item.equivalency(to),
+    Object::Tensor(item) => item.equivalency(to),
+    Object::Undefined(item) => item.equivalency(to),
+    Object::Variable(item) => item.equivalency(to),
+    Object::Whole(item) => item.equivalency(to)
+})}}
+
+//> OBJECT -> SUMMATION
+impl Object {
+    pub fn absolute(&self) -> Object {self.absoluteLocale(); return self.partial(match self {
+        Object::Infinite(item) => item.absolute(),
+        Object::Integer(item) => item.absolute(),
+        Object::Natural(item) => item.absolute(),
+        Object::Nexists(item) => item.absolute(),
+        Object::Rational(item) => item.absolute(),
+        Object::Tensor(item) => item.absolute(),
+        Object::Undefined(item) => item.absolute(),
+        Object::Variable(item) => item.absolute(),
+        Object::Whole(item) => item.absolute()
+    })}
+    pub fn negate(&self) -> Object {self.negateLocale(); return self.partial(match self {
+        Object::Infinite(item) => item.negate(),
+        Object::Integer(item) => item.negate(),
+        Object::Natural(item) => item.negate(),
+        Object::Nexists(item) => item.negate(),
+        Object::Rational(item) => item.negate(),
+        Object::Tensor(item) => item.negate(),
+        Object::Undefined(item) => item.negate(),
+        Object::Variable(item) => item.negate(),
+        Object::Whole(item) => item.negate()
+    })}
+    pub fn summation(&self, to: &Object) -> Object {self.summationLocale(to); return self.partial(match self {
+        Object::Infinite(item) => item.summation(to),
+        Object::Integer(item) => item.summation(to),
+        Object::Natural(item) => item.summation(to),
+        Object::Nexists(item) => item.summation(to),
+        Object::Rational(item) => item.summation(to),
+        Object::Tensor(item) => item.summation(to),
+        Object::Undefined(item) => item.summation(to),
+        Object::Variable(item) => item.summation(to),
+        Object::Whole(item) => item.summation(to)
+    })}
+}
+
+//> OBJECT -> MULTIPLICATION
+impl Object {
+    pub fn invert(&self) -> Object {self.invertLocale(); return self.partial(match self {
+        Object::Infinite(item) => item.invert(),
+        Object::Integer(item) => item.invert(),
+        Object::Natural(item) => item.invert(),
+        Object::Nexists(item) => item.invert(),
+        Object::Rational(item) => item.invert(),
+        Object::Tensor(item) => item.invert(),
+        Object::Undefined(item) => item.invert(),
+        Object::Variable(item) => item.invert(),
+        Object::Whole(item) => item.invert()
+    })}
+    pub fn multiplication(&self, to: &Object) -> Object {self.multiplicationLocale(to); return self.partial(match self {
+        Object::Infinite(item) => item.multiplication(to),
+        Object::Integer(item) => item.multiplication(to),
+        Object::Natural(item) => item.multiplication(to),
+        Object::Nexists(item) => item.multiplication(to),
+        Object::Rational(item) => item.multiplication(to),
+        Object::Tensor(item) => item.multiplication(to),
+        Object::Undefined(item) => item.multiplication(to),
+        Object::Variable(item) => item.multiplication(to),
+        Object::Whole(item) => item.multiplication(to),
+    })}
+} 
+
+//> OBJECT -> DEBUG
+impl fmt::Debug for Object {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {match self {
+    Object::Infinite(item) => fmt::Debug::fmt(item, formatter),
+    Object::Integer(item) => fmt::Debug::fmt(item, formatter),
+    Object::Natural(item) => fmt::Debug::fmt(item, formatter),
+    Object::Nexists(item) => fmt::Debug::fmt(item, formatter),
+    Object::Rational(item) => fmt::Debug::fmt(item, formatter),
+    Object::Tensor(item) => fmt::Debug::fmt(item, formatter),
+    Object::Undefined(item) => fmt::Debug::fmt(item, formatter),
+    Object::Variable(item) => fmt::Debug::fmt(item, formatter),
+    Object::Whole(item) => fmt::Debug::fmt(item, formatter)
+}}}
+
+//> OBJECT -> COMMON
+impl Object {
+    fn partial<Type: fmt::Debug>(&self, value: Type) -> Type {chore(format!("{value:?}")); return value}
+    fn castLocale(&self, group: &Group) -> () {trace(format!(
+        "Casting {} to {group:?}",
+        self.name()
+    )); self.info()}
+    fn equivalencyLocale(&self, to: &Object) -> () {trace(format!(
+        "Checking equivalency of {} and {}",
+        self.name(), to.name()
+    )); self.info(); to.info()}
+    fn absoluteLocale(&self) -> () {trace(format!(
+        "Taking absolute value of {}",
+        self.name()
+    )); self.info()}
+    fn negateLocale(&self) -> () {trace(format!(
+        "Negating {}",
+        self.name()
+    )); self.info()}
+    fn summationLocale(&self, to: &Object) -> () {trace(format!(
+        "Adding {} and {}",
+        self.name(), to.name()
+    )); self.info(); to.info()}
+    fn invertLocale(&self) -> () {trace(format!(
+        "Inverting {}",
+        self.name()
+    )); self.info()}
+    fn multiplicationLocale(&self, to: &Object) -> () {trace(format!(
+        "Multiplying {} and {}",
+        self.name(), to.name()
+    )); self.info(); to.info()}
+    pub fn name(&self) -> &str {return self.as_ref()}
+    pub fn info(&self) -> () {debug(format!("{self:?}"))}
+    pub fn is(&self, group: Group) -> bool {return match self {
+        Object::Infinite(item) => group == Group::Undefined || group == Group::Infinite,
+        Object::Integer(item) => group == Group::Undefined || group == Group::Integer,
+        Object::Natural(item) => group == Group::Undefined || group == Group::Natural,
+        Object::Nexists(item) => group == Group::Undefined || group == Group::Nexists,
+        Object::Rational(item) => group == Group::Undefined || group == Group::Rational,
+        Object::Tensor(item) => group == Group::Undefined || group == Group::Tensor,
+        Object::Undefined(item) => true,
+        Object::Variable(item) => group == Group::Undefined || group == Group::Variable,
+        Object::Whole(item) => group == Group::Undefined || group == Group::Whole
+    }}
+}
+
+//> OBJECT -> FROM BORROWED TO OWNED
+impl From<&Object> for Object {fn from(value: &Object) -> Object {return value.clone()}}
+impl From<&Infinite> for Object {fn from(value: &Infinite) -> Object {return Object::Infinite(value.clone())}}
+impl From<&Integer> for Object {fn from(value: &Integer) -> Object {return Object::Integer(value.clone())}}
+impl From<&Natural> for Object {fn from(value: &Natural) -> Object {return Object::Natural(value.clone())}}
+impl From<&Nexists> for Object {fn from(value: &Nexists) -> Object {return Object::Nexists(value.clone())}}
+impl From<&Rational> for Object {fn from(value: &Rational) -> Object {return Object::Rational(value.clone())}}
+impl From<&Tensor> for Object {fn from(value: &Tensor) -> Object {return Object::Tensor(value.clone())}}
+impl From<&Undefined> for Object {fn from(value: &Undefined) -> Object {return Object::Undefined(value.clone())}}
+impl From<&Variable> for Object {fn from(value: &Variable) -> Object {return Object::Variable(value.clone())}}
+impl From<&Whole> for Object {fn from(value: &Whole) -> Object {return Object::Whole(value.clone())}}
