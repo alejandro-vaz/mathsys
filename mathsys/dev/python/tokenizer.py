@@ -7,6 +7,9 @@ from abc import ABC
 from dataclasses import dataclass
 from re import compile
 
+#> HEAD -> DATA
+from .issues import UnknownToken
+
 
 #^
 #^  TOKENS
@@ -83,9 +86,6 @@ ORDER = [
     _EOF
 ]
 
-#> TOKENS -> PATTERNS
-PATTERNS = {item: compile(item.pattern) for item in ORDER}
-
 
 #^
 #^  TOKENIZER
@@ -93,11 +93,13 @@ PATTERNS = {item: compile(item.pattern) for item in ORDER}
 
 #> TOKENIZER -> CLASS
 class Tokenizer:
+    content: str
     column: int
     line: int
     left: str
     tokens: list[Token]
     def run(self, content: str) -> list[Token]:
+        self.content = content
         self.column = 1
         self.line = 1
         self.left = content
@@ -106,24 +108,27 @@ class Tokenizer:
             token = self.next()
             self.tokens.append(token)
             if not isinstance(token, _NEWLINES): self.column += len(token.value)
-            else: self.line += len(token.value)
+            else: self.line += len(token.value); self.line = 0
             self.left = self.left[len(token.value):]
-        return self.tokens.copy() + [_EOF(
+        self.tokens.append(_EOF(
             column = self.column,
             line = self.line,
             value = ""
-        )]
+        ))
+        return self.tokens.copy()
     def next(self) -> Token:
         status = {}
-        for token, pattern in PATTERNS.items():
+        for token, pattern in {item: compile(item.pattern) for item in ORDER}.items():
             match = pattern.match(self.left)
             if match is None: continue
             status[token] = match.group(0)
-        at = max(len(string) for string in status.values())
-        for token, match in status.items():
-            if len(match) == at: return token(
-                column = self.column,
-                line = self.line,
-                value = match
-            )
-        raise Exception(f"Unexpected character at line {self.line}, column {self.column}")
+        try: 
+            at = max(len(string) for string in status.values())
+            for token, match in status.items():
+                if len(match) == at: return token(
+                    column = self.column,
+                    line = self.line,
+                    value = match
+                )
+            assert False
+        except ValueError: raise UnknownToken(self.line, self.column, self.content.split("\n")[self.line - 1])

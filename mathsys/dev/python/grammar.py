@@ -1,57 +1,128 @@
 #^
+#^  HEAD
+#^
+
+#> HEAD -> MODULES
+from re import search
+
+#> HEAD -> DATA
+from .data import Start, Declaration, Definition, Annotation, Node, Equation, Use, Expression, Term, Factor, Limit, Infinite, Variable, Nest, Tensor, Whole, Absolute, Undefined, Rational, Casts, Level1, Level2, Level3, Level4, Level5
+
+
+#^
+#^  EBNF
+#^
+
+#> EBNF -> SORT
+def ordering(line: str) -> tuple[int, int | str]:
+    rule = line.split("->", 1)[0].strip()
+    if rule.startswith("$"): return (1, int(rule[1:]))
+    else: return (0, rule)
+
+#> EBNF -> CLASS
+class Extensor:
+    counter: int
+    parentheses: dict[str, str]
+    more: dict[str, str]
+    multiple: dict[str, str]
+    optional: dict[str, str]
+    def __init__(self) -> None: self.reset()
+    def reset(self) -> None:
+        self.counter = 0
+        self.parentheses = {}
+        self.more = {}
+        self.multiple = {}
+        self.optional = {}
+    def run(self, ebnf: str) -> str:
+        self.reset()
+        out = set()
+        for line in [line.strip() for line in ebnf.splitlines()]:
+            if not line or line.startswith("#"): continue
+            rule, productions = map(str.strip, line.split("->", 1))
+            body, rules = self.expand(productions)
+            out.add(f"{rule} -> {body}")
+            out.update(rules)
+        ordered = list(out)
+        ordered.sort(key = ordering)
+        return "\n".join(ordered)
+    def expand(self, expression: str) -> tuple[str, set[str]]:
+        rules = set()
+        while "(" in expression: expression = self.collapse(expression, rules)
+        expression = self.postfix(expression, rules)
+        return expression.strip(), rules
+    def collapse(self, expression: str, rules: set[str]) -> str:
+        hit = search(r"\(([^()]+)\)", expression)
+        if not hit: return expression
+        inner = hit.group(1)
+        symbol = self.parentheses[inner] = self.parentheses[inner] if inner in self.parentheses else self.next()
+        expanded, newrules = self.expand(inner)
+        rules.update(newrules)
+        rules.add(f"{symbol} -> {expanded}")
+        return expression[:hit.start()] + symbol + expression[hit.end():]
+    def postfix(self, expression: str, rules: set[str]) -> str:
+        pattern = r"(?P<atom>\$[0-9]+|[A-Za-z_][A-Za-z_0-9]*|'[^']*')(?P<operator>[*+?])"
+        while hit := search(pattern, expression):
+            atom = hit.group("atom")
+            operator = hit.group("operator")
+            match operator:
+                case "+": 
+                    symbol = self.more[atom] = self.more[atom] if atom in self.more else self.next()
+                    production = f"{symbol} -> {atom} {symbol} | {atom}"
+                    expression = expression[:hit.start()] + atom + " " + symbol + expression[hit.end():]
+                case "*": 
+                    symbol = self.multiple[atom] = self.multiple[atom] if atom in self.multiple else self.next()
+                    production = f"{symbol} -> {atom} {symbol} |"
+                    expression = expression[:hit.start()] + symbol + expression[hit.end():]
+                case "?":
+                    symbol = self.optional[atom] = self.optional[atom] if atom in self.optional else self.next()
+                    production = f"{symbol} -> {atom} |"
+                    expression = expression[:hit.start()] + symbol + expression[hit.end():]
+            rules.add(production)
+        return expression
+    def next(self) -> str: self.counter += 1; return f"${self.counter}"
+
+
+#^
 #^  NONTERMINAL
 #^
 
-#> NONTERMINAL -> REFERENCE
-class NonTerminal: pass
-
-#> NONTERMINAL -> START
-class Start(NonTerminal): pass
-
-#> NONTERMINAL -> 1ºLEVEL
-class Declaration(NonTerminal): pass
-class Definition(NonTerminal): pass
-class Annotation(NonTerminal): pass
-class Node(NonTerminal): pass
-class Equation(NonTerminal): pass
-class Use(NonTerminal): pass
-
-#> NONTERMINAL -> 2ºLEVEL
-class Expression(NonTerminal): pass
-
-#> NONTERMINAL -> 3ºLEVEL
-class Term(NonTerminal): pass
-
-#> NONTERMINAL -> 4ºLEVEL
-class Factor(NonTerminal): pass
-class Limit(NonTerminal): pass
-
-#> NONTERMINAL -> 5ºLEVEL
-class Infinite(NonTerminal): pass
-class Variable(NonTerminal): pass
-class Nest(NonTerminal): pass
-class Tensor(NonTerminal): pass
-class Whole(NonTerminal): pass
-class Absolute(NonTerminal): pass
-class Undefined(NonTerminal): pass
-class Rational(NonTerminal): pass
-class Casts(NonTerminal): pass
-
-#> NONTERMINAL -> LEVELS
-class Level1(NonTerminal): pass
-class Level2(NonTerminal): pass
-class Level3(NonTerminal): pass
-class Level4(NonTerminal): pass
-class Level5(NonTerminal): pass
+#> NONTERMINALS -> ALL
+NONTERMINALS = {item.__name__: item for item in {
+    Start,
+    Declaration,
+    Definition,
+    Annotation,
+    Node,
+    Equation,
+    Use,
+    Expression,
+    Term,
+    Factor,
+    Limit,
+    Infinite,
+    Variable,
+    Nest,
+    Tensor,
+    Whole,
+    Absolute,
+    Undefined,
+    Rational,
+    Casts,
+    Level1,
+    Level2,
+    Level3,
+    Level4,
+    Level5
+}}
 
 
 #^
 #^  SYNTAX
 #^
 
-syntax = r"""
+syntax = Extensor().run(r"""
 #> SYNTAX -> START
-Start -> (_NEWLINES? Level1 _SPACES?)* _NEWLINES? _EOF
+Start -> Level1? _EOF
 
 #> SYNTAX -> 1ºLEVEL
 Declaration -> (TYPE _SPACES)? Variable _SPACES? _EQUALITY _SPACES? Level2
@@ -84,8 +155,8 @@ Casts -> Level5 TYPE
 
 #> SYNTAX -> LEVELS
 Level1 -> Declaration | Definition | Annotation | Node | Equation | Use
-Level2 -> expression
+Level2 -> Expression
 Level3 -> Term
 Level4 -> Factor | Limit
 Level5 -> Infinite | Variable | Nest | Tensor | Whole | Absolute | Undefined | Rational | Casts
-"""
+""")

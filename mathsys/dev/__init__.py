@@ -16,13 +16,19 @@ from ..entry import File, Flag, Alias, Target
 from .. import __version__
 
 #> HEAD -> COMPILER
-from .python.base import Parser
-from .builder.code import Builder
+from .python.tokenizer import Tokenizer, Token
+from .python.parser import Parser
 from .python.ir import Binary
 
+#> HEAD -> START
+from .python.data import Start
+
+#> HEAD -> ISSUES
+from .python.issues import Issue, UnknownTarget, NoFileProvided, NoTargetProvided
+
 #> HEAD -> PARSER
-_parser = Parser()
-_builder = Builder()
+_tokenizer = Tokenizer().run
+_parser = Parser().run
 
 
 #^
@@ -51,51 +57,59 @@ async def clear() -> None:
 #^  MAIN
 #^
 
-#> MAIN -> VALIDATE
+#> MAIN -> TOKENS
 @alru_cache(maxsize = None)
-async def validate(content: str) -> bool:
-    try: await _parser.run(content); return True
-    except: return False
+async def tokens(content: str) -> list[Token]: return _tokenizer(content)
 
-#> MAIN -> BINARY
+#> MAIN -> AST
+@alru_cache(maxsize = None)
+async def ast(content: str) -> Start: return _parser(_tokenizer(content))
+
+##> MAIN -> VALIDATE
+@alru_cache(maxsize = None)
+async def valid(content: str) -> bool:
+    try: await ast(content); return True
+    except Issue: return False
+
+##> MAIN -> BINARY
 @alru_cache(maxsize = None)
 async def binary(content: str) -> bytes: 
     binary = []
-    (await _parser.run(content)).ir(binary)
+    (await ast(content)).ir(binary)
     return bytes(sum(binary, start = Binary(
         value = 0,
         width = 0
     )))
 
-#> MAIN -> TOKENS
+#> MAIN -> SIZE
 @alru_cache(maxsize = None)
-async def tokens(content: str) -> int: return len(await binary(content))
+async def size(content: str) -> int: return len(await binary(content))
 
-#> MAIN -> LATEX
+##> MAIN -> LATEX
 @alru_cache(maxsize = None)
-async def latex(content: str) -> str: return (await _parser.run(content)).latex()
+async def latex(content: str) -> str: return (await ast(content)).latex()
 
-#> MAIN -> UNIX-X86-64
-@alru_cache(maxsize = 8129)
-@timeWrapper
-async def unix_x86_64(content: str, optsize: bool, optimize: bool, run: frozenset) -> bytes: return await _builder.run(
-    await binary(content),
-    "unix-x86-64", 
-    optsize,
-    optimize,
-    run
-)
-
-#> MAIN -> WASM
-@alru_cache(maxsize = 8192)
-@timeWrapper
-async def wasm(content: str, optsize: bool, optimize: bool, run: frozenset) -> bytes: return await _builder.run(
-    await binary(content), 
-    "wasm", 
-    optsize,
-    optimize,
-    run
-)
+##> MAIN -> UNIX-X86-64
+#@alru_cache(maxsize = 8129)
+#@timeWrapper
+#async def unix_x86_64(content: str, optsize: bool, optimize: bool, run: frozenset) -> bytes: return await _builder.run(
+#    await binary(content),
+#    "unix-x86-64", 
+#    optsize,
+#    optimize,
+#    run
+#)
+#
+##> MAIN -> WASM
+#@alru_cache(maxsize = 8192)
+#@timeWrapper
+#async def wasm(content: str, optsize: bool, optimize: bool, run: frozenset) -> bytes: return await _builder.run(
+#    await binary(content), 
+#    "wasm", 
+#    optsize,
+#    optimize,
+#    run
+#)
 
 
 #^
@@ -148,54 +162,61 @@ class Settings:
 
 #> TARGETS -> WRAPPER
 async def wrapper(*arguments: File | Flag | Alias | Target) -> None: 
-    file = None
-    target = None
-    for argument in arguments:
-        if file is None and isinstance(argument, File): file = argument
-        if target is None and isinstance(argument, Target): target = argument
-    if file is None or target is None: exit(f"[ENTRY ISSUE] Usage: mathsys <target> <filename>.msX\nAvailable targets:\n{HELP}")
-    settings = Settings(
-        file = file,
-        target = target
-    )
-    for argument in arguments: settings.apply(argument)
-    match settings.target.name:
-        case "help": exit(f"Available targets:\n{HELP}")
-        case "validate": print(await validate(
-            await settings.content()
-        ))
-        case "binary": print(await binary(
-            await settings.content()
-        ))
-        case "tokens": print(await tokens(
-            await settings.content()
-        ))
-        case "latex": print(await latex(
-            await settings.content()
-        ))
-        case "unix-x86-64": await settings.file.write("", await unix_x86_64(
-            await settings.content(),
-            settings.optsize,
-            settings.optimize,
-            frozenset(settings.run.items())
-        ))
-        case "wasm": await settings.file.write("wasm", await wasm(
-            await settings.content(),
-            settings.optsize,
-            settings.optimize,
-            frozenset(settings.run.items())
-        ))
-        case other: exit(f"[ENTRY ISSUE] Unknown target. Available targets:\n{HELP}")
+    try:
+        file = None
+        target = None
+        for argument in arguments:
+            if file is None and isinstance(argument, File): file = argument
+            if target is None and isinstance(argument, Target): target = argument
+        if file is None: raise NoFileProvided()
+        if target is None: raise NoTargetProvided(FUNCTIONS)
+        settings = Settings(
+            file = file,
+            target = target
+        )
+        for argument in arguments: settings.apply(argument)
+        match settings.target.name:
+            case "tokens": print(await tokens(
+                await settings.content()
+            ))
+            case "ast": print(await ast(
+                await settings.content()
+            ))
+            case "validate": print(await valid(
+                await settings.content()
+            ))
+            case "binary": print(await binary(
+                await settings.content()
+            ))
+            case "size": print(await size(
+                await settings.content()
+            ))
+            case "latex": print(await latex(
+                await settings.content()
+            ))
+            #case "unix-x86-64": await settings.file.write("", await unix_x86_64(
+            #    await settings.content(),
+            #    settings.optsize,
+            #    settings.optimize,
+            #    frozenset(settings.run.items())
+            #))
+            #case "wasm": await settings.file.write("wasm", await wasm(
+            #    await settings.content(),
+            #    settings.optsize,
+            #    settings.optimize,
+            #    frozenset(settings.run.items())
+            #))
+            case other: raise UnknownTarget(other, FUNCTIONS)
+    except Issue as error: error.consume(); exit(1)
 
 #> TARGETS -> FUNCTIONS
 FUNCTIONS = [
-    validate,
-    binary,
     tokens,
+    ast,
+    valid,
+    binary,
+    size,
     latex,
-    unix_x86_64,
-    wasm
+    #unix_x86_64,
+    #wasm
 ]
-
-#> TARGETS -> HELP
-HELP = "\n".join(["- " + value.__name__.replace("_", "-")[1:] for value in FUNCTIONS])

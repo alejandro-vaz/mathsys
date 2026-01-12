@@ -1,1 +1,1 @@
-a = 2@Rational
+a = 2
