@@ -28,16 +28,17 @@ class Expression(Level2, NonTerminal):
     terms: tuple[Level3, ...]
     def create(self, items: list[SIGN | Level3]) -> None:
         signs = []
-        for index in range(len(items)):
-            if isinstance(items[index], Level3):
-                if index == 0: signs.append([])
-                continue
-            if index == 0: signs.append([cast(SIGN, items[index]).value == "+"])
-            if isinstance(items[index - 1], SIGN): signs[-1].append(cast(SIGN, items[index]).value == "+")
-            else: signs.append([cast(SIGN, items[index]).value == "+"])
-        self.signs = tuple([tuple(nested) for nested in signs])
-        self.terms = tuple([item for item in items if isinstance(item, Level3)])
-    def latex(self, types: dict) -> str:
+        terms = []
+        current = []
+        for item in items:
+            if isinstance(item, SIGN): current.append(item.value == "+")
+            else:
+                signs.append(current)
+                terms.append(item)
+                current = []
+        self.signs = tuple(tuple(group) for group in signs)
+        self.terms = tuple(terms)
+    def latex(self, types: dict[str, str]) -> str:
         string = []
         for index in range(len(self.terms)):
             signs = "".join("+" if sign else "-" for sign in self.signs[index])

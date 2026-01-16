@@ -43,9 +43,7 @@ class Builder:
                 self.filename
             )
             if optsize: 
-                for command in optsizations(target, self.filename): 
-                    try: await self.execute(*command)
-                    except: print(f"Failed to run optimization: {command}")
+                for command in optsizations(target, self.filename): await self.execute(*command)
             return await read(self.filename)
         finally: 
             remove(self.filename)

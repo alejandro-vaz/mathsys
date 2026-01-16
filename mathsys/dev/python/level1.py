@@ -31,7 +31,7 @@ class Declaration(Level1, NonTerminal):
         self.group = cast(TYPE, items[0]).value if len(items) == 3 else None
         self.variable = cast(Variable, items[1] if len(items) == 3 else items[0])
         self.value = cast(Level2, items[2] if len(items) == 3 else items[1])
-    def latex(self, types: dict) -> str:
+    def latex(self, types: dict[str, str]) -> str:
         types[self.variable.representation] = types.get(self.variable.representation, self.group if self.group is not None else "@Undefined")
         return f"{self.variable.latex(types)}={self.value.latex(types)}"
     def ir(self, binary: list[Binary], nodes: list[Binary]) -> Pointer:
@@ -51,7 +51,7 @@ class Definition(Level1, NonTerminal):
         self.group = cast(TYPE, items[0]).value if len(items) == 3 else None
         self.variable = cast(Variable, items[1] if len(items) == 3 else items[0])
         self.value = cast(Level2, items[2] if len(items) == 3 else items[1])
-    def latex(self, types: dict) -> str:
+    def latex(self, types: dict[str, str]) -> str:
         types[self.variable.representation] = types.get(self.variable.representation, self.group if self.group is not None else "@Undefined")
         return fr"{self.variable.latex(types)}\equiv {self.value.latex(types)}"
     def ir(self, binary: list[Binary], nodes: list[Binary]) -> Pointer:
@@ -69,7 +69,7 @@ class Annotation(Level1, NonTerminal):
     def create(self, items: list[TYPE | Variable]) -> None:
         self.group = cast(TYPE, items[0]).value
         self.variables = cast(tuple[Variable], tuple(items[1:]))
-    def latex(self, types: dict) -> str:
+    def latex(self, types: dict[str, str]) -> str:
         for variable in self.variables: types[variable.representation] = types.get(variable.representation, self.group)
         variables = ",".join(variable.latex(types) for variable in self.variables)
         return fr"\text{{{self.group} }}{variables}"
@@ -85,7 +85,7 @@ class Node(Level1, NonTerminal):
     value: Level2
     def create(self, items: list[Level2]) -> None:
         self.value = items[0]
-    def latex(self, types: dict) -> str: return self.value.latex(types)
+    def latex(self, types: dict[str, str]) -> str: return self.value.latex(types)
     def ir(self, binary: list[Binary], nodes: list[Binary]) -> Pointer:
         value = self.value.ir(binary, nodes)
         return node(self.code + value, binary, nodes)
@@ -99,7 +99,7 @@ class Equation(Level1, NonTerminal):
     def create(self, items: list[Level2]) -> None:
         self.leftside = items[0]
         self.rightside = items[1]
-    def latex(self, types: dict) -> str: return f"{self.leftside.latex(types)}={self.rightside.latex(types)}"
+    def latex(self, types: dict[str, str]) -> str: return f"{self.leftside.latex(types)}={self.rightside.latex(types)}"
     def ir(self, binary: list[Binary], nodes: list[Binary]) -> Pointer:
         leftside = self.leftside.ir(binary, nodes)
         rightside = self.rightside.ir(binary, nodes)
@@ -114,7 +114,7 @@ class Use(Level1, NonTerminal):
     def create(self, items: list[MODULE]) -> None:
         self.name = items[0].value
         self.start = None
-    def latex(self, types: dict) -> str:
+    def latex(self, types: dict[str, str]) -> str:
         if self.start is not None: self.start.latex(types)
         delimiters = ["", ""] if self.start is not None else [r"\color{brown}", r"\color{black}"]
         return fr"{delimiters[0]}\text{{use {self.name}}}{delimiters[1]}"

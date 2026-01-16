@@ -22,3 +22,6 @@ perf.*
 
 #> IGNORE -> ENVIRONMENT
 .venv/
+
+#> IGNORE -> FOLDER INFO
+**/.DS_Store

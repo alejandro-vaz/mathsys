@@ -29,7 +29,7 @@ class Factor(Level4, NonTerminal):
     def create(self, items: list[Level5 | Level2]) -> None:
         self.value = cast(Level5, items[0])
         self.exponent = cast(Level2, items[1]) if len(items) == 2 else None
-    def latex(self, types: dict) -> str:
+    def latex(self, types: dict[str, str]) -> str:
         exponent = f"^{{{self.exponent.latex(types)}}}" if self.exponent is not None else ""
         return f"{self.value.latex(types)}{exponent}"
     def ir(self, binary: list[Binary], nodes: list[Binary]) -> Pointer:
@@ -52,7 +52,7 @@ class Limit(Level4, NonTerminal):
         self.direction = items[2].value == "+" if isinstance(items[2], SIGN) else None
         self.nest = items[-2] if isinstance(items[-2], Nest) else cast(Nest, items[-1])
         self.exponent = items[-1] if isinstance(items[-1], Level2) else None
-    def latex(self, types: dict) -> str:
+    def latex(self, types: dict[str, str]) -> str:
         direction = f"^{{{"+" if self.direction else "-"}}}" if self.direction is not None else ""
         exponent = f"^{{{self.exponent.latex(types)}}}" if self.exponent is not None else ""
         return fr"\lim_{{\substack{{{self.variable.latex(types)}\to {self.approach.latex(types)}{direction}}}}}{self.nest.latex(types)}{exponent}"

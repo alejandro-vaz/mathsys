@@ -19,7 +19,7 @@ from .level5 import Infinite, Variable, Nest, Tensor, Whole, Absolute, Undefined
 #^
 
 #> EBNF -> SORT
-def ordering(line: str) -> tuple[int, int | str]:
+def ordering(line: str) -> tuple[int, int | str]: 
     return (1, int(rule[1:])) if (rule := line.split("->", 1)[0].strip()).startswith("$") else (0, rule)
 
 #> EBNF -> CLASS
@@ -40,8 +40,8 @@ class Extensor:
         self.reset()
         out = set()
         for line in [line.strip() for line in ebnf.splitlines()]:
-            if not line or line.startswith("#"): continue
-            rule, productions = map(str.strip, line.split("->", 1))
+            if not line or line.startswith("#") or line.startswith("//"): continue
+            rule, productions = [part.strip() for part in line.split("->", 1)]
             body, rules = self.expand(productions)
             out.add(f"{rule} -> {body}")
             out.update(rules)
@@ -63,29 +63,26 @@ class Extensor:
         rules.add(f"{symbol} -> {expanded}")
         return expression[:hit.start()] + symbol + expression[hit.end():]
     def postfix(self, expression: str, rules: set[str]) -> str:
-        pattern = r"(?P<atom>\$[0-9]+|[A-Za-z_][A-Za-z_0-9]*|'[^']*')(?P<operator>[*+?])"
-        while hit := search(pattern, expression):
+        while hit := search(r"(?P<atom>\$[0-9]+|[A-Za-z_][A-Za-z_0-9]*|'[^']*')(?P<operator>[*+?])", expression):
             atom = hit.group("atom")
             match hit.group("operator"):
                 case "+": 
                     symbol = self.more[atom] = self.more[atom] if atom in self.more else self.next()
                     production = f"{symbol} -> {atom} {symbol} | {atom}"
-                    expression = expression[:hit.start()] + atom + " " + symbol + expression[hit.end():]
                 case "*": 
                     symbol = self.multiple[atom] = self.multiple[atom] if atom in self.multiple else self.next()
                     production = f"{symbol} -> {atom} {symbol} |"
-                    expression = expression[:hit.start()] + symbol + expression[hit.end():]
                 case "?":
                     symbol = self.optional[atom] = self.optional[atom] if atom in self.optional else self.next()
                     production = f"{symbol} -> {atom} |"
-                    expression = expression[:hit.start()] + symbol + expression[hit.end():]
+            expression = expression[:hit.start()] + symbol + expression[hit.end():]
             rules.add(production)
         return expression
     def next(self) -> str: self.counter += 1; return f"${self.counter}"
 
 
 #^
-#^  NONTERMINAL
+#^  NONTERMINALS
 #^
 
 #> NONTERMINALS -> ALL
@@ -122,9 +119,9 @@ NONTERMINALS = {item.__name__: item for item in {
 #^  SYNTAX
 #^
 
-syntax = Extensor().run(r"""
+SYNTAX = Extensor().run(r"""
 #> SYNTAX -> START
-Start -> (_NEWLINES? Level1 _SPACES?)* _NEWLINES? _EOF
+Start -> (_NEWLINES? Level1 _SPACES? (_NEWLINES Level1 _SPACES?)*)? _NEWLINES? _EOF
 
 #> SYNTAX -> 1ºLEVEL
 Declaration -> (TYPE _SPACES)? Variable _SPACES? _EQUALITY _SPACES? Level2

@@ -23,14 +23,13 @@ class NonTerminal(ABC):
     @abstractmethod
     def create(self, items: list) -> None: pass
     @abstractmethod
-    def latex(self, types: dict) -> str: pass
+    def latex(self, types: dict[str, str]) -> str: pass
     @abstractmethod
     def ir(self, binary: list[Binary], nodes: list[Binary]) -> Pointer: pass
     def __setattr__(self, name: str, value: Any) -> None:
         if self.frozen: raise FrozenInstanceError()
         return super().__setattr__(name, value)
-    def freeze(self) -> None: self.frozen = True
     def __init_subclass__(cls) -> None:
         super().__init_subclass__()
-        def replacement(self, items: list) -> None: cls.create(self, items); self.freeze()
+        def replacement(self, items: list) -> None: cls.create(self, items); self.frozen = True
         cls.__init__ = replacement

@@ -13,7 +13,7 @@ from functools import cache
 from .tokenizer import Token, ORDER
 from .start import Start
 from .nonterminal import NonTerminal
-from .grammar import syntax, NONTERMINALS
+from .grammar import SYNTAX, NONTERMINALS
 from .issues import BrokenSyntax
 from .level1 import Level1, Declaration, Equation
 from .level2 import Level2
@@ -34,12 +34,13 @@ PREFERENCE = {
 
 #> RESOURCES -> SCORE
 def score(node: Any) -> int:
-    total = 0
-    if not hasattr(node, "__dict__"): return total
-    total += PREFERENCE.get(type(node), 0)
-    for value in node.__dict__.values():
-        if isinstance(value, tuple): total += sum([score(nested) for nested in value], start = 0)
-        else: total += score(value)
+    if not isinstance(node, NonTerminal | tuple): return 0
+    total = PREFERENCE.get(type(node), 0)
+    if isinstance(node, tuple): total += sum([score(value) for value in node])
+    else:
+        for key, value in node.__dict__.items():
+            if key.startswith("_"): continue
+            if isinstance(value, NonTerminal | tuple): total += score(value)
     return total
 
 #> RESOURCES -> TYPES
@@ -118,7 +119,7 @@ class Parser:
     tokens: list[Token]
     pool: dict[tuple[Rule | Token, int, int], SPPF]
     #= CLASS -> INIT
-    def __init__(self) -> None: self.grammar = Grammar(syntax); self.reset()
+    def __init__(self) -> None: self.grammar = Grammar(SYNTAX); self.reset()
     #= CLASS -> RESET
     def reset(self) -> None:
         self.build.cache_clear()

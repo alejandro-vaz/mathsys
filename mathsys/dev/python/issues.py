@@ -38,37 +38,28 @@ class Issue(Exception):
 class UnknownToken(Issue):
     def __init__(self, line: int, column: int, code: str) -> None:
         pointer = ' ' * (column - 1) + Place('^')
-        message = f"Unknown token at line {line}:\n\n    {Code(code)}\n    {pointer}"
-        super().__init__(message)
+        super().__init__(f"Unknown token at line {line}:\n\n    {Code(code)}\n    {pointer}")
 
 #> ISSUES -> UNKNOWN TARGET
 class UnknownTarget(Issue):
     def __init__(self, unknown: str, available: list) -> None:
         helpers = "\n".join(["- " + value.__name__.replace("_", "-") for value in available])
-        message = f"Unknown target {Item(unknown)}.\n\nAvailable targets:\n{helpers}"
-        super().__init__(message)
+        super().__init__(f"Unknown target {Item(unknown)}.\n\nAvailable targets:\n{helpers}")
 
 #> ISSUES -> NO FILE PROVIDED
 class NoFileProvided(Issue):
-    def __init__(self) -> None:
-        message = "No input file provided."
-        super().__init__(message)
+    def __init__(self) -> None: super().__init__("No input file provided.")
 
 #> ISSUES -> NO TARGET PROVIDED
 class NoTargetProvided(Issue):
     def __init__(self, available: list) -> None:
         helpers = "\n".join(["- " + value.__name__.replace("_", "-") for value in available])
-        message = f"Available targets:\n{helpers}"
-        super().__init__(message)
+        super().__init__(f"Available targets:\n{helpers}")
 
 #> ISSUES -> BROKEN SYNTAX
 class BrokenSyntax(Issue):
-    def __init__(self) -> None:
-        message = "Syntax error."
-        super().__init__(message)
+    def __init__(self) -> None: super().__init__("Syntax error.")
 
 #> ISSUES -> FAILED COMPILATION
 class FailedCompilation(Issue):
-    def __init__(self) -> None:
-        message = "Compilation failed."
-        super().__init__(message)
+    def __init__(self) -> None: super().__init__("Compilation failed.")

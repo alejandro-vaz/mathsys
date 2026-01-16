@@ -107,8 +107,8 @@ class Tokenizer:
         while self.left: 
             token = self.next()
             self.tokens.append(token)
-            if not isinstance(token, _NEWLINES): self.column += len(token.value)
-            else: self.line += len(token.value); self.line = 0
+            if isinstance(token, _NEWLINES): self.line += len(token.value); self.column = 0
+            else: self.column += len(token.value)
             self.left = self.left[len(token.value):]
         self.tokens.append(_EOF(
             column = self.column,

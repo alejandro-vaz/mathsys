@@ -38,7 +38,7 @@ class Term(Level3, NonTerminal):
             else: numerator.append(item) if location else denominator.append(item)
         self.numerator = tuple(numerator)
         self.denominator = tuple(denominator)
-    def latex(self, types: dict) -> str:
+    def latex(self, types: dict[str, str]) -> str:
         numerator = r"\cdot ".join(value.latex(types) for value in self.numerator)
         denominator = r"\cdot ".join(value.latex(types) for value in self.denominator)
         return fr"\frac{{{numerator}}}{{{denominator}}}" if len(self.denominator) != 0 else numerator

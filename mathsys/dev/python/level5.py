@@ -26,7 +26,7 @@ class Level5(NonTerminal, ABC): pass
 class Infinite(Level5, NonTerminal):
     code = Opcode(0x0C).binary()
     def create(self, items: list) -> None: pass
-    def latex(self, types: dict) -> str: return r"\infty "
+    def latex(self, types: dict[str, str]) -> str: return r"\infty "
     def ir(self, binary: list[Binary], nodes: list[Binary]) -> Pointer:
         return node(self.code, binary, nodes)
 
@@ -36,7 +36,7 @@ class Variable(Level5, NonTerminal):
     code = Opcode(0x0D).binary()
     representation: str
     def create(self, items: list[IDENTIFIER]) -> None: self.representation = items[0].value
-    def latex(self, types: dict) -> str:
+    def latex(self, types: dict[str, str]) -> str:
         curated = self.representation
         for source, replace in VARIABLES.items(): curated = curated.replace(source, replace)
         return CONVERSION[types.get(self.representation, "@Undefined")](curated)
@@ -50,7 +50,7 @@ class Nest(Level5, NonTerminal):
     code = Opcode(0x0E).binary()
     value: Level2 | None
     def create(self, items: list[Level2]) -> None: self.value = items[0] if len(items) == 1 else None
-    def latex(self, types: dict) -> str:
+    def latex(self, types: dict[str, str]) -> str:
         inside = self.value.latex(types) if self.value is not None else ""
         return fr"\left( {inside}\right) "
     def ir(self, binary: list[Binary], nodes: list[Binary]) -> Pointer:
@@ -63,7 +63,7 @@ class Tensor(Level5, NonTerminal):
     code = Opcode(0x0F).binary()
     values: tuple[Level2, ...]
     def create(self, items: list[Level2]) -> None: self.values = tuple(items)
-    def latex(self, types: dict) -> str:
+    def latex(self, types: dict[str, str]) -> str:
         inside = r"\; " if len(self.values) == 0 else r"\\ ".join(value.latex(types) for value in self.values)
         return fr"\begin{{bmatrix}}{inside}\end{{bmatrix}}"
     def ir(self, binary: list[Binary], nodes: list[Binary]) -> Pointer:
@@ -76,7 +76,7 @@ class Whole(Level5, NonTerminal):
     code = Opcode(0x10).binary()
     value: int
     def create(self, items: list[NUMBER]) -> None: self.value = int(items[0].value)
-    def latex(self, types: dict) -> str: return str(self.value)
+    def latex(self, types: dict[str, str]) -> str: return str(self.value)
     def ir(self, binary: list[Binary], nodes: list[Binary]) -> Pointer:
         value = BigUint(self.value)
         return node(self.code + value, binary, nodes)
@@ -87,7 +87,7 @@ class Absolute(Level5, NonTerminal):
     code = Opcode(0x11).binary()
     value: Level2
     def create(self, items: list[Level2]) -> None: self.value = items[0]
-    def latex(self, types: dict) -> str: return fr"\left| {self.value.latex(types)}\right| "
+    def latex(self, types: dict[str, str]) -> str: return fr"\left| {self.value.latex(types)}\right| "
     def ir(self, binary: list[Binary], nodes: list[Binary]) -> Pointer:
         value = self.value.ir(binary, nodes)
         return node(self.code + value, binary, nodes)
@@ -97,7 +97,7 @@ class Absolute(Level5, NonTerminal):
 class Undefined(Level5, NonTerminal):
     code = Opcode(0x12).binary()
     def create(self, items: list) -> None: pass
-    def latex(self, types: dict) -> str: return r"\left. ?\right. "
+    def latex(self, types: dict[str, str]) -> str: return r"\left. ?\right. "
     def ir(self, binary: list[Binary], nodes: list[Binary]) -> Pointer: return node(self.code, binary, nodes)
 
 #> 5ºLEVEL -> RATIONAL
@@ -109,7 +109,7 @@ class Rational(Level5, NonTerminal):
     def create(self, items: list[RATIONAL]) -> None:
         self.whole = int(items[0].value.split(".")[0])
         self.decimal = int(items[0].value.split(".")[1].rstrip("0")[::-1])
-    def latex(self, types: dict) -> str: return f"{self.whole}.{str(self.decimal)[::-1]}"
+    def latex(self, types: dict[str, str]) -> str: return f"{self.whole}.{str(self.decimal)[::-1]}"
     def ir(self, binary: list[Binary], nodes: list[Binary]) -> Pointer:
         whole = BigUint(self.whole)
         decimal = BigUint(self.decimal)
@@ -124,7 +124,7 @@ class Casts(Level5, NonTerminal):
     def create(self, items: list[Level5 | TYPE]) -> None:
         self.element = cast(Level5, items[0])
         self.to = cast(TYPE, items[1]).value
-    def latex(self, types: dict) -> str: return self.element.latex(types)
+    def latex(self, types: dict[str, str]) -> str: return self.element.latex(types)
     def ir(self, binary: list[Binary], nodes: list[Binary]) -> Pointer:
         element = self.element.ir(binary, nodes)
         to = Group(self.to)

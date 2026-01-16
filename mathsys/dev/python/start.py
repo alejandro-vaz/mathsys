@@ -21,7 +21,7 @@ class Start(NonTerminal):
     code = Opcode(0x01).binary()
     stream: tuple[Level1, ...]
     def create(self, items: list[Level1]) -> None: self.stream = tuple(items) 
-    def latex(self, types: dict = {}) -> str:
+    def latex(self, types: dict[str, str] = {}) -> str:
         match len(self.stream):
             case 0: delimiters = ["", ""]
             case 1: delimiters = [r"\(", r"\)"]
