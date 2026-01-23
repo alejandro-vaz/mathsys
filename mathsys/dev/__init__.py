@@ -243,7 +243,8 @@ async def wrapper(*arguments: File | Flag | Alias | Target) -> None:
                 frozenset(settings.run.items())
             ))
             case other: raise UnknownTarget(other, FUNCTIONS)
-    except Issue as issue: issue.consume()
+    #except Issue as issue: issue.consume()
+    except: raise
 
 #> TARGETS -> FUNCTIONS
 FUNCTIONS = [

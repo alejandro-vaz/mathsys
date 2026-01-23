@@ -26,9 +26,6 @@ from .level5 import Level5
 #^  RESOURCES
 #^
 
-#> RESOURCES -> TYPES
-Rule = type[NonTerminal] | str
-
 #> RESOURCES -> KEY
 @dataclass(frozen = True)
 class Key:
@@ -40,12 +37,12 @@ class Key:
 #> RESOURCES -> STATE
 @dataclass(eq = False)
 class State:
-    rule: Rule
-    productions: tuple[Rule | type[Token], ...]
+    rule: type[NonTerminal] | str
+    productions: tuple[str | type[Token | NonTerminal], ...]
     slot: int
     starting: int
     backpointers: set[tuple[Any, ...]] = field(default_factory = set)
-    def at(self) -> Rule | type[Token] | None: 
+    def at(self) -> str | type[Token | NonTerminal] | None: 
         return self.productions[self.slot] if self.slot < len(self.productions) else None
     def full(self) -> bool: return self.slot >= len(self.productions)   
     def key(self) -> Key: return Key(self.rule, self.productions, self.slot, self.starting)
@@ -58,12 +55,12 @@ class State:
 
 #> RESOURCES -> GRAMMAR
 class Grammar:
-    productions: dict[Rule, tuple[tuple[str, ...]]]
+    productions: dict[str | type[NonTerminal], tuple[tuple[str, ...]]]
     bnf: str
     def __init__(self, bnf: str) -> None: 
         self.bnf = bnf
         self.productions = self.convert()
-    def convert(self) -> dict[Rule, tuple[tuple[str, ...]]]:
+    def convert(self) -> dict[str | type[NonTerminal], tuple[tuple[str, ...]]]:
         syntax = defaultdict(list)
         for line in [line.strip() for line in self.bnf.splitlines()]:
             rule, productions = [part.strip() for part in line.split("->", 1)]
@@ -83,7 +80,7 @@ class Grammar:
 #> RESOURCES -> SPPF
 @dataclass(eq = False)
 class SPPF:
-    symbol: Rule | Token
+    symbol: str | type[NonTerminal] | Token
     start: int
     end: int
     pack: set[tuple[SPPF, ...]] = field(default_factory = set)
@@ -91,7 +88,7 @@ class SPPF:
         if children in self.pack: return False
         self.pack.add(children)
         return True
-    def node(self) -> tuple[Rule | Token, int, int]: return self.symbol, self.start, self.end
+    def node(self) -> tuple[str | type[NonTerminal] | Token, int, int]: return self.symbol, self.start, self.end
     def __eq__(self, value: object) -> bool: return hash(self) == hash(value)
     def __hash__(self) -> int: return hash(self.node())
 
@@ -104,10 +101,10 @@ class SPPF:
 class Parser:
     #= CLASS -> VARIABLES
     grammar = Grammar(SYNTAX)
-    chart: list[dict[tuple, State]]
+    chart: list[dict[Key, State]]
     changed: bool
     tokens: list[Token]
-    pool: dict[tuple[Rule | Token, int, int], SPPF]
+    pool: dict[tuple[str | type[NonTerminal] | Token, int, int], SPPF]
     #= CLASS -> INIT
     def __init__(self) -> None: self.reset()
     #= CLASS -> RESET
@@ -118,12 +115,11 @@ class Parser:
         self.tokens = []
         self.pool = {}
     #= CLASS -> RECALL
-    def recall(self, at: int, rule: Rule, productions: tuple[Rule | type[Token], ...], slot: int, starting: int) -> State:
-        key = (rule, productions, slot, starting)
-        if not key in self.chart[at]: self.chart[at][key] = State(rule, productions, slot, starting)
+    def recall(self, at: int, key: Key) -> State:
+        if not key in self.chart[at]: self.chart[at][key] = State(key.rule, key.productions, key.slot, key.starting)
         return self.chart[at][key]
     #= CLASS -> CRGET
-    def seek(self, symbol: Rule | Token, start: int, end: int) -> SPPF:
+    def seek(self, symbol: str | type[NonTerminal] | Token, start: int, end: int) -> SPPF:
         key = (symbol, start, end)
         node = self.pool.get(key)
         if node is None:
@@ -137,51 +133,44 @@ class Parser:
         return node
     #= CLASS -> BUILD
     @cache
-    def build(self, brick: tuple[Rule, tuple[Rule | Token, ...], int, int]) -> list: 
+    def build(self, brick: Key) -> set: 
         state = None
         end = None
         for index, chart in enumerate(self.chart):
-            possible = chart.get(brick)
-            if possible is not None:
-                state = possible
-                end = index
-                break
-        if state is None or not state.full() or end is None: return []
+            if (possible := chart.get(brick)) is not None: state = possible; end = index; break
+        if state is None or not state.full() or end is None: return set()
         key = (state.rule, state.starting, end)
         root = self.pool.get(key)
-        if root is None: return []
-        def expand(node: SPPF) -> list:
-            results = []
+        if root is None: return set()
+        def expand(node: SPPF) -> set:
+            results = set()
             if isinstance(node.symbol, Token):
-                return [[node.symbol]] if node.symbol.important() else [[]]
+                results.add((node.symbol,) if node.symbol.important() else ())
+                return results
             for pack in node.pack:
                 choices = [expand(child) for child in pack]
-                if any(len(child) == 0 for child in choices): continue
+                if any(len(choice) == 0 for choice in choices): continue
                 for produce in product(*choices):
                     flat = []
-                    for item in produce:
-                        if isinstance(item, list): flat.extend(item)
-                        else: flat.append(item)
+                    for item in produce: (flat.extend if isinstance(item, tuple) else flat.append)(item)
                     match node.symbol:
-                        case str(): results.append(flat)
+                        case str(): results.add(tuple(flat))
                         case type():
-                            if node.symbol in {Level1, Level2, Level3, Level4, Level5}:
-                                if flat: results.append(flat[0])
-                                else: results.append(None)
-                            else: results.append(node.symbol(flat))
+                            if node.symbol in {Level1, Level2, Level3, Level4, Level5}: results.add(flat[0] if flat else None)
+                            else: results.add(node.symbol(flat))
                         case other: results.append(flat)
             return results
         return expand(root)
     #= CLASS -> PREDICT
     def predict(self, state: State, index: int, value: type[NonTerminal] | str) -> None:
-        for production in self.grammar.productions[value]:
-            if not (other := self.recall(index, value, production, 0, index)).backpointers:
+        for productions in self.grammar.productions[value]:
+            if not (other := self.recall(index, Key(value, productions, 0, index))).backpointers:
                 other.backpointers.add(tuple())
                 self.changed = True
     #= CLASS -> SCAN
     def scan(self, state: State, index: int, value: type[Token]) -> None:
         if isinstance(self.tokens[index], value):
-            other = self.recall(index + 1, state.rule, state.productions, state.slot + 1, state.starting)
+            other = self.recall(index + 1, Key(state.rule, state.productions, state.slot + 1, state.starting))
             stored = len(other.backpointers)
             node = self.seek(self.tokens[index], index, index + 1)
             for backpointer in state.backpointers: other.backpointers.add(backpointer + (node,))
@@ -191,7 +180,7 @@ class Parser:
         nodes = [self.materialize(state, index)]
         for other in list(self.chart[state.starting].values()):
             if other.at() == state.rule:
-                extra = self.recall(index, other.rule, other.productions, other.slot + 1, other.starting)
+                extra = self.recall(index, Key(other.rule, other.productions, other.slot + 1, other.starting))
                 stored = len(extra.backpointers)
                 for backpointer in other.backpointers: 
                     for node in nodes: extra.backpointers.add(backpointer + (node,))
@@ -200,20 +189,18 @@ class Parser:
     def run(self, tokens: list[Token]) -> Start:
         self.tokens = [token for token in tokens if token.compilable()]
         self.chart = [{} for index in range(len(self.tokens) + 1)]
-        self.recall(0, "$", (Start,), 0, 0).backpointers.add(tuple())
+        self.recall(0, Key("$", (Start,), 0, 0)).backpointers.add(tuple())
         self.loop()
-        last = self.chart[len(self.tokens)].get(("$", (Start,), 1, 0))
+        last = self.chart[len(self.tokens)].get(Key("$", (Start,), 1, 0))
         if last is None or not last.full(): raise BrokenSyntax()
         trees = set()
         for backpointer in last.backpointers:
-            if len(backpointer) != 1: continue
             first = backpointer[0]
             if isinstance(first, State): raise BrokenSyntax()
             if isinstance(first, SPPF):
                 brick = None
                 for key in self.chart[first.end]:
-                    rule, productions, slot, starting = key
-                    if rule == first.symbol and starting == first.start and slot == len(productions): 
+                    if key.rule == first.symbol and key.starting == first.start and key.slot == len(key.productions): 
                         brick = key; break
                 if brick is not None: trees.update(self.build(brick))
         return score(trees)

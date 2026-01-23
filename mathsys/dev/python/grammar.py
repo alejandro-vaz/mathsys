@@ -7,6 +7,7 @@ from re import search
 
 #> HEAD -> DATA
 from .issues import BrokenSyntax
+from .nonterminal import NonTerminal
 from .start import Start
 from .level1 import Declaration, Definition, Annotation, Node, Equation, Use, Level1
 from .level2 import Expression, Level2
@@ -158,9 +159,7 @@ Level5 -> Infinite | Variable | Nest | Tensor | Whole | Absolute | Undefined | R
 """)
 
 #> SYNTAX -> SCORE
-def score(trees: set[Start]) -> Start:
-    if not trees: raise BrokenSyntax()
-    return max(trees, key = lambda tree: sum({
-        Declaration: 1,
-        Equation: 0
-    }.get(node, 0) for node in tree.stream))
+def score(symbol: type[NonTerminal]) -> int: return -{
+    Declaration: 1,
+    Equation: 0
+}.get(symbol, 0)
