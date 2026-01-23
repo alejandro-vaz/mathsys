@@ -7,6 +7,7 @@ from re import search
 
 #> HEAD -> DATA
 from .issues import BrokenSyntax
+from .tokenizer import Token
 from .nonterminal import NonTerminal
 from .start import Start
 from .level1 import Declaration, Definition, Annotation, Node, Equation, Use, Level1
@@ -159,7 +160,7 @@ Level5 -> Infinite | Variable | Nest | Tensor | Whole | Absolute | Undefined | R
 """)
 
 #> SYNTAX -> SCORE
-def score(symbol: type[NonTerminal] | str) -> int: return -{
+def score(symbol: type[NonTerminal] | Token | str) -> int: return -{
     Declaration: 1,
     Equation: 0
 }.get(symbol, 0)

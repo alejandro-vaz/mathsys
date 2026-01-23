@@ -142,8 +142,7 @@ class Parser:
         return node
     #= CLASS -> MATERIALIZE
     def materialize(self, state: State, end: int) -> SPPF:
-        node = self.seek(state.rule, state.starting, end)
-        for backpointer in state.backpointers: node.follow(tuple(backpointer))
+        for backpointer in state.backpointers: (node := self.seek(state.rule, state.starting, end)).follow(backpointer)
         return node
     #= CLASS -> BUILD
     def build(self, brick: Key) -> Start: 
