@@ -18,10 +18,10 @@ from .issues import FailedCompilation
 
 #> BUILDER -> CLASS
 class Builder:
-    #~ CLASS -> VARIABLES
+    #= CLASS -> VARIABLES
     filename: str
     configuration: dict
-    #~ CLASS -> RUN
+    #= CLASS -> RUN
     async def run(self, data: bytes, target: str, optsize: bool, optimize: bool, run: frozenset) -> bytes:
         self.filename = filename(target, optimize)
         descriptor, irfile = mkstemp(dir = gettempdir())
@@ -48,7 +48,7 @@ class Builder:
         finally: 
             remove(self.filename)
             remove(irfile)
-    #~ CLASS -> EXECUTE
+    #= CLASS -> EXECUTE
     async def execute(self, *command: str) -> None:
         process = await create_subprocess_exec(
             *command,

@@ -6,6 +6,7 @@
 from re import search
 
 #> HEAD -> DATA
+from .issues import BrokenSyntax
 from .start import Start
 from .level1 import Declaration, Definition, Annotation, Node, Equation, Use, Level1
 from .level2 import Expression, Level2
@@ -18,11 +19,7 @@ from .level5 import Infinite, Variable, Nest, Tensor, Whole, Absolute, Undefined
 #^  EBNF
 #^
 
-#> EBNF -> SORT
-def ordering(line: str) -> tuple[int, int | str]: 
-    return (1, int(rule[1:])) if (rule := line.split("->", 1)[0].strip()).startswith("$") else (0, rule)
-
-#> EBNF -> CLASS
+#> EBNF -> EXTENSOR
 class Extensor:
     counter: int
     parentheses: dict[str, str]
@@ -46,7 +43,7 @@ class Extensor:
             out.add(f"{rule} -> {body}")
             out.update(rules)
         ordered = list(out)
-        ordered.sort(key = ordering)
+        ordered.sort(key = lambda line: (1, int(rule[1:])) if (rule := line.split("->", 1)[0].strip()).startswith("$") else (0, rule))
         return "\n".join(ordered)
     def expand(self, expression: str) -> tuple[str, set[str]]:
         rules = set()
@@ -63,7 +60,7 @@ class Extensor:
         rules.add(f"{symbol} -> {expanded}")
         return expression[:hit.start()] + symbol + expression[hit.end():]
     def postfix(self, expression: str, rules: set[str]) -> str:
-        while hit := search(r"(?P<atom>\$[0-9]+|[A-Za-z_][A-Za-z_0-9]*|'[^']*')(?P<operator>[*+?])", expression):
+        while hit := search(r"(?P<atom>\$[0-9]+|[A-Z][a-z]*[0-9]*|_?[A-Z]+)(?P<operator>[*+?])", expression):
             atom = hit.group("atom")
             match hit.group("operator"):
                 case "+": 
@@ -159,3 +156,11 @@ Level3 -> Term
 Level4 -> Factor | Limit
 Level5 -> Infinite | Variable | Nest | Tensor | Whole | Absolute | Undefined | Rational | Casts
 """)
+
+#> SYNTAX -> SCORE
+def score(trees: set[Start]) -> Start:
+    if not trees: raise BrokenSyntax()
+    return max(trees, key = lambda tree: sum({
+        Declaration: 1,
+        Equation: 0
+    }.get(node, 0) for node in tree.stream))

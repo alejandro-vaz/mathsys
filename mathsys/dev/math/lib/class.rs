@@ -4,7 +4,7 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    _Absolute, _Annotation, _Casts, _Declaration, _Definition, _Equation, _Expression, _Factor, _Infinite, _Limit, _Nest, _Node, _Rational, _Start, _Tensor, _Term, _Undefined, _Use, _Variable, _Whole, Runtime, Pointer, Object, fmt, point
+    _Absolute, _Annotation, _Casts, _Declaration, _Definition, _Equation, _Expression, _Factor, _Infinite, _Limit, _Nest, _Node, _Rational, _Start, _Tensor, _Term, _Undefined, _Use, _Variable, _Whole, Runtime, Pointer, Object, fmt, stdout
 };
 
 
@@ -87,6 +87,6 @@ impl fmt::Debug for Class {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> 
 
 //> CLASS -> COMMON
 impl Class {fn result(&self, value: Object) -> Object {
-    point(format!("{value:?}"));
+    stdout.point(format!("{value:?}"));
     return value;
 }}

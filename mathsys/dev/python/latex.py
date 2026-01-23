@@ -1,20 +1,28 @@
 #^
+#^  HEAD
+#^
+
+#> HEAD -> MODULES
+from frozendict import frozendict
+
+
+#^
 #^  MAPPINGS
 #^
 
 #> MAPPINGS -> VARIABLES
-VARIABLES = {
-    #~ VARIABLES -> 7 GREEK
+VARIABLES = frozendict({
+    #= VARIABLES -> 7 GREEK
     "epsilon": r"\epsilon ",
     "Epsilon": r"E",
     "omicron": r"\omicron ",
     "Omicron": r"O",
     "upsilon": r"\upsilon ",
     "Upsilon": r"\Upsilon ",
-    #~ VARIABLES -> 6 GREEK
+    #= VARIABLES -> 6 GREEK
     "lambda": r"\lambda ",
     "Lambda": r"\Lambda ",
-    #~ VARIABLES -> 5 GREEK
+    #= VARIABLES -> 5 GREEK
     "alpha": r"\alpha ",
     "Alpha": r"A",
     "gamma": r"\gamma ",
@@ -29,19 +37,19 @@ VARIABLES = {
     "Sigma": r"\Sigma ",
     "omega": r"\omega ",
     "Omega": r"\Omega ",
-    #~ VARIABLES -> 5 DOTLESS
+    #= VARIABLES -> 5 DOTLESS
     "imath": r"\imath ",
     "jmath": r"\jmath ",
-    #~ VARIABLES -> 4 GREEK
+    #= VARIABLES -> 4 GREEK
     "beta": r"\beta ",
     "Beta": r"B",
     "zeta": r"\zeta ",
     "Zeta": r"Z",
     "iota": r"\iota ",
     "Iota": r"I",
-    #~ VARIABLES -> 4 EXTRA
+    #= VARIABLES -> 4 EXTRA
     "hbar": r"\hbar ",
-    #~ VARIABLES -> 3 GREEK
+    #= VARIABLES -> 3 GREEK
     "eta": r"\eta ",
     "Eta": r"H",
     "rho": r"\rho ",
@@ -54,9 +62,9 @@ VARIABLES = {
     "Chi": r"X",
     "psi": r"\psi ",
     "Psi": r"\Psi ",
-    #~ VARIABLES -> 3 EXTRA
+    #= VARIABLES -> 3 EXTRA
     "ell": r"\ell ",
-    #~ VARIABLES -> 2 GREEK
+    #= VARIABLES -> 2 GREEK
     "mu": r"\mu ",
     "Mu": r"M",
     "nu": r"\nu ",
@@ -65,20 +73,20 @@ VARIABLES = {
     "Xi": r"\Xi ",
     "pi": r"\pi ",
     "Pi": r"\Pi ",
-    #~ VARIABLES -> 2 WEIERSTRASS
+    #= VARIABLES -> 2 WEIERSTRASS
     "wp": r"\wp "
-}
+})
 
 #> MAPPINGS -> SPECIAL
-SPECIAL = {
+SPECIAL = frozendict({
     '\\': r'\\',
     '{': r'\{',
     '}': r'\}',
     '$': r'\$'
-}
+})
 
 #> MAPPINGS -> CONVERSION TABLE
-CONVERSION = {
+CONVERSION = frozendict({
     "@Infinite": lambda name: fr"\overset{{\infty}}{{{name}}}",
     "@Integer": lambda name: name,
     "@Natural": lambda name: name,
@@ -88,4 +96,4 @@ CONVERSION = {
     "@Undefined": lambda name: fr"\overset{{?}}{{{name}}}",
     "@Variable": lambda name: fr"{{^{{*}}{name}}}",
     "@Whole": lambda name: name
-}
+})

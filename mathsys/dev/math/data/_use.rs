@@ -21,9 +21,9 @@ pub struct _Use {
 
 //> USE -> EVALUATE
 impl _Use {pub fn evaluate(&self, runtime: &mut Runtime, id: Pointer, memory: &Vec<Class>) -> Object {
-    //~ EVALUATE -> RETRIEVAL
+    //= EVALUATE -> RETRIEVAL
     if let Some(start) = self.start {runtime.get(start, memory);};
-    //~ EVALUATE -> OPERATIONS
+    //= EVALUATE -> OPERATIONS
     self.section("Use being", id);
     return Undefined::new();
 }}

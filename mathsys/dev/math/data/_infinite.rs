@@ -18,7 +18,7 @@ pub struct _Infinite {}
 
 //> INFINITE -> EVALUATE
 impl _Infinite {pub fn evaluate(&self, runtime: &mut Runtime, id: Pointer, memory: &Vec<Class>) -> Object {
-    //~ INFINITE -> OPERATIONS
+    //= INFINITE -> OPERATIONS
     self.section("Getting infinite value", id);
     return Infinite::new(
         Sign::Positive

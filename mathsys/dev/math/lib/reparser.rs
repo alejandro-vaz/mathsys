@@ -4,7 +4,7 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    Class, decompress, space, crash, Code, trace, _Start, _Declaration, _Definition, _Annotation, _Node, _Equation, _Use, _Expression, _Term, _Factor, _Limit, _Infinite, _Variable, _Nest, _Tensor, _Whole, _Absolute, _Undefined, _Rational, _Casts, Group, Sign, Pointer, BigUint, BitVec, BitSlice, Lsb0, Opcode, BitField, class
+    Class, decompress, stdout, Code, _Start, _Declaration, _Definition, _Annotation, _Node, _Equation, _Use, _Expression, _Term, _Factor, _Limit, _Infinite, _Variable, _Nest, _Tensor, _Whole, _Absolute, _Undefined, _Rational, _Casts, Group, Sign, Pointer, BigUint, BitVec, BitSlice, Lsb0, Opcode, BitField
 };
 
 
@@ -20,12 +20,12 @@ pub struct Reparser {
 //> REPARSER -> IMPLEMENTATION
 impl Reparser {
     pub fn run(&mut self, ir: &'static [u8]) -> Vec<Class> {
-        space("{REPARSER} Processing IR");
+        stdout.space("{REPARSER} Processing IR");
         let mut memory = Vec::with_capacity(ir.len());
-        trace("Decompressing IR");
-        let Ok(bytes) = decompress(ir) else {crash(Code::FailedIRDecompression)};
+        stdout.trace("Decompressing IR");
+        let Ok(bytes) = decompress(ir) else {stdout.crash(Code::FailedIRDecompression)};
         let binary = BitVec::<u8, Lsb0>::from_vec(bytes);
-        trace(format!(
+        stdout.trace(format!(
             "Parsing {} data bits",
             binary.len()
         ));
@@ -54,7 +54,7 @@ impl Reparser {
                 Opcode::Rational => Class::_Rational(self.Rational(&binary)),
                 Opcode::Casts => Class::_Casts(self.Casts(&binary))
             };
-            class(format!("{counter}{object:?}"));
+            stdout.class(format!("{counter}{object:?}"));
             counter += 1;
             memory.push(object);
         };
@@ -136,16 +136,16 @@ impl Reparser {
 
 //> REPARSER -> METHODS
 impl Reparser {
-    //~ METHODS -> DEFAULT
+    //= METHODS -> DEFAULT
     pub fn new() -> Self {return Reparser {locus: 0}}
-    fn check(&self, distance: usize, binary: &BitVec<u8, Lsb0>) -> () {if self.locus + distance > binary.len() {crash(Code::UnexpectedEndOfIR)}}
+    fn check(&self, distance: usize, binary: &BitVec<u8, Lsb0>) -> () {if self.locus + distance > binary.len() {stdout.crash(Code::UnexpectedEndOfIR)}}
     fn take<'bin>(&mut self, amount: usize, binary: &'bin BitVec<u8, Lsb0>) -> &'bin BitSlice<u8, Lsb0> {
         self.check(amount, binary);
         let slice = &binary[self.locus..self.locus + amount];
         self.locus += amount;
         return slice;
     }
-    //~ METHODS -> ITEMS
+    //= METHODS -> ITEMS
     fn takeOpcode(&mut self, binary: &BitVec<u8, Lsb0>) -> Opcode {return self.take(5, binary).load_le::<u8>().into()}
     fn takePointer(&mut self, binary: &BitVec<u8, Lsb0>) -> Pointer {return self.take(32, binary).load_le::<u32>().into()}
     fn takeSign(&mut self, binary: &BitVec<u8, Lsb0>) -> Sign {return self.take(1, binary)[0].into()}

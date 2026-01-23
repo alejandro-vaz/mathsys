@@ -20,9 +20,9 @@ pub struct _Start {
 
 //> START -> EVALUATE
 impl _Start {pub fn evaluate(&self, runtime: &mut Runtime, id: Pointer, memory: &Vec<Class>) -> Object {
-    //~ EVALUATE -> RETRIEVAL
+    //= EVALUATE -> RETRIEVAL
     self.stream.iter().for_each(|statement| {runtime.get(*statement, memory);});
-    //~ EVALUATE -> OPERATIONS
+    //= EVALUATE -> OPERATIONS
     self.section("End", id);
     return Undefined::new();
 }}

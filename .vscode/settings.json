@@ -38,14 +38,12 @@
           "italic": true
         }
     ],
-    "rust-analyzer.files.exclude": [
-      "mathsys/dev/main/main.rs"
-    ],
     "rust-analyzer.linkedProjects": [
       "mathsys/dev/math/Cargo.toml"
     ],
     "rust-analyzer.inlayHints.genericParameterHints.const.enable": false,
     "rust-analyzer.inlayHints.parameterHints.enable": false,
     "rust-analyzer.inlayHints.typeHints.enable": false,
-    "rust-analyzer.inlayHints.renderColons": false
+    "rust-analyzer.inlayHints.renderColons": false,
+    "python.analysis.ignore": [".venv/**"]
 }

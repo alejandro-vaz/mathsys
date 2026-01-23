@@ -20,7 +20,7 @@ pub struct _Whole {
 
 //> WHOLE -> EVALUATE
 impl _Whole {pub fn evaluate(&self, runtime: &mut Runtime, id: Pointer, memory: &Vec<Class>) -> Object {
-    //~ EVALUATE -> OPERATIONS
+    //= EVALUATE -> OPERATIONS
     self.section("Whole value", id);
     return Whole::new(
         self.value.clone()

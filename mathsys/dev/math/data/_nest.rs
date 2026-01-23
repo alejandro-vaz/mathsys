@@ -20,9 +20,9 @@ pub struct _Nest {
 
 //> NEST -> EVALUATE
 impl _Nest {pub fn evaluate(&self, runtime: &mut Runtime, id: Pointer, memory: &Vec<Class>) -> Object {
-    //~ EVALUATE -> RETRIEVAL
+    //= EVALUATE -> RETRIEVAL
     let value = if let Some(value) = self.value {runtime.get(value, memory)} else {Nexists::new()};
-    //~ EVALUATE -> OPERATIONS
+    //= EVALUATE -> OPERATIONS
     self.section("Computing nest placeholder", id);
     return value;
 }}

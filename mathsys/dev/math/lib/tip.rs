@@ -4,7 +4,7 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    _Absolute, _Annotation, _Casts, _Declaration, _Definition, _Equation, _Expression, _Factor, _Infinite, _Limit, _Nest, _Node, _Rational, _Start, _Tensor, _Term, _Undefined, _Use, _Variable, _Whole, Pointer, class, fmt, space, type_name
+    _Absolute, _Annotation, _Casts, _Declaration, _Definition, _Equation, _Expression, _Factor, _Infinite, _Limit, _Nest, _Node, _Rational, _Start, _Tensor, _Term, _Undefined, _Use, _Variable, _Whole, Pointer, fmt, stdout, type_name
 };
 
 
@@ -13,11 +13,11 @@ use crate::prelude::{
 //^
 
 //> TIP -> TRAIT
-pub trait Tip: fmt::Debug {fn section<Type: fmt::Display>(&self, message: Type, id: Pointer) -> () {space(format!(
+pub trait Tip: fmt::Debug {fn section<Type: fmt::Display>(&self, message: Type, id: Pointer) -> () {stdout.space(format!(
     "{{{}{}}} {message}",
     id.0,
     type_name::<Self>().rsplit("::").next().unwrap()
-)); class(format!("{}{self:?}", id.0))}}
+)); stdout.class(format!("{}{self:?}", id.0))}}
 
 //> TIP -> IMPLEMENTATIONS
 impl Tip for _Absolute {}

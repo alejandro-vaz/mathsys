@@ -4,7 +4,7 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    Object, Group, crash, Code, Undefined, Runtime
+    Object, Group, stdout, Code, Undefined, Runtime
 };
 
 
@@ -25,15 +25,15 @@ pub struct Variable {
 
 //> VARIABLE -> CASTING
 impl Variable {pub fn cast(&self, group: Group) -> Object {return match group {
-    Group::Infinite => crash(Code::FailedCast),
-    Group::Integer => crash(Code::FailedCast),
-    Group::Natural => crash(Code::FailedCast),
-    Group::Nexists => crash(Code::FailedCast),
-    Group::Rational => crash(Code::FailedCast),
-    Group::Tensor => crash(Code::FailedCast),
+    Group::Infinite => stdout.crash(Code::FailedCast),
+    Group::Integer => stdout.crash(Code::FailedCast),
+    Group::Natural => stdout.crash(Code::FailedCast),
+    Group::Nexists => stdout.crash(Code::FailedCast),
+    Group::Rational => stdout.crash(Code::FailedCast),
+    Group::Tensor => stdout.crash(Code::FailedCast),
     Group::Undefined => Undefined::new(),
     Group::Variable => self.into(),
-    Group::Whole => crash(Code::FailedCast)
+    Group::Whole => stdout.crash(Code::FailedCast)
 }}}
 
 //> VARIABLE -> EQUIVALENCY
@@ -51,8 +51,8 @@ impl Variable {pub fn equivalency(&self, to: &Object) -> bool {return match to {
 
 //> VARIABLE -> SUMMATION
 impl Variable {
-    pub fn absolute(&self) -> Object {crash(Code::NoVariableOperation)}
-    pub fn negate(&self) -> Object {crash(Code::NoVariableOperation)}
+    pub fn absolute(&self) -> Object {stdout.crash(Code::NoVariableOperation)}
+    pub fn negate(&self) -> Object {stdout.crash(Code::NoVariableOperation)}
     pub fn summation(&self, to: &Object) -> Object {return match to {
         Object::Infinite(item) => item.summation(&self.into()),
         Object::Integer(item) => item.summation(&self.into()),
@@ -61,14 +61,14 @@ impl Variable {
         Object::Rational(item) => item.summation(&self.into()),
         Object::Tensor(item) => item.summation(&self.into()),
         Object::Undefined(item) => item.summation(&self.into()),
-        Object::Variable(item) => crash(Code::NoVariableOperation),
-        Object::Whole(item) => crash(Code::NoVariableOperation)
+        Object::Variable(item) => stdout.crash(Code::NoVariableOperation),
+        Object::Whole(item) => stdout.crash(Code::NoVariableOperation)
     }}
 }
 
 //> VARIABLE -> MULTIPLICATION
 impl Variable {
-    pub fn invert(&self) -> Object {crash(Code::NoVariableOperation)}
+    pub fn invert(&self) -> Object {stdout.crash(Code::NoVariableOperation)}
     pub fn multiplication(&self, to: &Object) -> Object {return match to {
         Object::Infinite(item) => item.multiplication(&self.into()),
         Object::Integer(item) => item.multiplication(&self.into()),
@@ -77,8 +77,8 @@ impl Variable {
         Object::Rational(item) => item.multiplication(&self.into()),
         Object::Tensor(item) => item.multiplication(&self.into()),
         Object::Undefined(item) => item.multiplication(&self.into()),
-        Object::Variable(item) => crash(Code::NoVariableOperation),
-        Object::Whole(item) => crash(Code::NoVariableOperation)
+        Object::Variable(item) => stdout.crash(Code::NoVariableOperation),
+        Object::Whole(item) => stdout.crash(Code::NoVariableOperation)
     }}
 }
 
@@ -94,7 +94,7 @@ impl Variable {
     pub fn set(&self, value: Object, mutable: bool, runtime: &mut Runtime, group: Group) -> () {
         self.setGroup(group, runtime);
         let object = if value.is(group) {value} else {value.cast(group)};
-        if let Some(thing) = runtime.immutable.get(&self.name) {crash(Code::ImmutableModification)} 
+        if let Some(thing) = runtime.immutable.get(&self.name) {stdout.crash(Code::ImmutableModification)} 
         if mutable {
             runtime.mutable.insert(self.name.clone(), object);
         } else {
@@ -104,7 +104,7 @@ impl Variable {
     fn setGroup(&self, code: Group, runtime: &mut Runtime) -> () {
         let current = self.getGroup(runtime);
         if code == Group::Undefined || current == code {return}
-        if current != Group::Undefined {crash(Code::DoubleGroupAnnotation)}
+        if current != Group::Undefined {stdout.crash(Code::DoubleGroupAnnotation)}
         runtime.types.insert(self.name.clone(), code);
     }
     fn getGroup(&self, runtime: &Runtime) -> Group {return match runtime.types.get(&self.name) {

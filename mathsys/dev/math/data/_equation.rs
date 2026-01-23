@@ -21,10 +21,10 @@ pub struct _Equation {
 
 //> EQUATION -> EVALUATE
 impl _Equation {pub fn evaluate(&self, runtime: &mut Runtime, id: Pointer, memory: &Vec<Class>) -> Object {
-    //~ EVALUATE -> RETRIEVAL
+    //= EVALUATE -> RETRIEVAL
     let leftside = runtime.get(self.leftside, memory);
     let rightside = runtime.get(self.rightside, memory);
-    //~ EVALUATE -> OPERATIONS
+    //= EVALUATE -> OPERATIONS
     self.section("Checking equality", id);
     let equal = leftside.equivalency(&rightside);
     return Undefined::new();

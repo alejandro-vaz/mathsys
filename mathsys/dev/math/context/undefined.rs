@@ -4,7 +4,7 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    Object, Group, crash, Code
+    Object, Group, stdout, Code
 };
 
 
@@ -20,15 +20,15 @@ pub struct Undefined {} impl Undefined {pub fn new() -> Object {
 
 //> UNDEFINED -> CASTING
 impl Undefined {pub fn cast(&self, group: Group) -> Object {return match group {
-    Group::Infinite => crash(Code::FailedCast),
-    Group::Integer => crash(Code::FailedCast),
-    Group::Natural => crash(Code::FailedCast),
-    Group::Nexists => crash(Code::FailedCast),
-    Group::Rational => crash(Code::FailedCast),
-    Group::Tensor => crash(Code::FailedCast),
+    Group::Infinite => stdout.crash(Code::FailedCast),
+    Group::Integer => stdout.crash(Code::FailedCast),
+    Group::Natural => stdout.crash(Code::FailedCast),
+    Group::Nexists => stdout.crash(Code::FailedCast),
+    Group::Rational => stdout.crash(Code::FailedCast),
+    Group::Tensor => stdout.crash(Code::FailedCast),
     Group::Undefined => self.into(),
-    Group::Variable => crash(Code::FailedCast),
-    Group::Whole => crash(Code::FailedCast)
+    Group::Variable => stdout.crash(Code::FailedCast),
+    Group::Whole => stdout.crash(Code::FailedCast)
 }}}
 
 //> UNDEFINED -> EQUIVALENCY
@@ -56,7 +56,7 @@ impl Undefined {
         Object::Rational(item) => item.summation(&self.into()),
         Object::Tensor(item) => item.summation(&self.into()),
         Object::Undefined(item) => item.into(),
-        Object::Variable(item) => crash(Code::NoVariableOperation),
+        Object::Variable(item) => stdout.crash(Code::NoVariableOperation),
         Object::Whole(item) => self.into()
     }}
 }
@@ -72,7 +72,7 @@ impl Undefined {
         Object::Rational(item) => item.multiplication(&self.into()),
         Object::Tensor(item) => item.multiplication(&self.into()),
         Object::Undefined(item) => item.into(),
-        Object::Variable(item) => crash(Code::NoVariableOperation),
+        Object::Variable(item) => stdout.crash(Code::NoVariableOperation),
         Object::Whole(item) => self.into()
     }}
 }

@@ -4,7 +4,7 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    Object, Group, crash, Code, Undefined
+    Object, Group, stdout, Code, Undefined
 };
 
 
@@ -20,15 +20,15 @@ pub struct Nexists {} impl Nexists {pub fn new() -> Object {
 
 //> NEXISTS -> CASTING
 impl Nexists {pub fn cast(&self, group: Group) -> Object {return match group {
-    Group::Infinite => crash(Code::FailedCast),
-    Group::Integer => crash(Code::FailedCast),
-    Group::Natural => crash(Code::FailedCast),
+    Group::Infinite => stdout.crash(Code::FailedCast),
+    Group::Integer => stdout.crash(Code::FailedCast),
+    Group::Natural => stdout.crash(Code::FailedCast),
     Group::Nexists => self.into(),
-    Group::Rational => crash(Code::FailedCast),
-    Group::Tensor => crash(Code::FailedCast),
+    Group::Rational => stdout.crash(Code::FailedCast),
+    Group::Tensor => stdout.crash(Code::FailedCast),
     Group::Undefined => Undefined::new(),
-    Group::Variable => crash(Code::FailedCast),
-    Group::Whole => crash(Code::FailedCast)
+    Group::Variable => stdout.crash(Code::FailedCast),
+    Group::Whole => stdout.crash(Code::FailedCast)
 }}}
 
 //> NEXISTS -> EQUIVALENCY
@@ -56,7 +56,7 @@ impl Nexists {
         Object::Rational(item) => item.into(),
         Object::Tensor(item) => item.into(),
         Object::Undefined(item) => item.into(),
-        Object::Variable(item) => crash(Code::NoVariableOperation),
+        Object::Variable(item) => stdout.crash(Code::NoVariableOperation),
         Object::Whole(item) => item.into()
     }}
 }
@@ -72,7 +72,7 @@ impl Nexists {
         Object::Rational(item) => item.into(),
         Object::Tensor(item) => item.into(),
         Object::Undefined(item) => item.into(),
-        Object::Variable(item) => crash(Code::NoVariableOperation),
+        Object::Variable(item) => stdout.crash(Code::NoVariableOperation),
         Object::Whole(item) => item.into()
     }}
 }

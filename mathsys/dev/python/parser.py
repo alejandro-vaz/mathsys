@@ -4,7 +4,7 @@
 
 #> HEAD -> MODULES
 from dataclasses import dataclass, field
-from typing import Any, TYPE_CHECKING
+from typing import Any
 from collections import defaultdict
 from itertools import product
 from functools import cache
@@ -13,9 +13,9 @@ from functools import cache
 from .tokenizer import Token, ORDER
 from .start import Start
 from .nonterminal import NonTerminal
-from .grammar import SYNTAX, NONTERMINALS
+from .grammar import SYNTAX, NONTERMINALS, score
 from .issues import BrokenSyntax
-from .level1 import Level1, Declaration, Equation
+from .level1 import Level1
 from .level2 import Level2
 from .level3 import Level3
 from .level4 import Level4
@@ -26,26 +26,16 @@ from .level5 import Level5
 #^  RESOURCES
 #^
 
-#> RESOURCES -> PREFERENCE
-PREFERENCE = {
-    Declaration: 1,
-    Equation: 0
-}
-
-#> RESOURCES -> SCORE
-def score(node: Any) -> int:
-    if not isinstance(node, NonTerminal | tuple): return 0
-    total = PREFERENCE.get(type(node), 0)
-    if isinstance(node, tuple): total += sum([score(value) for value in node])
-    else:
-        for key, value in node.__dict__.items():
-            if key.startswith("_"): continue
-            if isinstance(value, NonTerminal | tuple): total += score(value)
-    return total
-
 #> RESOURCES -> TYPES
 Rule = type[NonTerminal] | str
-Key = tuple[Rule, tuple[Rule | type[Token], ...], int, int]
+
+#> RESOURCES -> KEY
+@dataclass(frozen = True)
+class Key:
+    rule: type[NonTerminal] | str
+    productions: tuple[type[Token | NonTerminal] | str, ...]
+    slot: int
+    starting: int
 
 #> RESOURCES -> STATE
 @dataclass(eq = False)
@@ -58,13 +48,13 @@ class State:
     def at(self) -> Rule | type[Token] | None: 
         return self.productions[self.slot] if self.slot < len(self.productions) else None
     def full(self) -> bool: return self.slot >= len(self.productions)   
-    def key(self) -> Key: return self.rule, self.productions, self.slot, self.starting
+    def key(self) -> Key: return Key(self.rule, self.productions, self.slot, self.starting)
     def __hash__(self) -> int: return hash(self.key())
     def __eq__(self, other: Any) -> bool: return isinstance(other, State) and self.key() == other.key()
     def __repr__(self) -> str:
         before = " ".join(str(element) for element in self.productions[:self.slot])
         after = " ".join(str(element) for element in self.productions[self.slot:])
-        return f"[{self.rule} -> {before} • {after}, start={self.starting}]"
+        return f"[{self.rule} -> {before} • {after}, starting = {self.starting}]"
 
 #> RESOURCES -> GRAMMAR
 class Grammar:
@@ -91,7 +81,7 @@ class Grammar:
     def __repr__(self) -> str: return self.bnf
 
 #> RESOURCES -> SPPF
-@dataclass
+@dataclass(eq = False)
 class SPPF:
     symbol: Rule | Token
     start: int
@@ -101,9 +91,9 @@ class SPPF:
         if children in self.pack: return False
         self.pack.add(children)
         return True
-    def key(self) -> tuple[Rule | Token, int, int]: return self.symbol, self.start, self.end
+    def node(self) -> tuple[Rule | Token, int, int]: return self.symbol, self.start, self.end
     def __eq__(self, value: object) -> bool: return hash(self) == hash(value)
-    def __hash__(self) -> int: return hash(self.key())
+    def __hash__(self) -> int: return hash(self.node())
 
 
 #^
@@ -113,13 +103,13 @@ class SPPF:
 #> PARSER -> CLASS
 class Parser:
     #= CLASS -> VARIABLES
-    grammar: Grammar
+    grammar = Grammar(SYNTAX)
     chart: list[dict[tuple, State]]
     changed: bool
     tokens: list[Token]
     pool: dict[tuple[Rule | Token, int, int], SPPF]
     #= CLASS -> INIT
-    def __init__(self) -> None: self.grammar = Grammar(SYNTAX); self.reset()
+    def __init__(self) -> None: self.reset()
     #= CLASS -> RESET
     def reset(self) -> None:
         self.build.cache_clear()
@@ -133,7 +123,7 @@ class Parser:
         if not key in self.chart[at]: self.chart[at][key] = State(rule, productions, slot, starting)
         return self.chart[at][key]
     #= CLASS -> CRGET
-    def crget(self, symbol: Rule | Token, start: int, end: int) -> SPPF:
+    def seek(self, symbol: Rule | Token, start: int, end: int) -> SPPF:
         key = (symbol, start, end)
         node = self.pool.get(key)
         if node is None:
@@ -141,12 +131,10 @@ class Parser:
             self.pool[key] = node
         return node
     #= CLASS -> MATERIALIZE
-    def materialize(self, state: State, end: int) -> list[SPPF]:
-        node = self.crget(state.rule, state.starting, end)
-        for backpointer in state.backpointers:
-            children = tuple(backpointer)
-            node.follow(children)
-        return [node]
+    def materialize(self, state: State, end: int) -> SPPF:
+        node = self.seek(state.rule, state.starting, end)
+        for backpointer in state.backpointers: node.follow(tuple(backpointer))
+        return node
     #= CLASS -> BUILD
     @cache
     def build(self, brick: tuple[Rule, tuple[Rule | Token, ...], int, int]) -> list: 
@@ -195,12 +183,12 @@ class Parser:
         if isinstance(self.tokens[index], value):
             other = self.recall(index + 1, state.rule, state.productions, state.slot + 1, state.starting)
             stored = len(other.backpointers)
-            node = self.crget(self.tokens[index], index, index + 1)
+            node = self.seek(self.tokens[index], index, index + 1)
             for backpointer in state.backpointers: other.backpointers.add(backpointer + (node,))
             if len(other.backpointers) > stored: self.changed = True
     #= CLASS -> COMPLETE
     def complete(self, state: State, index: int, value: None) -> None:
-        nodes = self.materialize(state, index)
+        nodes = [self.materialize(state, index)]
         for other in list(self.chart[state.starting].values()):
             if other.at() == state.rule:
                 extra = self.recall(index, other.rule, other.productions, other.slot + 1, other.starting)
@@ -211,24 +199,24 @@ class Parser:
     #= CLASS -> RUN
     def run(self, tokens: list[Token]) -> Start:
         self.tokens = [token for token in tokens if token.compilable()]
-        self.chart = [dict() for index in range(len(self.tokens) + 1)]
+        self.chart = [{} for index in range(len(self.tokens) + 1)]
         self.recall(0, "$", (Start,), 0, 0).backpointers.add(tuple())
         self.loop()
         last = self.chart[len(self.tokens)].get(("$", (Start,), 1, 0))
         if last is None or not last.full(): raise BrokenSyntax()
-        trees = []
+        trees = set()
         for backpointer in last.backpointers:
             if len(backpointer) != 1: continue
             first = backpointer[0]
-            if isinstance(first, State): raise Exception()
+            if isinstance(first, State): raise BrokenSyntax()
             if isinstance(first, SPPF):
                 brick = None
                 for key in self.chart[first.end]:
                     rule, productions, slot, starting = key
                     if rule == first.symbol and starting == first.start and slot == len(productions): 
                         brick = key; break
-                if brick is not None: trees.extend(self.build(brick))
-        return max(trees, key = score)
+                if brick is not None: trees.update(self.build(brick))
+        return score(trees)
     #= CLASS -> LOOP
     def loop(self) -> None:
         for index in range(len(self.tokens) + 1):

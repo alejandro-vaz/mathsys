@@ -22,15 +22,16 @@ class Level1(NonTerminal, ABC): pass
 
 #> 1ºLEVEL -> DECLARATION
 @dataclass(init = False, unsafe_hash = True)
-class Declaration(Level1, NonTerminal):
+class Declaration(Level1):
     code = Opcode(0x02).binary()
     group: str | None
     variable: Variable
     value: Level2
-    def create(self, items: list[TYPE | Variable | Level2]) -> None:
+    def __init__(self, items: list[TYPE | Variable | Level2]) -> None:
         self.group = cast(TYPE, items[0]).value if len(items) == 3 else None
         self.variable = cast(Variable, items[1] if len(items) == 3 else items[0])
         self.value = cast(Level2, items[2] if len(items) == 3 else items[1])
+        self.freeze()
     def latex(self, types: dict[str, str]) -> str:
         types[self.variable.representation] = types.get(self.variable.representation, self.group if self.group is not None else "@Undefined")
         return f"{self.variable.latex(types)}={self.value.latex(types)}"
@@ -42,15 +43,16 @@ class Declaration(Level1, NonTerminal):
 
 #> 1ºLEVEL -> DEFINITION
 @dataclass(init = False, unsafe_hash = True)
-class Definition(Level1, NonTerminal):
+class Definition(Level1):
     code = Opcode(0x03).binary()
     group: str | None
     variable: Variable
     value: Level2
-    def create(self, items: list[TYPE | Variable | Level2]) -> None:
+    def __init__(self, items: list[TYPE | Variable | Level2]) -> None:
         self.group = cast(TYPE, items[0]).value if len(items) == 3 else None
         self.variable = cast(Variable, items[1] if len(items) == 3 else items[0])
         self.value = cast(Level2, items[2] if len(items) == 3 else items[1])
+        self.freeze()
     def latex(self, types: dict[str, str]) -> str:
         types[self.variable.representation] = types.get(self.variable.representation, self.group if self.group is not None else "@Undefined")
         return fr"{self.variable.latex(types)}\equiv {self.value.latex(types)}"
@@ -62,13 +64,14 @@ class Definition(Level1, NonTerminal):
 
 #> 1ºLEVEL -> ANNOTATION
 @dataclass(init = False, unsafe_hash = True)
-class Annotation(Level1, NonTerminal):
+class Annotation(Level1):
     code = Opcode(0x04).binary()
     group: str
     variables: tuple[Variable]
-    def create(self, items: list[TYPE | Variable]) -> None:
+    def __init__(self, items: list[TYPE | Variable]) -> None:
         self.group = cast(TYPE, items[0]).value
         self.variables = cast(tuple[Variable], tuple(items[1:]))
+        self.freeze()
     def latex(self, types: dict[str, str]) -> str:
         for variable in self.variables: types[variable.representation] = types.get(variable.representation, self.group)
         variables = ",".join(variable.latex(types) for variable in self.variables)
@@ -80,11 +83,10 @@ class Annotation(Level1, NonTerminal):
 
 #> 1ºLEVEL -> NODE
 @dataclass(init = False, unsafe_hash = True)
-class Node(Level1, NonTerminal):
+class Node(Level1):
     code = Opcode(0x05).binary()
     value: Level2
-    def create(self, items: list[Level2]) -> None:
-        self.value = items[0]
+    def __init__(self, items: list[Level2]) -> None: self.value = items[0]; self.freeze()
     def latex(self, types: dict[str, str]) -> str: return self.value.latex(types)
     def ir(self, binary: list[Binary], nodes: list[Binary]) -> Pointer:
         value = self.value.ir(binary, nodes)
@@ -92,13 +94,14 @@ class Node(Level1, NonTerminal):
 
 #> 1ºLEVEL -> EQUATION
 @dataclass(init = False, unsafe_hash = True)
-class Equation(Level1, NonTerminal):
+class Equation(Level1):
     code = Opcode(0x06).binary()
     leftside: Level2
     rightside: Level2
-    def create(self, items: list[Level2]) -> None:
+    def __init__(self, items: list[Level2]) -> None:
         self.leftside = items[0]
         self.rightside = items[1]
+        self.freeze()
     def latex(self, types: dict[str, str]) -> str: return f"{self.leftside.latex(types)}={self.rightside.latex(types)}"
     def ir(self, binary: list[Binary], nodes: list[Binary]) -> Pointer:
         leftside = self.leftside.ir(binary, nodes)
@@ -107,13 +110,14 @@ class Equation(Level1, NonTerminal):
 
 #> 1ºLEVEL -> USE
 @dataclass(init = False, unsafe_hash = True)
-class Use(Level1, NonTerminal):
+class Use(Level1):
     code = Opcode(0x07).binary()
     name: str
     start: Start | None
-    def create(self, items: list[MODULE]) -> None:
+    def __init__(self, items: list[MODULE]) -> None:
         self.name = items[0].value
         self.start = None
+        self.freeze()
     def latex(self, types: dict[str, str]) -> str:
         if self.start is not None: self.start.latex(types)
         delimiters = ["", ""] if self.start is not None else [r"\color{brown}", r"\color{black}"]

@@ -4,7 +4,7 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    Infinite, Integer, Natural, Nexists, Rational, Tensor, Undefined, Variable, Whole, Group, fmt, chore, trace, debug, AsRefStr
+    Infinite, Integer, Natural, Nexists, Rational, Tensor, Undefined, Variable, Whole, Group, fmt, stdout, AsRefStr
 };
 
 
@@ -130,37 +130,37 @@ impl fmt::Debug for Object {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) ->
 
 //> OBJECT -> COMMON
 impl Object {
-    fn partial<Type: fmt::Debug>(&self, value: Type) -> Type {chore(format!("{value:?}")); return value}
-    fn castLocale(&self, group: &Group) -> () {trace(format!(
+    fn partial<Type: fmt::Debug>(&self, value: Type) -> Type {stdout.chore(format!("{value:?}")); return value}
+    fn castLocale(&self, group: &Group) -> () {stdout.trace(format!(
         "Casting {} to {group:?}",
         self.name()
     )); self.info()}
-    fn equivalencyLocale(&self, to: &Object) -> () {trace(format!(
+    fn equivalencyLocale(&self, to: &Object) -> () {stdout.trace(format!(
         "Checking equivalency of {} and {}",
         self.name(), to.name()
     )); self.info(); to.info()}
-    fn absoluteLocale(&self) -> () {trace(format!(
+    fn absoluteLocale(&self) -> () {stdout.trace(format!(
         "Taking absolute value of {}",
         self.name()
     )); self.info()}
-    fn negateLocale(&self) -> () {trace(format!(
+    fn negateLocale(&self) -> () {stdout.trace(format!(
         "Negating {}",
         self.name()
     )); self.info()}
-    fn summationLocale(&self, to: &Object) -> () {trace(format!(
+    fn summationLocale(&self, to: &Object) -> () {stdout.trace(format!(
         "Adding {} and {}",
         self.name(), to.name()
     )); self.info(); to.info()}
-    fn invertLocale(&self) -> () {trace(format!(
+    fn invertLocale(&self) -> () {stdout.trace(format!(
         "Inverting {}",
         self.name()
     )); self.info()}
-    fn multiplicationLocale(&self, to: &Object) -> () {trace(format!(
+    fn multiplicationLocale(&self, to: &Object) -> () {stdout.trace(format!(
         "Multiplying {} and {}",
         self.name(), to.name()
     )); self.info(); to.info()}
     pub fn name(&self) -> &str {return self.as_ref()}
-    pub fn info(&self) -> () {debug(format!("{self:?}"))}
+    pub fn info(&self) -> () {stdout.debug(format!("{self:?}"))}
     pub fn is(&self, group: Group) -> bool {return match self {
         Object::Infinite(item) => group == Group::Undefined || group == Group::Infinite,
         Object::Integer(item) => group == Group::Undefined || group == Group::Integer,

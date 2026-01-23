@@ -4,7 +4,7 @@
 
 //> HEAD -> FLAGS
 #![allow(unused_variables)]
-#![allow(non_snake_case)]
+#![allow(nonstandard_style)]
 #![feature(linkage)]
 #![feature(try_trait_v2)]
 #![feature(never_type)]
@@ -13,11 +13,10 @@
 //> HEAD -> PRELUDE
 mod prelude;
 use prelude::{
-    init,
+    stdout,
     Reparser,
     Runtime,
-    Code,
-    crash
+    Code
 };
 
 //> HEAD -> CONTEXT
@@ -97,10 +96,10 @@ pub struct Settings {
 
 //> RUNTIME -> FUNCTION
 pub fn run(settings: Settings) -> () {
-    init(&settings);
+    stdout.init(&settings);
     let mut reparser = Reparser::new();
     let memory = reparser.run(settings.ir);
     let mut runtime = Runtime::new();
     runtime.start(&memory);
-    crash(Code::Success);
+    stdout.crash(Code::Success);
 }

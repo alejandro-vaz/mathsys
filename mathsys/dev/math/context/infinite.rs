@@ -4,7 +4,7 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    Object, Group, crash, Code, Undefined, Whole, Zero, Sign, Tensor
+    Object, Group, stdout, Code, Undefined, Whole, Zero, Sign, Tensor
 };
 
 
@@ -26,14 +26,14 @@ pub struct Infinite {
 //> INFINITE -> CASTING
 impl Infinite {pub fn cast(&self, group: Group) -> Object {return match group {
     Group::Infinite => self.into(),
-    Group::Integer => crash(Code::FailedCast),
-    Group::Natural => crash(Code::FailedCast),
-    Group::Nexists => crash(Code::FailedCast),
-    Group::Rational => crash(Code::FailedCast),
-    Group::Tensor => crash(Code::FailedCast),
+    Group::Integer => stdout.crash(Code::FailedCast),
+    Group::Natural => stdout.crash(Code::FailedCast),
+    Group::Nexists => stdout.crash(Code::FailedCast),
+    Group::Rational => stdout.crash(Code::FailedCast),
+    Group::Tensor => stdout.crash(Code::FailedCast),
     Group::Undefined => Undefined::new(),
-    Group::Variable => crash(Code::FailedCast),
-    Group::Whole => crash(Code::FailedCast)
+    Group::Variable => stdout.crash(Code::FailedCast),
+    Group::Whole => stdout.crash(Code::FailedCast)
 }}}
 
 //> INFINITE -> EQUIVALENCY
@@ -65,7 +65,7 @@ impl Infinite {
         Object::Rational(item) => self.into(),
         Object::Tensor(item) => Undefined::new(),
         Object::Undefined(item) => item.into(),
-        Object::Variable(item) => crash(Code::NoVariableOperation),
+        Object::Variable(item) => stdout.crash(Code::NoVariableOperation),
         Object::Whole(item) => self.into()
     }}
 }
@@ -91,7 +91,7 @@ impl Infinite {
             item.values.iter().map(|value| self.multiplication(value)).collect()
         ),
         Object::Undefined(item) => item.into(),
-        Object::Variable(item) => crash(Code::NoVariableOperation),
+        Object::Variable(item) => stdout.crash(Code::NoVariableOperation),
         Object::Whole(item) => if item.value.is_zero() {Undefined::new()} else {self.into()}
     }}
 }

@@ -4,7 +4,7 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    BigUint, Object, Group, crash, Integer, Natural, Rational, Undefined, Code, Zero, Sign
+    BigUint, Object, Group, stdout, Integer, Natural, Rational, Undefined, Code, Zero, Sign
 };
 
 
@@ -25,7 +25,7 @@ pub struct Whole {
 
 //> WHOLE -> CASTING
 impl Whole {pub fn cast(&self, group: Group) -> Object {return match group {
-    Group::Infinite => crash(Code::FailedCast),
+    Group::Infinite => stdout.crash(Code::FailedCast),
     Group::Integer => Integer::new(
         self.value.clone(),
         Sign::Positive
@@ -33,15 +33,15 @@ impl Whole {pub fn cast(&self, group: Group) -> Object {return match group {
     Group::Natural => Natural::new(
         self.value.clone()
     ),
-    Group::Nexists => crash(Code::FailedCast),
+    Group::Nexists => stdout.crash(Code::FailedCast),
     Group::Rational => Rational::new(
         self.value.clone(),
         1u32,
         Sign::Positive
     ),
-    Group::Tensor => crash(Code::FailedCast),
+    Group::Tensor => stdout.crash(Code::FailedCast),
     Group::Undefined => Undefined::new(),
-    Group::Variable => crash(Code::FailedCast),
+    Group::Variable => stdout.crash(Code::FailedCast),
     Group::Whole => self.into()
 }}}
 

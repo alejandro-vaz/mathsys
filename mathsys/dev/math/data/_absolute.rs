@@ -20,9 +20,9 @@ pub struct _Absolute {
 
 //> ABSOLUTE -> EVALUATE
 impl _Absolute {pub fn evaluate(&self, runtime: &mut Runtime, id: Pointer, memory: &Vec<Class>) -> Object {
-    //~ EVALUATE -> RETRIEVAL
+    //= EVALUATE -> RETRIEVAL
     let value = runtime.get(self.value, memory);
-    //~ EVALUATE -> OPERATIONS
+    //= EVALUATE -> OPERATIONS
     self.section("Taking absolute value", id);
     return value.absolute();
 }}

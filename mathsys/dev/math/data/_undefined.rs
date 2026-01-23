@@ -18,7 +18,7 @@ pub struct _Undefined {}
 
 //> UNDEFINED -> EVALUATE
 impl _Undefined {pub fn evaluate(&self, runtime: &mut Runtime, id: Pointer, memory: &Vec<Class>) -> Object {
-    //~ EVALUATE -> OPERATIONS
+    //= EVALUATE -> OPERATIONS
     self.section("Getting undefined placeholder", id);
     return Undefined::new();
 }}

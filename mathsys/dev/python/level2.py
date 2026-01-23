@@ -5,7 +5,6 @@
 #> HEAD -> MODULES
 from dataclasses import dataclass
 from abc import ABC
-from typing import cast, TYPE_CHECKING
 
 #> HEAD -> DATA
 from .tokenizer import SIGN
@@ -22,11 +21,11 @@ class Level2(NonTerminal, ABC): pass
 
 #> 2ºLEVEL -> EXPRESSION
 @dataclass(init = False, unsafe_hash = True)
-class Expression(Level2, NonTerminal):
+class Expression(Level2):
     code = Opcode(0x08).binary()
     signs: tuple[tuple[bool, ...], ...]
     terms: tuple[Level3, ...]
-    def create(self, items: list[SIGN | Level3]) -> None:
+    def __init__(self, items: list[SIGN | Level3]) -> None:
         signs = []
         terms = []
         current = []
@@ -38,6 +37,7 @@ class Expression(Level2, NonTerminal):
                 current = []
         self.signs = tuple(tuple(group) for group in signs)
         self.terms = tuple(terms)
+        self.freeze()
     def latex(self, types: dict[str, str]) -> str:
         string = []
         for index in range(len(self.terms)):

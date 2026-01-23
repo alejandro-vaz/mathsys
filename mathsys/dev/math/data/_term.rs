@@ -21,12 +21,12 @@ pub struct _Term {
 
 //> TERM -> EVALUATE
 impl _Term {pub fn evaluate(&self, runtime: &mut Runtime, id: Pointer, memory: &Vec<Class>) -> Object {
-    //~ EVALUATE -> RETRIEVAL
+    //= EVALUATE -> RETRIEVAL
     let mut numerator = Vec::with_capacity(self.numerator.len());
     for &factor in &self.numerator {numerator.push(runtime.get(factor, memory))};
     let mut denominator = Vec::with_capacity(self.denominator.len());
     for &factor in &self.denominator {denominator.push(runtime.get(factor, memory))};
-    //~ EVALUATE -> OPERATIONS
+    //= EVALUATE -> OPERATIONS
     self.section("Calculating numerator", id);
     let mut up = Nexists::new();
     for factor in numerator {up = up.multiplication(&factor)}

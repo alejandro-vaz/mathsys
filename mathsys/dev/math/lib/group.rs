@@ -4,7 +4,7 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    fmt, crash, Code, AsRefStr
+    fmt, stdout, Code, AsRefStr
 };
 
 
@@ -37,7 +37,7 @@ impl From<u8> for Group {fn from(number: u8) -> Group {return match number {
     0 => Group::Undefined,
     7 => Group::Variable,
     8 => Group::Whole,
-    other => crash(Code::UnknownGroupCode)
+    other => stdout.crash(Code::UnknownGroupCode)
 }}}
 
 //> GROUP -> DEBUG

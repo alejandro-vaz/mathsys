@@ -52,16 +52,8 @@ pub use crate::{
             write
         },
         stdout::{
-            Code,
-            init,
-            crash,
-            space,
-            debug,
-            alert,
-            trace,
-            chore,
-            class,
-            point
+            stdout,
+            Code
         },
         tip::Tip
     }

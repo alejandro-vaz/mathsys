@@ -21,9 +21,9 @@ pub struct _Casts {
 
 //> CASTS -> EVALUATE
 impl _Casts {pub fn evaluate(&self, runtime: &mut Runtime, id: Pointer, memory: &Vec<Class>) -> Object {
-    //~ EVALUATE -> RETRIEVAL
+    //= EVALUATE -> RETRIEVAL
     let element = runtime.get(self.element, memory);
-    //~ EVALUATE -> OPERATIONS
+    //= EVALUATE -> OPERATIONS
     self.section("Casting", id);
     return element.cast(self.to);
 }}

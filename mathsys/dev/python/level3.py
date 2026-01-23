@@ -12,7 +12,6 @@ from .ir import Opcode, Binary, Vec, node, Pointer
 from .tokenizer import OPERATOR
 
 
-
 #^
 #^  3ºLEVEL
 #^
@@ -22,11 +21,11 @@ class Level3(NonTerminal, ABC): pass
 
 #> 3ºLEVEL -> TERM
 @dataclass(init = False, unsafe_hash = True)
-class Term(Level3, NonTerminal):
+class Term(Level3):
     code = Opcode(0x09).binary()
     numerator: tuple[Level4, ...]
     denominator: tuple[Level4, ...]
-    def create(self, items: list[Level4 | OPERATOR]) -> None:
+    def __init__(self, items: list[Level4 | OPERATOR]) -> None:
         numerator = []
         denominator = []
         location = True
@@ -38,6 +37,7 @@ class Term(Level3, NonTerminal):
             else: numerator.append(item) if location else denominator.append(item)
         self.numerator = tuple(numerator)
         self.denominator = tuple(denominator)
+        self.freeze()
     def latex(self, types: dict[str, str]) -> str:
         numerator = r"\cdot ".join(value.latex(types) for value in self.numerator)
         denominator = r"\cdot ".join(value.latex(types) for value in self.denominator)

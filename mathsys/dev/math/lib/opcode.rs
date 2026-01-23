@@ -4,7 +4,7 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    crash, Code
+    stdout, Code
 };
 
 //^
@@ -60,5 +60,5 @@ impl From<u8> for Opcode {fn from(value: u8) -> Self {match value {
     0x12 => Opcode::Undefined,
     0x13 => Opcode::Rational,
     0x14 => Opcode::Casts,
-    other => crash(Code::UnknownIRObject)
+    other => stdout.crash(Code::UnknownIRObject)
 }}}

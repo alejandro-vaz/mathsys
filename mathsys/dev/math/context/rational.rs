@@ -4,7 +4,7 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    BigUint, Code, Group, Integer, Natural, Number, Object, One, Sign, Tensor, Undefined, Whole, Zero, crash
+    BigUint, Code, Group, Integer, Natural, Number, Object, One, Sign, Tensor, Undefined, Whole, Zero, stdout
 };
 
 
@@ -22,7 +22,7 @@ pub struct Rational {
     let numerator0 = numerator.into();
     let denominator0 = denominator.into();
     let sign0 = if numerator0.is_zero() {Sign::Positive} else {sign};
-    let denominator1 = if !denominator0.is_zero() {denominator0} else {crash(Code::RationalDenominatorCannotBeZero)};
+    let denominator1 = if !denominator0.is_zero() {denominator0} else {stdout.crash(Code::RationalDenominatorCannotBeZero)};
     let gcd = numerator0.gcd(&denominator1);
     let numerator1 = &numerator0 / &gcd;
     let denominator2 = &denominator1 / &gcd;
@@ -35,21 +35,21 @@ pub struct Rational {
 
 //> RATIONAL -> CASTING
 impl Rational {pub fn cast(&self, group: Group) -> Object {return match group {
-    Group::Infinite => crash(Code::FailedCast),
+    Group::Infinite => stdout.crash(Code::FailedCast),
     Group::Integer => Integer::new(
-        if self.denominator.is_one() {self.numerator.clone()} else {crash(Code::FailedCast)},
+        if self.denominator.is_one() {self.numerator.clone()} else {stdout.crash(Code::FailedCast)},
         self.sign
     ),
     Group::Natural => Natural::new(
-        if self.denominator.is_one() && self.sign.into() && !self.numerator.is_zero() {self.numerator.clone()} else {crash(Code::FailedCast)}
+        if self.denominator.is_one() && self.sign.into() && !self.numerator.is_zero() {self.numerator.clone()} else {stdout.crash(Code::FailedCast)}
     ),
-    Group::Nexists => crash(Code::FailedCast),
+    Group::Nexists => stdout.crash(Code::FailedCast),
     Group::Rational => self.into(),
-    Group::Tensor => crash(Code::FailedCast),
+    Group::Tensor => stdout.crash(Code::FailedCast),
     Group::Undefined => Undefined::new(),
-    Group::Variable => crash(Code::FailedCast),
+    Group::Variable => stdout.crash(Code::FailedCast),
     Group::Whole => Whole::new(
-        if self.denominator.is_one() && self.sign.into() {self.numerator.clone()} else {crash(Code::FailedCast)}
+        if self.denominator.is_one() && self.sign.into() {self.numerator.clone()} else {stdout.crash(Code::FailedCast)}
     )
 }}}
 
@@ -94,7 +94,7 @@ impl Rational {
         )},
         Object::Tensor(item) => Undefined::new(),
         Object::Undefined(item) => item.into(),
-        Object::Variable(item) => crash(Code::NoVariableOperation),
+        Object::Variable(item) => stdout.crash(Code::NoVariableOperation),
         Object::Whole(item) => if self.sign.into() {Rational::new(
             &self.numerator + &self.denominator * &item.value,
             self.denominator.clone(),
@@ -128,7 +128,7 @@ impl Rational {
             item.values.iter().map(|value| self.multiplication(value)).collect()
         ),
         Object::Undefined(item) => item.into(),
-        Object::Variable(item) => crash(Code::NoVariableOperation),
+        Object::Variable(item) => stdout.crash(Code::NoVariableOperation),
         Object::Whole(item) => Rational::new(
             &self.numerator * &item.value,
             self.denominator.clone(),

@@ -15,6 +15,21 @@ use crate::prelude::{
 //> STDOUT -> INSTANCE
 static mut STDOUT: Stdout = Stdout::new();
 
+//> STDOUT -> PROXY
+pub struct Stdproxy;
+impl Stdproxy {
+    pub fn init(&self, settings: &Settings) -> () {unsafe {STDOUT.init(settings)}}
+    pub fn crash(&self, code: Code) -> ! {unsafe {STDOUT.crash(code)}}
+    pub fn space<Type: fmt::Display>(&self, message: Type) -> () {unsafe {STDOUT.space(message)}}
+    pub fn debug<Type: fmt::Display>(&self, message: Type) -> () {unsafe {STDOUT.debug(message)}}
+    pub fn alert<Type: fmt::Display>(&self, message: Type) -> () {unsafe {STDOUT.alert(message)}}
+    pub fn trace<Type: fmt::Display>(&self, message: Type) -> () {unsafe {STDOUT.trace(message)}}
+    pub fn chore<Type: fmt::Display>(&self, message: Type) -> () {unsafe {STDOUT.chore(message)}}
+    pub fn class<Type: fmt::Display>(&self, message: Type) -> () {unsafe {STDOUT.class(message)}}
+    pub fn point<Type: fmt::Display>(&self, message: Type) -> () {unsafe {STDOUT.point(message)}}
+}
+pub const stdout: Stdproxy = Stdproxy;
+
 //> STDOUT -> STRUCT
 struct Stdout {
     cache: Vec<u8>,
@@ -57,7 +72,6 @@ impl Stdout {pub fn init(&mut self, settings: &Settings) -> () {
         call.0, if call.1 {"activated"} else {"deactivated"}
     ))}
 }}
-pub fn init(settings: &Settings) -> () {unsafe {STDOUT.init(settings)}}
 
 
 //^
@@ -83,8 +97,12 @@ impl Stdout {fn print(&mut self, string: String, append: &[u8]) -> () {
 //> CALLS -> CRASH
 impl Stdout {pub fn crash(&mut self, code: Code) -> ! {
     let value = code.clone() as u8;
+    let timer = if let Some(instant) = self.start {format!(" ({})", instant.elapsed().as_micros())} else {
+        self.alert("Program timer not initialized");
+        String::new()
+    };
     self.print(format!(
-        "CRASH: {{{value}}} {}{}.",
+        "CRASH: {{{value}}} {}{timer}.",
         match code {
             Code::Success => "Run finished successfully",
             Code::UnknownIRObject => "Attempted to parse an unknown IR object",
@@ -101,17 +119,12 @@ impl Stdout {pub fn crash(&mut self, code: Code) -> ! {
             Code::RuntimeHigherObject => "ID of runtime object supplied higher than memory length",
             Code::CyclicEvaluation => "Ran into runtime cyclic evaluation",
             Code::Todo => "Todo"
-        },
-        if let Some(instant) = self.start {format!(" ({})", instant.elapsed().as_micros())} else {
-            alert("Program timer not initialized");
-            String::new()
         }
     ), &[0x0A, 0x1B, 0x5B, 0x31, 0x3B, 0x39, 0x31, 0x3B, 0x34, 0x39, 0x6D]);
     self.cache.push(0x00);
     write(self.cache.as_ptr());
     exit(value);
 }}
-pub fn crash(code: Code) -> ! {unsafe {STDOUT.crash(code)}}
 
 //> CALLS -> CRASH ENUM
 #[derive(Clone)]
@@ -140,14 +153,16 @@ pub enum Code {
 //^
 
 //> DETAIL -> SPACE
-impl Stdout {pub fn space<Type: fmt::Display>(&mut self, message: Type) -> () {self.print(format!(
-    "SPACE: {message}{}.",
-    if let Some(instant) = self.start {format!(" ({})", instant.elapsed().as_micros())} else {
-        alert("Program timer not initialized");
+impl Stdout {pub fn space<Type: fmt::Display>(&mut self, message: Type) -> () {
+    let timer = if let Some(instant) = self.start {format!(" ({})", instant.elapsed().as_micros())} else {
+        self.alert("Program timer not initialized");
         String::new()
-    }
-), &[0x0A, 0x1B, 0x5B, 0x30, 0x3B, 0x33, 0x33, 0x3B, 0x34, 0x39, 0x6D])}}
-pub fn space<Type: fmt::Display>(message: Type) -> () {unsafe {STDOUT.space(message)}}
+    };
+    self.print(
+        format!("SPACE: {message}{timer}."), 
+        &[0x0A, 0x1B, 0x5B, 0x30, 0x3B, 0x33, 0x33, 0x3B, 0x34, 0x39, 0x6D]
+    );
+}}
 
 
 //^
@@ -158,34 +173,28 @@ pub fn space<Type: fmt::Display>(message: Type) -> () {unsafe {STDOUT.space(mess
 impl Stdout {pub fn debug<Type: fmt::Display>(&mut self, message: Type) -> () {if !self._debug {return} self.print(format!(
     "    DEBUG: {message}.",
 ), &[0x1B, 0x5B, 0x32, 0x3B, 0x33, 0x35, 0x3B, 0x34, 0x39, 0x6D])}}
-pub fn debug<Type: fmt::Display>(message: Type) -> () {unsafe {STDOUT.debug(message)}}
 
 //> LOOKUP -> ALERT
 impl Stdout {pub fn alert<Type: fmt::Display>(&mut self, message: Type) -> () {if !self._alert {return} self.print(format!(
     "    ALERT: {message}.",
 ), &[0x1B, 0x5B, 0x32, 0x3B, 0x33, 0x38, 0x3B, 0x35, 0x3B, 0x32, 0x30, 0x38, 0x3B, 0x34, 0x39, 0x6D])}}
-pub fn alert<Type: fmt::Display>(message: Type) -> () {unsafe {STDOUT.alert(message)}}
 
 //> LOOKUP -> TRACE
 impl Stdout {pub fn trace<Type: fmt::Display>(&mut self, message: Type) -> () {if !self._trace {return} self.print(format!(
     "    TRACE: {message}.",
 ), &[0x1B, 0x5B, 0x32, 0x3B, 0x33, 0x36, 0x3B, 0x34, 0x39, 0x6D])}}
-pub fn trace<Type: fmt::Display>(message: Type) -> () {unsafe {STDOUT.trace(message)}}
 
 //> LOOKUP -> CHORE
 impl Stdout {pub fn chore<Type: fmt::Display>(&mut self, message: Type) -> () {if !self._chore {return} self.print(format!(
     "    CHORE: {message}.",
 ), &[0x1B, 0x5B, 0x32, 0x3B, 0x33, 0x33, 0x3B, 0x34, 0x39, 0x6D])}}
-pub fn chore<Type: fmt::Display>(message: Type) -> () {unsafe {STDOUT.chore(message)}}
 
 //> LOOKUP -> CLASS
 impl Stdout {pub fn class<Type: fmt::Display>(&mut self, message: Type) -> () {if !self._class {return} self.print(format!(
     "    CLASS: {message}.",
 ), &[0x1B, 0x5B, 0x32, 0x3B, 0x33, 0x32, 0x6D])}}
-pub fn class<Type: fmt::Display>(message: Type) -> () {unsafe {STDOUT.class(message)}}
 
 //> LOOKUP -> POINT
 impl Stdout {pub fn point<Type: fmt::Display>(&mut self, message: Type) -> () {if !self._point {return} self.print(format!(
     "    POINT: {message}.",
 ), &[0x1B, 0x5B, 0x32, 0x3B, 0x33, 0x37, 0x6D])}}
-pub fn point<Type: fmt::Display>(message: Type) -> () {unsafe {STDOUT.point(message)}}

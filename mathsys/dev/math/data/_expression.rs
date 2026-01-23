@@ -21,9 +21,9 @@ pub struct _Expression {
 
 //> EXPRESSION -> EVALUATE
 impl _Expression {pub fn evaluate(&self, runtime: &mut Runtime, id: Pointer, memory: &Vec<Class>) -> Object {
-    //~ EVALUATE -> RETRIEVAL
+    //= EVALUATE -> RETRIEVAL
     let terms: Vec<Object> = self.terms.iter().map(|term| runtime.get(*term, memory)).collect();
-    //~ EVALUATE -> OPERATIONS
+    //= EVALUATE -> OPERATIONS
     self.section("Summing up all terms", id);
     let mut current = Nexists::new();
     for index in 0..terms.len() {

@@ -61,51 +61,44 @@ class Binary:
 @dataclass(frozen = True)
 class Opcode:
     value: int
-    def binary(self) -> Binary:
-        return Binary(
-            value = self.value,
-            width = 5
-        )
+    def binary(self) -> Binary: return Binary(
+        value = self.value,
+        width = 5
+    )
 
 #> TYPES -> POINTER
 @dataclass(frozen = True)
 class Pointer:
     value: int
-    def binary(self) -> Binary: 
-        return Binary(
-            value = self.value, 
-            width = 32
-        )
+    def binary(self) -> Binary: return Binary(
+        value = self.value, 
+        width = 32
+    )
 
 #> TYPES -> SIGN
 @dataclass(frozen = True)
 class Sign:
     value: bool
-    def binary(self) -> Binary: 
-        return Binary(
-            value = 1 if self.value else 0,
-            width = 1
-        )
+    def binary(self) -> Binary: return Binary(
+        value = 1 if self.value else 0,
+        width = 1
+    )
 
 #> TYPES -> OPTION
 @dataclass(frozen = True)
 class Option(Generic[Type]):
     value: Binary | BinaryEncodable | None
-    def binary(self) -> Binary:
-        if self.value is None:
-            return Binary(value = 0, width = 1)
-        else:
-            return Binary(value = 1, width = 1) + self.value
+    def binary(self) -> Binary: 
+        return Binary(value = 0, width = 1) if self.value is None else Binary(value = 1, width = 1) + self.value
 
 #> TYPES -> BIGUINT
 @dataclass(frozen = True)
 class BigUint:
     value: int
-    def binary(self) -> Binary:
-        return Binary(
-            value = self.value,
-            width = 128
-        )
+    def binary(self) -> Binary: return Binary(
+        value = self.value,
+        width = 128
+    )
 
 #> TYPES -> STRING
 @dataclass(frozen = True)
@@ -113,13 +106,12 @@ class String:
     value: str
     def binary(self) -> Binary:
         data = self.value.encode()
-        length = len(data)
         return Binary(
-            value = length,
+            value = len(data),
             width = 16
         ) + Binary(
             value = int.from_bytes(data, byteorder = "little"),
-            width = length * 8
+            width = len(data) * 8
         )
 
 #> TYPES -> GROUP

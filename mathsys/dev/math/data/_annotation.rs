@@ -4,7 +4,7 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    Class, Code, Group, Object, Pointer, Runtime, Tip, Undefined, Variable, crash
+    Class, Code, Group, Object, Pointer, Runtime, Tip, Undefined, Variable, stdout
 };
 
 
@@ -21,12 +21,12 @@ pub struct _Annotation {
 
 //> ANNOTATION -> EVALUATE
 impl _Annotation {pub fn evaluate(&self, runtime: &mut Runtime, id: Pointer, memory: &Vec<Class>) -> Object {
-    //~ EVALUATE -> RETRIEVAL
+    //= EVALUATE -> RETRIEVAL
     let variables = self.variables.iter().map(|variable| {
-        let Object::Variable(item) = runtime.get(*variable, memory) else {crash(Code::FailedNamedRetrieval)};
+        let Object::Variable(item) = runtime.get(*variable, memory) else {stdout.crash(Code::FailedNamedRetrieval)};
         item
     }).collect::<Vec<Variable>>();
-    //~ EVALUATE -> OPERATIONS
+    //= EVALUATE -> OPERATIONS
     self.section("Setting class of variables", id);
     variables.iter().for_each(|variable| variable.set(Undefined::new(), true, runtime, self.group));
     return Undefined::new();

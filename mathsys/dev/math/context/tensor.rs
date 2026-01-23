@@ -4,7 +4,7 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    Object, Group, crash, Code, Undefined, Whole
+    Object, Group, stdout, Code, Undefined, Whole
 };
 
 
@@ -25,15 +25,15 @@ pub struct Tensor {
 
 //> TENSOR -> CASTING
 impl Tensor {pub fn cast(&self, group: Group) -> Object {return match group {
-    Group::Infinite => crash(Code::FailedCast),
-    Group::Integer => crash(Code::FailedCast),
-    Group::Natural => crash(Code::FailedCast),
-    Group::Nexists => crash(Code::FailedCast),
-    Group::Rational => crash(Code::FailedCast),
+    Group::Infinite => stdout.crash(Code::FailedCast),
+    Group::Integer => stdout.crash(Code::FailedCast),
+    Group::Natural => stdout.crash(Code::FailedCast),
+    Group::Nexists => stdout.crash(Code::FailedCast),
+    Group::Rational => stdout.crash(Code::FailedCast),
     Group::Tensor => self.into(),
     Group::Undefined => Undefined::new(),
-    Group::Variable => crash(Code::FailedCast),
-    Group::Whole => crash(Code::FailedCast)
+    Group::Variable => stdout.crash(Code::FailedCast),
+    Group::Whole => stdout.crash(Code::FailedCast)
 }}}
 
 //> TENSOR -> EQUIVALENCY
@@ -71,7 +71,7 @@ impl Tensor {
             (0..self.values.len()).into_iter().map(|index| self.values[index].summation(&item.values[index])).collect()
         )} else {Undefined::new()},
         Object::Undefined(item) => item.into(),
-        Object::Variable(item) => crash(Code::NoVariableOperation),
+        Object::Variable(item) => stdout.crash(Code::NoVariableOperation),
         Object::Whole(item) => Undefined::new()
     }}
 }
@@ -89,7 +89,7 @@ impl Tensor {
             self.values.iter().zip(item.values.iter()).map(|(first, second)| first.multiplication(second)).fold(Whole::new(0u32), |sum, new| sum.summation(&new))
         } else {Undefined::new()},
         Object::Undefined(item) => item.into(),
-        Object::Variable(item) => crash(Code::NoVariableOperation),
+        Object::Variable(item) => stdout.crash(Code::NoVariableOperation),
         Object::Whole(item) => Tensor::new(
             self.values.iter().map(|value| item.multiplication(value)).collect()
         )

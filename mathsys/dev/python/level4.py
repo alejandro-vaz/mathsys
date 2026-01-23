@@ -22,13 +22,14 @@ class Level4(NonTerminal, ABC): pass
 
 #> 4ºLEVEL -> FACTOR
 @dataclass(init = False, unsafe_hash = True)
-class Factor(Level4, NonTerminal):
+class Factor(Level4):
     code = Opcode(0x0A).binary()
     value: Level5
     exponent: Level2 | None
-    def create(self, items: list[Level5 | Level2]) -> None:
+    def __init__(self, items: list[Level5 | Level2]) -> None:
         self.value = cast(Level5, items[0])
         self.exponent = cast(Level2, items[1]) if len(items) == 2 else None
+        self.freeze()
     def latex(self, types: dict[str, str]) -> str:
         exponent = f"^{{{self.exponent.latex(types)}}}" if self.exponent is not None else ""
         return f"{self.value.latex(types)}{exponent}"
@@ -39,19 +40,20 @@ class Factor(Level4, NonTerminal):
 
 #> 4ºLEVEL -> LIMIT
 @dataclass(init = False, unsafe_hash = True)
-class Limit(Level4, NonTerminal):
+class Limit(Level4):
     code = Opcode(0x0B).binary()
     variable: Variable
     approach: Level2
     direction: bool | None
     nest: Nest
     exponent: Level2 | None
-    def create(self, items: list[Variable | Level2 | SIGN | Nest]) -> None:
+    def __init__(self, items: list[Variable | Level2 | SIGN | Nest]) -> None:
         self.variable = cast(Variable, items[0])
         self.approach = cast(Level2, items[1])
         self.direction = items[2].value == "+" if isinstance(items[2], SIGN) else None
         self.nest = items[-2] if isinstance(items[-2], Nest) else cast(Nest, items[-1])
         self.exponent = items[-1] if isinstance(items[-1], Level2) else None
+        self.freeze()
     def latex(self, types: dict[str, str]) -> str:
         direction = f"^{{{"+" if self.direction else "-"}}}" if self.direction is not None else ""
         exponent = f"^{{{self.exponent.latex(types)}}}" if self.exponent is not None else ""

@@ -20,9 +20,9 @@ pub struct _Tensor {
 
 //> TENSOR -> EVALUATE
 impl _Tensor {pub fn evaluate(&self, runtime: &mut Runtime, id: Pointer, memory: &Vec<Class>) -> Object {
-    //~ EVALUATE -> RETRIEVAL
+    //= EVALUATE -> RETRIEVAL
     let values = self.values.iter().map(|value| runtime.get(*value, memory)).collect();
-    //~ EVALUATE -> OPERATIONS
+    //= EVALUATE -> OPERATIONS
     self.section("This is a tensor", id);
     return Tensor::new(values);
 }}

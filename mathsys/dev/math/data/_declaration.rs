@@ -4,7 +4,7 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    Class, Code, Group, Object, Pointer, Runtime, Tip, Undefined, crash
+    Class, Code, Group, Object, Pointer, Runtime, Tip, Undefined, stdout
 };
 
 
@@ -22,10 +22,10 @@ pub struct _Declaration {
 
 //> DECLARATION -> EVALUATE
 impl _Declaration {pub fn evaluate(&self, runtime: &mut Runtime, id: Pointer, memory: &Vec<Class>) -> Object {
-    //~ EVALUATE -> RETRIEVAL
+    //= EVALUATE -> RETRIEVAL
     let value = runtime.get(self.value, memory);
-    let Object::Variable(variable) = runtime.get(self.variable, memory) else {crash(Code::FailedNamedRetrieval)};
-    //~ EVALUATE -> OPERATIONS
+    let Object::Variable(variable) = runtime.get(self.variable, memory) else {stdout.crash(Code::FailedNamedRetrieval)};
+    //= EVALUATE -> OPERATIONS
     self.section("Setting mutable variable", id);
     variable.set(value, true, runtime, self.group.unwrap_or(Group::Undefined));
     return Undefined::new();

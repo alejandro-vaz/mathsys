@@ -4,7 +4,7 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    BigUint, Code, Group, Natural, Object, Rational, Sign, Tensor, Undefined, Whole, Zero, crash
+    BigUint, Code, Group, Natural, Object, Rational, Sign, Tensor, Undefined, Whole, Zero, stdout
 };
 
 
@@ -28,23 +28,23 @@ pub struct Integer {
 
 //> INTEGER -> CASTING
 impl Integer {pub fn cast(&self, group: Group) -> Object {return match group {
-    Group::Infinite => crash(Code::FailedCast),
+    Group::Infinite => stdout.crash(Code::FailedCast),
     Group::Integer => self.into(),
     Group::Natural => if self.sign.into() {Natural::new(
         self.value.clone()
-    )} else {crash(Code::FailedCast)},
-    Group::Nexists => crash(Code::FailedCast),
+    )} else {stdout.crash(Code::FailedCast)},
+    Group::Nexists => stdout.crash(Code::FailedCast),
     Group::Rational => Rational::new(
         self.value.clone(),
         1u32,
         self.sign
     ),
-    Group::Tensor => crash(Code::FailedCast),
+    Group::Tensor => stdout.crash(Code::FailedCast),
     Group::Undefined => Undefined::new(),
-    Group::Variable => crash(Code::FailedCast),
+    Group::Variable => stdout.crash(Code::FailedCast),
     Group::Whole => if self.sign.into() {Whole::new(
         self.value.clone()
-    )} else {crash(Code::FailedCast)}
+    )} else {stdout.crash(Code::FailedCast)}
 }}}
 
 //> INTEGER -> EQUIVALENCY
@@ -95,7 +95,7 @@ impl Integer {
         )}
         Object::Tensor(item) => Undefined::new(),
         Object::Undefined(item) => item.into(),
-        Object::Variable(item) => crash(Code::NoVariableOperation),
+        Object::Variable(item) => stdout.crash(Code::NoVariableOperation),
         Object::Whole(item) => Integer::new(
             if self.sign.into() {&self.value + &item.value} else {if self.value >= item.value {&self.value - &item.value} else {&item.value - &self.value}},
             (if self.sign.into() {true} else {item.value >= self.value}).into()
@@ -130,7 +130,7 @@ impl Integer {
             item.values.iter().map(|value| self.multiplication(value)).collect()
         ),
         Object::Undefined(item) => item.into(),
-        Object::Variable(item) => crash(Code::NoVariableOperation),
+        Object::Variable(item) => stdout.crash(Code::NoVariableOperation),
         Object::Whole(item) => Integer::new(
             &self.value * &item.value,
             self.sign

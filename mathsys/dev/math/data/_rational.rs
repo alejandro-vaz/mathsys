@@ -21,7 +21,7 @@ pub struct _Rational {
 
 //> RATIONAL -> EVALUATE
 impl _Rational {pub fn evaluate(&self, runtime: &mut Runtime, id: Pointer, memory: &Vec<Class>) -> Object {
-    //~ EVALUATE -> OPERATIONS
+    //= EVALUATE -> OPERATIONS
     return Rational::new(
         &self.whole * &BigUint::from(10u32).pow(self.decimal.to_string().chars().rev().collect::<String>().parse().unwrap()) + &self.decimal.to_string().chars().rev().collect::<String>().parse::<BigUint>().unwrap(),
         BigUint::from(10u32).pow(self.decimal.to_string().chars().rev().collect::<String>().parse().unwrap()),

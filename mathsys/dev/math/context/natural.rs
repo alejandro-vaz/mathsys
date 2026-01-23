@@ -4,7 +4,7 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    BigUint, Object, crash, Code, Zero, Group, Integer, Rational, Undefined, Whole, Tensor, Sign
+    BigUint, Object, stdout, Code, Zero, Group, Integer, Rational, Undefined, Whole, Tensor, Sign
 };
 
 
@@ -18,7 +18,7 @@ pub struct Natural {
     pub value: BigUint
 } impl Natural {pub fn new(value: impl Into<BigUint>) -> Object {
     let value0 = value.into();
-    let value1 = if !value0.is_zero() {value0} else {crash(Code::NaturalCannotBeZero)};
+    let value1 = if !value0.is_zero() {value0} else {stdout.crash(Code::NaturalCannotBeZero)};
     return Object::Natural(Natural {
         value: value1
     });
@@ -26,21 +26,21 @@ pub struct Natural {
 
 //> NATURAL -> CASTING
 impl Natural {pub fn cast(&self, group: Group) -> Object {return match group {
-    Group::Infinite => crash(Code::FailedCast),
+    Group::Infinite => stdout.crash(Code::FailedCast),
     Group::Integer => Integer::new(
         self.value.clone(),
         Sign::Positive
     ),
     Group::Natural => self.into(),
-    Group::Nexists => crash(Code::FailedCast),
+    Group::Nexists => stdout.crash(Code::FailedCast),
     Group::Rational => Rational::new(
         self.value.clone(),
         1u32,
         Sign::Positive
     ),
-    Group::Tensor => crash(Code::FailedCast),
+    Group::Tensor => stdout.crash(Code::FailedCast),
     Group::Undefined => Undefined::new(),
-    Group::Variable => crash(Code::FailedCast),
+    Group::Variable => stdout.crash(Code::FailedCast),
     Group::Whole => Whole::new(
         self.value.clone()
     )
@@ -84,7 +84,7 @@ impl Natural {
         )}
         Object::Tensor(item) => Undefined::new(),
         Object::Undefined(item) => item.into(),
-        Object::Variable(item) => crash(Code::NoVariableOperation),
+        Object::Variable(item) => stdout.crash(Code::NoVariableOperation),
         Object::Whole(item) => Natural::new(
             &self.value + &item.value
         )
@@ -114,7 +114,7 @@ impl Natural {
             item.values.iter().map(|value| self.multiplication(value)).collect()
         ),
         Object::Undefined(item) => item.into(),
-        Object::Variable(item) => crash(Code::NoVariableOperation),
+        Object::Variable(item) => stdout.crash(Code::NoVariableOperation),
         Object::Whole(item) => Whole::new(
             &self.value * &item.value
         )
