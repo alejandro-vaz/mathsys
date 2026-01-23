@@ -6,7 +6,6 @@
 from dataclasses import dataclass, field
 from typing import Any
 from collections import defaultdict
-from itertools import product
 from functools import cache
 
 #> HEAD -> DATA
@@ -35,23 +34,41 @@ class Key:
     starting: int
 
 #> RESOURCES -> STATE
-@dataclass(eq = False)
+@dataclass
 class State:
     rule: type[NonTerminal] | str
     productions: tuple[str | type[Token | NonTerminal], ...]
     slot: int
     starting: int
-    backpointers: set[tuple[Any, ...]] = field(default_factory = set)
+    backpointers: set[tuple[Access, ...]] = field(default_factory = set)
     def at(self) -> str | type[Token | NonTerminal] | None: 
         return self.productions[self.slot] if self.slot < len(self.productions) else None
     def full(self) -> bool: return self.slot >= len(self.productions)   
     def key(self) -> Key: return Key(self.rule, self.productions, self.slot, self.starting)
-    def __hash__(self) -> int: return hash(self.key())
-    def __eq__(self, other: Any) -> bool: return isinstance(other, State) and self.key() == other.key()
     def __repr__(self) -> str:
         before = " ".join(str(element) for element in self.productions[:self.slot])
         after = " ".join(str(element) for element in self.productions[self.slot:])
         return f"[{self.rule} -> {before} • {after}, starting = {self.starting}]"
+
+#> RESOURCES -> ACCESS
+@dataclass(frozen = True)
+class Access:
+    symbol: str | type[NonTerminal] | Token
+    start: int
+    end: int
+
+#> RESOURCES -> SPPF
+@dataclass
+class SPPF:
+    symbol: str | type[NonTerminal] | Token
+    start: int
+    end: int
+    pack: set[tuple[Access, ...]] = field(default_factory = set)
+    def follow(self, children: tuple[Access, ...]) -> bool:
+        if children in self.pack: return False
+        self.pack.add(children)
+        return True
+    def access(self) -> Access: return Access(self.symbol, self.start, self.end)
 
 #> RESOURCES -> GRAMMAR
 class Grammar:
@@ -77,28 +94,13 @@ class Grammar:
         return atom
     def __repr__(self) -> str: return self.bnf
 
-#> RESOURCES -> SPPF
-@dataclass(eq = False)
-class SPPF:
-    symbol: str | type[NonTerminal] | Token
-    start: int
-    end: int
-    pack: set[tuple[SPPF, ...]] = field(default_factory = set)
-    def follow(self, children: tuple[SPPF, ...]) -> bool:
-        if children in self.pack: return False
-        self.pack.add(children)
-        return True
-    def node(self) -> tuple[str | type[NonTerminal] | Token, int, int]: return self.symbol, self.start, self.end
-    def __eq__(self, value: object) -> bool: return hash(self) == hash(value)
-    def __hash__(self) -> int: return hash(self.node())
-
 
 #^
 #^  PARSER
 #^
 
 #> PARSER -> ASSEMBLE
-def assemble(symbol: str | type[NonTerminal] | Token, children: tuple[Any]) -> NonTerminal | None | tuple:
+def assemble(symbol: str | type[NonTerminal] | Token, children: tuple[Any]) -> NonTerminal | tuple:
     flat = []
     for child in children:
         if child is None: continue
@@ -107,9 +109,9 @@ def assemble(symbol: str | type[NonTerminal] | Token, children: tuple[Any]) -> N
     match symbol:
         case str(): return tuple(flat)
         case type():
-            if symbol in {Level1, Level2, Level3, Level4, Level5}: return flat[0] if flat else None
+            if symbol in {Level1, Level2, Level3, Level4, Level5}: return flat[0]
             return symbol([element for element in flat if not isinstance(element, Token) or element.important()])
-        case other: return None
+    raise BrokenSyntax()
 
 #> PARSER -> CLASS
 class Parser:
@@ -118,7 +120,7 @@ class Parser:
     chart: list[dict[Key, State]]
     changed: bool
     tokens: list[Token]
-    pool: dict[tuple[str | type[NonTerminal] | Token, int, int], SPPF]
+    pool: dict[Access, SPPF]
     #= CLASS -> INIT
     def __init__(self) -> None: self.reset()
     #= CLASS -> RESET
@@ -133,16 +135,16 @@ class Parser:
         if not key in self.chart[at]: self.chart[at][key] = State(key.rule, key.productions, key.slot, key.starting)
         return self.chart[at][key]
     #= CLASS -> CRGET
-    def seek(self, symbol: str | type[NonTerminal] | Token, start: int, end: int) -> SPPF:
-        key = (symbol, start, end)
-        node = self.pool.get(key)
+    def seek(self, access: Access) -> SPPF:
+        node = self.pool.get(access)
         if node is None:
-            node = SPPF(symbol, start, end)
-            self.pool[key] = node
+            node = SPPF(access.symbol, access.start, access.end)
+            self.pool[access] = node
         return node
     #= CLASS -> MATERIALIZE
     def materialize(self, state: State, end: int) -> SPPF:
-        for backpointer in state.backpointers: (node := self.seek(state.rule, state.starting, end)).follow(backpointer)
+        node = self.seek(Access(state.rule, state.starting, end))
+        for backpointer in state.backpointers: node.follow(backpointer)
         return node
     #= CLASS -> BUILD
     def build(self, brick: Key) -> Start: 
@@ -151,15 +153,14 @@ class Parser:
         for index, chart in enumerate(self.chart):
             if (possible := chart.get(brick)) is not None: state = possible; end = index; break
         if state is None or not state.full() or end is None: raise BrokenSyntax()
-        root = self.pool.get((state.rule, state.starting, end))
-        if root is None: raise BrokenSyntax()
-        return self.best(root)[1]
+        return self.best(Access(state.rule, state.starting, end))[1]
     #= CLASS -> BEST
     @cache
-    def best(self, node: SPPF) -> tuple[int, Any]:
-        if isinstance(node.symbol, Token): return 0, node.symbol
-        bcore = 1000000
+    def best(self, access: Access) -> tuple[int, Any]:
+        if isinstance(access.symbol, Token): return 0, access.symbol
+        bcore = -1
         btree = None
+        node = self.seek(access)
         for pack in node.pack:
             total = score(node.symbol)
             children = []
@@ -167,10 +168,10 @@ class Parser:
                 points, tree = self.best(child)
                 total += points
                 children.append(tree)
-            if total < bcore:
+            if total > bcore:
                 bcore = total
                 btree = assemble(node.symbol, tuple(children))
-        return (bcore, btree)
+        return bcore, btree
     #= CLASS -> PREDICT
     def predict(self, state: State, index: int, value: type[NonTerminal] | str) -> None:
         for productions in self.grammar.productions[value]:
@@ -182,8 +183,8 @@ class Parser:
         if isinstance(self.tokens[index], value):
             other = self.recall(index + 1, Key(state.rule, state.productions, state.slot + 1, state.starting))
             stored = len(other.backpointers)
-            node = self.seek(self.tokens[index], index, index + 1)
-            for backpointer in state.backpointers: other.backpointers.add(backpointer + (node,))
+            for backpointer in state.backpointers: 
+                other.backpointers.add(backpointer + (Access(self.tokens[index], index, index + 1),))
             if len(other.backpointers) > stored: self.changed = True
     #= CLASS -> COMPLETE
     def complete(self, state: State, index: int, value: None) -> None:
@@ -193,7 +194,7 @@ class Parser:
                 extra = self.recall(index, Key(other.rule, other.productions, other.slot + 1, other.starting))
                 stored = len(extra.backpointers)
                 for backpointer in other.backpointers: 
-                    for node in nodes: extra.backpointers.add(backpointer + (node,))
+                    for node in nodes: extra.backpointers.add(backpointer + (node.access(),))
                 if len(extra.backpointers) > stored: self.changed = True
     #= CLASS -> RUN
     def run(self, tokens: list[Token]) -> Start:
@@ -205,7 +206,7 @@ class Parser:
         if last is None or not last.full(): raise BrokenSyntax()
         for backpointer in last.backpointers:
             first = backpointer[0]
-            if isinstance(first, SPPF):
+            if isinstance(first, Access):
                 for key in self.chart[first.end]:
                     if (
                         key.rule == first.symbol
