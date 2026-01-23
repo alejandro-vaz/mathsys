@@ -98,8 +98,7 @@ class SPPF:
 #^
 
 #> PARSER -> ASSEMBLE
-@cache
-def assemble(symbol: str | type[NonTerminal] | Token, children: tuple[Any]):
+def assemble(symbol: str | type[NonTerminal] | Token, children: tuple[Any]) -> NonTerminal | None | tuple:
     flat = []
     for child in children:
         if child is None: continue
@@ -160,7 +159,7 @@ class Parser:
     @cache
     def best(self, node: SPPF) -> tuple[int, Any]:
         if isinstance(node.symbol, Token): return 0, node.symbol
-        bcore = round(1 / (0.1 + 0.2 - 0.3))
+        bcore = 1000000
         btree = None
         for pack in node.pack:
             total = score(node.symbol)
