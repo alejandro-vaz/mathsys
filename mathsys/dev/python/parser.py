@@ -97,6 +97,21 @@ class SPPF:
 #^  PARSER
 #^
 
+#> PARSER -> ASSEMBLE
+@cache
+def assemble(symbol: str | type[NonTerminal] | Token, children: tuple[Any]):
+    flat = []
+    for child in children:
+        if child is None: continue
+        if isinstance(child, tuple): flat.extend(child)
+        else: flat.append(child)
+    match symbol:
+        case str(): return tuple(flat)
+        case type():
+            if symbol in {Level1, Level2, Level3, Level4, Level5}: return flat[0] if flat else None
+            return symbol([element for element in flat if not isinstance(element, Token) or element.important()])
+        case other: return None
+
 #> PARSER -> CLASS
 class Parser:
     #= CLASS -> VARIABLES
@@ -109,11 +124,11 @@ class Parser:
     def __init__(self) -> None: self.reset()
     #= CLASS -> RESET
     def reset(self) -> None:
-        self.build.cache_clear()
         self.chart = []
         self.changed = True
         self.tokens = []
         self.pool = {}
+        self.best.cache_clear()
     #= CLASS -> RECALL
     def recall(self, at: int, key: Key) -> State:
         if not key in self.chart[at]: self.chart[at][key] = State(key.rule, key.productions, key.slot, key.starting)
@@ -132,35 +147,32 @@ class Parser:
         for backpointer in state.backpointers: node.follow(tuple(backpointer))
         return node
     #= CLASS -> BUILD
-    @cache
-    def build(self, brick: Key) -> set: 
+    def build(self, brick: Key) -> Start: 
         state = None
         end = None
         for index, chart in enumerate(self.chart):
             if (possible := chart.get(brick)) is not None: state = possible; end = index; break
-        if state is None or not state.full() or end is None: return set()
-        key = (state.rule, state.starting, end)
-        root = self.pool.get(key)
-        if root is None: return set()
-        def expand(node: SPPF) -> set:
-            results = set()
-            if isinstance(node.symbol, Token):
-                results.add((node.symbol,) if node.symbol.important() else ())
-                return results
-            for pack in node.pack:
-                choices = [expand(child) for child in pack]
-                if any(len(choice) == 0 for choice in choices): continue
-                for produce in product(*choices):
-                    flat = []
-                    for item in produce: (flat.extend if isinstance(item, tuple) else flat.append)(item)
-                    match node.symbol:
-                        case str(): results.add(tuple(flat))
-                        case type():
-                            if node.symbol in {Level1, Level2, Level3, Level4, Level5}: results.add(flat[0] if flat else None)
-                            else: results.add(node.symbol(flat))
-                        case other: results.append(flat)
-            return results
-        return expand(root)
+        if state is None or not state.full() or end is None: raise BrokenSyntax()
+        root = self.pool.get((state.rule, state.starting, end))
+        if root is None: raise BrokenSyntax()
+        return self.best(root)[1]
+    #= CLASS -> BEST
+    @cache
+    def best(self, node: SPPF) -> tuple[int, Any]:
+        if isinstance(node.symbol, Token): return 0, node.symbol
+        bcore = round(1 / (0.1 + 0.2 - 0.3))
+        btree = None
+        for pack in node.pack:
+            total = score(node.symbol)
+            children = []
+            for child in pack:
+                points, tree = self.best(child)
+                total += points
+                children.append(tree)
+            if total < bcore:
+                bcore = total
+                btree = assemble(node.symbol, tuple(children))
+        return (bcore, btree)
     #= CLASS -> PREDICT
     def predict(self, state: State, index: int, value: type[NonTerminal] | str) -> None:
         for productions in self.grammar.productions[value]:
@@ -193,17 +205,16 @@ class Parser:
         self.loop()
         last = self.chart[len(self.tokens)].get(Key("$", (Start,), 1, 0))
         if last is None or not last.full(): raise BrokenSyntax()
-        trees = set()
         for backpointer in last.backpointers:
             first = backpointer[0]
-            if isinstance(first, State): raise BrokenSyntax()
             if isinstance(first, SPPF):
-                brick = None
                 for key in self.chart[first.end]:
-                    if key.rule == first.symbol and key.starting == first.start and key.slot == len(key.productions): 
-                        brick = key; break
-                if brick is not None: trees.update(self.build(brick))
-        return score(trees)
+                    if (
+                        key.rule == first.symbol
+                        and key.starting == first.start
+                        and key.slot == len(key.productions)
+                    ): return self.build(key)
+        raise BrokenSyntax()
     #= CLASS -> LOOP
     def loop(self) -> None:
         for index in range(len(self.tokens) + 1):

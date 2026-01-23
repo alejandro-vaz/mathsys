@@ -159,7 +159,7 @@ Level5 -> Infinite | Variable | Nest | Tensor | Whole | Absolute | Undefined | R
 """)
 
 #> SYNTAX -> SCORE
-def score(symbol: type[NonTerminal]) -> int: return -{
+def score(symbol: type[NonTerminal] | str) -> int: return -{
     Declaration: 1,
     Equation: 0
 }.get(symbol, 0)
