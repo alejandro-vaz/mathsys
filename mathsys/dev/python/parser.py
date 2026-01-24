@@ -3,8 +3,7 @@
 #^
 
 #> HEAD -> MODULES
-from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Self
 from collections import defaultdict
 from functools import cache
 
@@ -26,49 +25,40 @@ from .level5 import Level5
 #^
 
 #> RESOURCES -> KEY
-@dataclass(frozen = True)
+@cache
 class Key:
     rule: type[NonTerminal] | str
     productions: tuple[type[Token | NonTerminal] | str, ...]
     slot: int
     starting: int
-
-#> RESOURCES -> STATE
-@dataclass
-class State:
-    rule: type[NonTerminal] | str
-    productions: tuple[str | type[Token | NonTerminal], ...]
-    slot: int
-    starting: int
-    backpointers: set[tuple[Access, ...]] = field(default_factory = set)
-    def at(self) -> str | type[Token | NonTerminal] | None: 
-        return self.productions[self.slot] if self.slot < len(self.productions) else None
-    def full(self) -> bool: return self.slot >= len(self.productions)   
-    def key(self) -> Key: return Key(self.rule, self.productions, self.slot, self.starting)
-    def __repr__(self) -> str:
-        before = " ".join(str(element) for element in self.productions[:self.slot])
-        after = " ".join(str(element) for element in self.productions[self.slot:])
-        return f"[{self.rule} -> {before} • {after}, starting = {self.starting}]"
+    plen: int
+    full: bool
+    at: type[Token | NonTerminal] | str | None
+    def __init__(self, rule: type[NonTerminal] | str, productions: tuple[type[Token | NonTerminal] | str, ...], slot: int, starting: int) -> None:
+        self.rule = rule
+        self.productions = productions
+        self.slot = slot
+        self.starting = starting
+        self.plen = productions.__len__()
+        self.full = slot == self.plen
+        self.at = productions[slot] if not self.full else None
+        self.hashed = hash((rule, productions, slot, starting))
+    def __hash__(self) -> int: return self.hashed
+    def __eq__(self, value: Self) -> bool: return self.hashed == value.hashed
 
 #> RESOURCES -> ACCESS
-@dataclass(frozen = True)
 class Access:
     symbol: str | type[NonTerminal] | Token
     start: int
     end: int
-
-#> RESOURCES -> SPPF
-@dataclass
-class SPPF:
-    symbol: str | type[NonTerminal] | Token
-    start: int
-    end: int
-    pack: set[tuple[Access, ...]] = field(default_factory = set)
-    def follow(self, children: tuple[Access, ...]) -> bool:
-        if children in self.pack: return False
-        self.pack.add(children)
-        return True
-    def access(self) -> Access: return Access(self.symbol, self.start, self.end)
+    hashed: int
+    def __init__(self, symbol: str | type[NonTerminal] | Token, start: int, end: int) -> None:
+        self.symbol = symbol
+        self.start = start
+        self.end = end
+        self.hashed = hash((symbol, start, end))
+    def __hash__(self) -> int: return self.hashed
+    def __eq__(self, value: Access) -> bool: return self.hashed == value.hashed
 
 #> RESOURCES -> GRAMMAR
 class Grammar:
@@ -117,52 +107,53 @@ def assemble(symbol: str | type[NonTerminal] | Token, children: tuple[Any]) -> N
 class Parser:
     #= CLASS -> VARIABLES
     grammar = Grammar(SYNTAX)
-    chart: list[dict[Key, State]]
-    changed: bool
+    chart: list[dict[Key, set[tuple[Access, ...]]]]
     tokens: list[Token]
-    pool: dict[Access, SPPF]
+    pool: dict[Access, set[tuple[Access, ...]]]
+    waiting: list[defaultdict[type[Token | NonTerminal] | str, set[Key]]]
     #= CLASS -> INIT
     def __init__(self) -> None: self.reset()
     #= CLASS -> RESET
     def reset(self) -> None:
         self.chart = []
-        self.changed = True
         self.tokens = []
-        self.pool = {}
+        self.pool = defaultdict(set)
+        self.recall.cache_clear()
+        self.materialize.cache_clear()
         self.best.cache_clear()
     #= CLASS -> RECALL
-    def recall(self, at: int, key: Key) -> State:
-        if not key in self.chart[at]: self.chart[at][key] = State(key.rule, key.productions, key.slot, key.starting)
-        return self.chart[at][key]
-    #= CLASS -> CRGET
-    def seek(self, access: Access) -> SPPF:
-        node = self.pool.get(access)
-        if node is None:
-            node = SPPF(access.symbol, access.start, access.end)
-            self.pool[access] = node
-        return node
+    @cache
+    def recall(self, at: int, key: Key) -> set[tuple[Access, ...]]:
+        chart = self.chart[at]
+        if key not in chart:
+            chart[key] = set()
+            if key.at is not None: self.waiting[at][key.at].add(key)
+        return chart[key]
+
+        #item = chart[key] = chart.get(key, set())
+        #return item
     #= CLASS -> MATERIALIZE
-    def materialize(self, state: State, end: int) -> SPPF:
-        node = self.seek(Access(state.rule, state.starting, end))
-        for backpointer in state.backpointers: node.follow(backpointer)
-        return node
+    @cache
+    def materialize(self, index: int, key: Key, end: int) -> Access:
+        for backpointer in self.recall(index, key): self.pool[access := Access(key.rule, key.starting, end)].add(backpointer)
+        return access
     #= CLASS -> BUILD
-    def build(self, brick: Key) -> Start: 
+    def build(self, key: Key) -> Start: 
         state = None
         end = None
         for index, chart in enumerate(self.chart):
-            if (possible := chart.get(brick)) is not None: state = possible; end = index; break
-        if state is None or not state.full() or end is None: raise BrokenSyntax()
-        return self.best(Access(state.rule, state.starting, end))[1]
+            if (possible := chart.get(key)) is not None: state = possible; end = index; break
+        if state is None or not key.full or end is None: raise BrokenSyntax()
+        return self.best(Access(key.rule, key.starting, end))[1]
     #= CLASS -> BEST
     @cache
     def best(self, access: Access) -> tuple[int, Any]:
         if isinstance(access.symbol, Token): return 0, access.symbol
         bcore = -1
         btree = None
-        node = self.seek(access)
-        for pack in node.pack:
-            total = score(node.symbol)
+        node = self.pool[access]
+        for pack in node:
+            total = score(access.symbol)
             children = []
             for child in pack:
                 points, tree = self.best(child)
@@ -170,62 +161,68 @@ class Parser:
                 children.append(tree)
             if total > bcore:
                 bcore = total
-                btree = assemble(node.symbol, tuple(children))
+                btree = assemble(access.symbol, tuple(children))
         return bcore, btree
-    #= CLASS -> PREDICT
-    def predict(self, state: State, index: int, value: type[NonTerminal] | str) -> None:
-        for productions in self.grammar.productions[value]:
-            if not (other := self.recall(index, Key(value, productions, 0, index))).backpointers:
-                other.backpointers.add(tuple())
-                self.changed = True
-    #= CLASS -> SCAN
-    def scan(self, state: State, index: int, value: type[Token]) -> None:
-        if isinstance(self.tokens[index], value):
-            other = self.recall(index + 1, Key(state.rule, state.productions, state.slot + 1, state.starting))
-            stored = len(other.backpointers)
-            for backpointer in state.backpointers: 
-                other.backpointers.add(backpointer + (Access(self.tokens[index], index, index + 1),))
-            if len(other.backpointers) > stored: self.changed = True
-    #= CLASS -> COMPLETE
-    def complete(self, state: State, index: int, value: None) -> None:
-        nodes = [self.materialize(state, index)]
-        for other in list(self.chart[state.starting].values()):
-            if other.at() == state.rule:
-                extra = self.recall(index, Key(other.rule, other.productions, other.slot + 1, other.starting))
-                stored = len(extra.backpointers)
-                for backpointer in other.backpointers: 
-                    for node in nodes: extra.backpointers.add(backpointer + (node.access(),))
-                if len(extra.backpointers) > stored: self.changed = True
     #= CLASS -> RUN
     def run(self, tokens: list[Token]) -> Start:
+        tklen = len(tokens)
         self.tokens = [token for token in tokens if token.compilable()]
-        self.chart = [{} for index in range(len(self.tokens) + 1)]
-        self.recall(0, Key("$", (Start,), 0, 0)).backpointers.add(tuple())
+        self.chart = [{} for index in range(tklen + 1)]
+        self.waiting = [defaultdict(set) for index in range(tklen + 1)]
+        self.recall(0, Key("$", (Start,), 0, 0)).add(())
         self.loop()
-        last = self.chart[len(self.tokens)].get(Key("$", (Start,), 1, 0))
-        if last is None or not last.full(): raise BrokenSyntax()
-        for backpointer in last.backpointers:
+        last = self.chart[len(self.tokens)].get(key := Key("$", (Start,), 1, 0))
+        if last is None or not key.full: raise BrokenSyntax()
+        for backpointer in last:
             first = backpointer[0]
             if isinstance(first, Access):
                 for key in self.chart[first.end]:
-                    if (
-                        key.rule == first.symbol
-                        and key.starting == first.start
-                        and key.slot == len(key.productions)
-                    ): return self.build(key)
+                    if key.full and key.rule is first.symbol and key.starting == first.start: return self.build(key)
         raise BrokenSyntax()
     #= CLASS -> LOOP
     def loop(self) -> None:
-        for index in range(len(self.tokens) + 1):
-            self.changed = True
-            while self.changed:
-                self.changed = False
-                items = list(self.chart[index].values())
-                for state in items:
-                    match state.at():
-                        case value if value is not None and ((isinstance(value, type) and issubclass(value, NonTerminal)) or isinstance(value, str)):
-                            self.predict(state, index, value)
-                        case value if value is not None and index < len(self.tokens) and isinstance(value, type) and issubclass(value, Token) and value in ORDER:
-                            self.scan(state, index, value)
-                        case value if state.full() and value is None:
-                            self.complete(state, index, value)
+        worklist: set[Key] = set()
+        tklen = len(self.tokens)
+        for index in range(tklen + 1):
+            worklist.update(self.chart[index])
+            while worklist:
+                value = (key := worklist.pop()).at
+                if value is not None and (
+                    value.__class__ == str
+                    or hasattr(value, "freeze")
+                ):
+                    changed = []
+                    for productions in self.grammar.productions[value]:
+                        if not (other := self.recall(index, nkey := Key(value, productions, 0, index))):
+                            other.add(())
+                            changed.append(nkey)
+                    worklist.update(changed)
+                elif value is not None and index < tklen and hasattr(value, "compilable"):
+                    if self.tokens[index].__class__ == value:
+                        other = self.recall(index + 1, Key(key.rule, key.productions, key.slot + 1, key.starting))
+                        for backpointer in self.recall(index, key): 
+                            other.add(backpointer + (Access(self.tokens[index], index, index + 1),))
+                elif key.full:
+                    waiting = self.waiting[key.starting].get(key.rule)
+                    if not waiting: continue
+                    completed = self.materialize(index, key, index)
+                    for other in waiting:
+                        nkey = Key(
+                            other.rule,
+                            other.productions,
+                            other.slot + 1,
+                            other.starting
+                        )
+                        extra = self.recall(index, nkey)
+                        stored = len(extra)
+                        for backpointer in self.chart[key.starting][other]:
+                            extra.add(backpointer + (completed,))
+                        if len(extra) > stored: worklist.add(nkey)
+                #elif key.full:
+                #    for other in self.chart[key.starting] | {key: value}:
+                #        if other.at == key.rule:
+                #            extra = self.recall(index, Key(other.rule, other.productions, other.slot + 1, other.starting))
+                #            stored = len(extra)
+                #            for backpointer in self.chart[key.starting][other]:
+                #                extra.add(backpointer + (self.materialize(index, key, index),))
+                #            if len(extra) > stored: worklist.update(self.chart[index])

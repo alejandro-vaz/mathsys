@@ -8,6 +8,7 @@ from async_lru import alru_cache
 from time import time
 from dataclasses import dataclass
 from platform import system
+import cProfile
 
 #> HEAD -> CLI
 from ..entry import File, Flag, Alias, Target
@@ -65,6 +66,7 @@ async def tokens(content: str) -> list[Token]: return _tokenizer(content)
 
 #> MAIN -> AST
 @alru_cache(maxsize = None)
+@timeWrapper
 async def ast(content: str) -> Start: return _parser(_tokenizer(content))
 
 ##> MAIN -> VALIDATE
