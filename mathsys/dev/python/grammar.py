@@ -4,9 +4,10 @@
 
 #> HEAD -> MODULES
 from re import search
+from collections import defaultdict
 
 #> HEAD -> DATA
-from .tokenizer import Token
+from .tokenizer import Token, ORDER
 from .nonterminal import NonTerminal
 from .start import Start
 from .level1 import Declaration, Definition, Annotation, Node, Equation, Use, Level1
@@ -117,7 +118,31 @@ NONTERMINALS = {item.__name__: item for item in {
 #^  SYNTAX
 #^
 
-SYNTAX = Extensor().run(r"""
+#> SYNTAX -> GRAMMAR
+class Grammar:
+    productions: dict[str | type[NonTerminal], tuple[tuple[str, ...]]]
+    bnf: str
+    def __init__(self, bnf: str) -> None: 
+        self.bnf = bnf
+        self.productions = self.convert()
+    def convert(self) -> dict[str | type[NonTerminal], tuple[tuple[str, ...]]]:
+        syntax = defaultdict(list)
+        for line in [line.strip() for line in self.bnf.splitlines()]:
+            rule, productions = [part.strip() for part in line.split("->", 1)]
+            for variant in [variant.strip() for variant in productions.split("|")]:
+                if not variant: syntax[self.transform(rule)].append(tuple())
+                else: syntax[self.transform(rule)].append(tuple(self.transform(item) for item in variant.split()))
+        frozen = {}
+        for key, value in syntax.items(): frozen[key] = tuple(value)
+        frozen["$"] = (Start,)
+        return frozen
+    def transform(self, atom: str) -> type[NonTerminal | Token] | str:
+        if atom in (token := {item.__name__: item for item in ORDER}): return token[atom]
+        if atom in NONTERMINALS: return NONTERMINALS[atom]
+        return atom
+    def __repr__(self) -> str: return self.bnf
+
+GRAMMAR = Grammar(Extensor().run(r"""
 #> SYNTAX -> START
 Start -> (_NEWLINES? Level1 _SPACES? (_NEWLINES Level1 _SPACES?)*)? _NEWLINES? _EOF
 
@@ -156,7 +181,7 @@ Level2 -> Expression
 Level3 -> Term
 Level4 -> Factor | Limit
 Level5 -> Infinite | Variable | Nest | Tensor | Whole | Absolute | Undefined | Rational | Casts
-""")
+"""))
 
 #> SYNTAX -> SCORE
 def score(symbol: type[NonTerminal] | Token | str) -> int: return {

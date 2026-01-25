@@ -8,10 +8,10 @@ from collections import defaultdict
 from functools import cache, lru_cache
 
 #> HEAD -> DATA
-from .tokenizer import Token, ORDER
+from .tokenizer import Token
 from .start import Start
 from .nonterminal import NonTerminal
-from .grammar import SYNTAX, NONTERMINALS, score
+from .grammar import GRAMMAR, score
 from .issues import Syntax
 from .level1 import Level1
 from .level2 import Level2
@@ -70,30 +70,6 @@ class Access:
         and self.end == value.end
     )
 
-#> RESOURCES -> GRAMMAR
-class Grammar:
-    productions: dict[str | type[NonTerminal], tuple[tuple[str, ...]]]
-    bnf: str
-    def __init__(self, bnf: str) -> None: 
-        self.bnf = bnf
-        self.productions = self.convert()
-    def convert(self) -> dict[str | type[NonTerminal], tuple[tuple[str, ...]]]:
-        syntax = defaultdict(list)
-        for line in [line.strip() for line in self.bnf.splitlines()]:
-            rule, productions = [part.strip() for part in line.split("->", 1)]
-            for variant in [variant.strip() for variant in productions.split("|")]:
-                if not variant: syntax[self.transform(rule)].append(tuple())
-                else: syntax[self.transform(rule)].append(tuple(self.transform(item) for item in variant.split()))
-        frozen = {}
-        for key, value in syntax.items(): frozen[key] = tuple(value)
-        frozen["$"] = (Start,)
-        return frozen
-    def transform(self, atom: str) -> type[NonTerminal | Token] | str:
-        if atom in (token := {item.__name__: item for item in ORDER}): return token[atom]
-        if atom in NONTERMINALS: return NONTERMINALS[atom]
-        return atom
-    def __repr__(self) -> str: return self.bnf
-
 
 #^
 #^  PARSER
@@ -114,7 +90,6 @@ def assemble(symbol: str | type[NonTerminal], children: tuple[Any]) -> NonTermin
 #> PARSER -> CLASS
 class Parser:
     #= CLASS -> VARIABLES
-    grammar = Grammar(SYNTAX)
     chart: list[dict[KeyType, set[tuple[Access, ...]]]]
     tokens: list[Token]
     pool: dict[Access, set[tuple[Access, ...]]]
@@ -193,7 +168,7 @@ class Parser:
                     or hasattr(value, "freeze")
                 ):
                     changed = []
-                    for productions in self.grammar.productions[value]:
+                    for productions in GRAMMAR.productions[value]:
                         if not (other := self.recall(index, nkey := Key(value, productions, 0, index))):
                             other.add(())
                             changed.append(nkey)
