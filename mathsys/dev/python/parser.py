@@ -25,14 +25,12 @@ from .level5 import Level5
 #^
 
 #> RESOURCES -> KEY
-KeyType = Any
-@lru_cache(65536)
+@lru_cache(1024)
 class Key:
     rule: type[NonTerminal] | Temporal
     productions: tuple[type[Token | NonTerminal] | Temporal, ...]
     slot: int
     starting: int
-    plen: int
     full: bool
     at: type[Token | NonTerminal] | Temporal | None
     def __init__(self, rule: type[NonTerminal] | Temporal, productions: tuple[type[Token | NonTerminal] | Temporal, ...], slot: int, starting: int) -> None:
@@ -40,8 +38,7 @@ class Key:
         self.productions = productions
         self.slot = slot
         self.starting = starting
-        self.plen = productions.__len__()
-        self.full = slot == self.plen
+        self.full = slot == productions.__len__()
         self.at = productions[slot] if not self.full else None
         self.hashed = hash((rule, productions, slot, starting))
     def __hash__(self) -> int: return self.hashed
@@ -90,10 +87,10 @@ def assemble(symbol: Temporal | type[NonTerminal], children: tuple[Any]) -> NonT
 #> PARSER -> CLASS
 class Parser:
     #= CLASS -> VARIABLES
-    chart: list[dict[KeyType, set[tuple[Access, ...]]]]
+    chart: list[dict[Key, set[tuple[Access, ...]]]]
     tokens: list[Token]
     pool: dict[Access, set[tuple[Access, ...]]]
-    waiting: list[defaultdict[type[Token | NonTerminal] | Temporal, set[KeyType]]]
+    waiting: list[defaultdict[type[Token | NonTerminal] | Temporal, set[Key]]]
     #= CLASS -> INIT
     def __init__(self) -> None: self.reset()
     #= CLASS -> RESET
@@ -106,14 +103,14 @@ class Parser:
         self.best.cache_clear()
     #= CLASS -> RECALL
     @cache
-    def recall(self, at: int, key: KeyType) -> set[tuple[Access, ...]]:
+    def recall(self, at: int, key: Key) -> set[tuple[Access, ...]]:
         chart = self.chart[at]
         if key not in chart: chart[key] = set()
         if key.at is not None: self.waiting[at][key.at].add(key)
         return chart[key]
     #= CLASS -> MATERIALIZE
     @cache
-    def materialize(self, index: int, key: KeyType, end: int) -> Access:
+    def materialize(self, index: int, key: Key, end: int) -> Access:
         for backpointer in self.recall(index, key): self.pool[access := Access(key.rule, key.starting, end)].add(backpointer)
         return access
     #= CLASS -> BEST
@@ -157,7 +154,7 @@ class Parser:
         raise Syntax()
     #= CLASS -> LOOP
     def loop(self) -> None:
-        worklist: set[KeyType] = set()
+        worklist: set[Key] = set()
         tklen = len(self.tokens)
         for index in range(tklen + 1):
             worklist.update(self.chart[index])
