@@ -6,7 +6,6 @@
 from re import search
 
 #> HEAD -> DATA
-from .issues import BrokenSyntax
 from .tokenizer import Token
 from .nonterminal import NonTerminal
 from .start import Start

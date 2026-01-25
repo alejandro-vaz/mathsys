@@ -1,36 +1,20 @@
-2 + e
-3 - 1
-2 + e
-3 - 1
-2 + e
-3 - 1
-2 + e
-3 - 1
-2 + e
-3 - 1
-2 + e
-3 - 1
-2 + e
-3 - 1
-2 + e
-3 - 1
-2 + e
-3 - 1
-2 + e
-3 - 1
-2 + e
-3 - 1
-2 + e
-3 - 1
-2 + e
-3 - 1
-2 + e
-3 - 1
-2 + e
-3 - 1
-2 + e
-3 - 1
-2 + e
-3 - 1
-2 + e
-3 - 1
+e == lim n-> inf of (1 + 1 / n)^n^
+e == lim n-> inf of (1 + 1 / n)^n^
+e == lim n-> inf of (1 + 1 / n)^n^
+e == lim n-> inf of (1 + 1 / n)^n^
+e == lim n-> inf of (1 + 1 / n)^n^
+e == lim n-> inf of (1 + 1 / n)^n^
+e == lim n-> inf of (1 + 1 / n)^n^
+e == lim n-> inf of (1 + 1 / n)^n^
+e == lim n-> inf of (1 + 1 / n)^n^
+e == lim n-> inf of (1 + 1 / n)^n^
+e == lim n-> inf of (1 + 1 / n)^n^
+e == lim n-> inf of (1 + 1 / n)^n^
+e == lim n-> inf of (1 + 1 / n)^n^
+e == lim n-> inf of (1 + 1 / n)^n^
+e == lim n-> inf of (1 + 1 / n)^n^
+e == lim n-> inf of (1 + 1 / n)^n^
+e == lim n-> inf of (1 + 1 / n)^n^
+e == lim n-> inf of (1 + 1 / n)^n^
+e == lim n-> inf of (1 + 1 / n)^n^
+e == lim n-> inf of (1 + 1 / n)^n^

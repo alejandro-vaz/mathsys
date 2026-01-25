@@ -3,6 +3,7 @@
 #^
 
 #> HEAD -> MODULES
+from typing import Any
 from rich import print
 
 
@@ -56,8 +57,8 @@ class NoTargetProvided(Issue):
         helpers = "\n".join(["- " + value.__name__.replace("_", "-") for value in available])
         super().__init__(f"Available targets:\n{helpers}")
 
-#> ISSUES -> BROKEN SYNTAX
-class BrokenSyntax(Issue):
+#> ISSUES -> SYNTAX ERROR
+class Syntax(Issue):
     def __init__(self) -> None: super().__init__("Syntax error.")
 
 #> ISSUES -> FAILED COMPILATION
