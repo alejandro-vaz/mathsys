@@ -86,7 +86,7 @@ class Extensor:
 #^
 
 #> NONTERMINALS -> ALL
-NONTERMINALS = {item.__name__: item for item in {
+NONTERMINALS = {item.__name__: item for item in [
     Start,
     Declaration,
     Definition,
@@ -112,7 +112,7 @@ NONTERMINALS = {item.__name__: item for item in {
     Level3,
     Level4,
     Level5
-}}
+]}
 
 
 #^
@@ -121,7 +121,7 @@ NONTERMINALS = {item.__name__: item for item in {
 
 #> SYNTAX -> GRAMMAR
 class Grammar:
-    productions: dict[str | type[NonTerminal], tuple[tuple[str, ...]]]
+    productions: dict[Temporal | type[NonTerminal], tuple[tuple[Temporal, ...]]]
     bnf: str
     def __init__(self, bnf: str) -> None: 
         self.bnf = bnf
