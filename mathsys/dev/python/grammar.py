@@ -5,7 +5,6 @@
 #> HEAD -> MODULES
 from re import search
 from collections import defaultdict
-from dataclasses import dataclass
 
 #> HEAD -> DATA
 from .tokenizer import Token, ORDER
@@ -121,12 +120,12 @@ NONTERMINALS = {item.__name__: item for item in [
 
 #> SYNTAX -> GRAMMAR
 class Grammar:
-    productions: dict[Temporal | type[NonTerminal], tuple[tuple[Temporal, ...]]]
+    productions: dict[Temporal | type[NonTerminal], tuple[tuple[Temporal | type[NonTerminal], ...]]]
     bnf: str
     def __init__(self, bnf: str) -> None: 
         self.bnf = bnf
         self.productions = self.convert()
-    def convert(self) -> dict[str | type[NonTerminal], tuple[tuple[str, ...]]]:
+    def convert(self) -> dict[Temporal | type[NonTerminal], tuple[tuple[Temporal | type[NonTerminal], ...]]]:
         syntax = defaultdict(list)
         for line in [line.strip() for line in self.bnf.splitlines()]:
             rule, productions = [part.strip() for part in line.split("->", 1)]
@@ -189,7 +188,7 @@ Level5 -> Infinite | Variable | Nest | Tensor | Whole | Absolute | Undefined | R
 """))
 
 #> SYNTAX -> SCORE
-def score(symbol: type[NonTerminal] | Token | str) -> int: return {
+def score(symbol: type[NonTerminal] | Token | Temporal) -> int: return {
     Declaration: 1,
     Equation: 0
 }.get(symbol, 0)
