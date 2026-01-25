@@ -11,7 +11,7 @@ from functools import cache, lru_cache
 from .tokenizer import Token
 from .start import Start
 from .nonterminal import NonTerminal
-from .grammar import GRAMMAR, score
+from .grammar import GRAMMAR, score, Temporal
 from .issues import Syntax
 from .level1 import Level1
 from .level2 import Level2
@@ -28,14 +28,14 @@ from .level5 import Level5
 KeyType = Any
 @lru_cache(65536)
 class Key:
-    rule: type[NonTerminal] | str
-    productions: tuple[type[Token | NonTerminal] | str, ...]
+    rule: type[NonTerminal] | Temporal
+    productions: tuple[type[Token | NonTerminal] | Temporal, ...]
     slot: int
     starting: int
     plen: int
     full: bool
-    at: type[Token | NonTerminal] | str | None
-    def __init__(self, rule: type[NonTerminal] | str, productions: tuple[type[Token | NonTerminal] | str, ...], slot: int, starting: int) -> None:
+    at: type[Token | NonTerminal] | Temporal | None
+    def __init__(self, rule: type[NonTerminal] | Temporal, productions: tuple[type[Token | NonTerminal] | Temporal, ...], slot: int, starting: int) -> None:
         self.rule = rule
         self.productions = productions
         self.slot = slot
@@ -54,11 +54,11 @@ class Key:
 
 #> RESOURCES -> ACCESS
 class Access:
-    symbol: str | type[NonTerminal] | Token
+    symbol: Temporal | type[NonTerminal] | Token
     start: int
     end: int
     hashed: int
-    def __init__(self, symbol: str | type[NonTerminal] | Token, start: int, end: int) -> None:
+    def __init__(self, symbol: Temporal | type[NonTerminal] | Token, start: int, end: int) -> None:
         self.symbol = symbol
         self.start = start
         self.end = end
@@ -76,13 +76,13 @@ class Access:
 #^
 
 #> PARSER -> ASSEMBLE
-def assemble(symbol: str | type[NonTerminal], children: tuple[Any]) -> NonTerminal | tuple:
+def assemble(symbol: Temporal | type[NonTerminal], children: tuple[Any]) -> NonTerminal | tuple:
     flat = []
     for child in children:
         if child is None: continue
         if isinstance(child, tuple): flat.extend(child)
         else: flat.append(child)
-    if isinstance(symbol, str): return tuple(flat)
+    if isinstance(symbol, Temporal): return tuple(flat)
     else:
         if symbol in {Level1, Level2, Level3, Level4, Level5}: return flat[0]
         return symbol([element for element in flat if not isinstance(element, Token) or element.important()])
@@ -93,7 +93,7 @@ class Parser:
     chart: list[dict[KeyType, set[tuple[Access, ...]]]]
     tokens: list[Token]
     pool: dict[Access, set[tuple[Access, ...]]]
-    waiting: list[defaultdict[type[Token | NonTerminal] | str, set[KeyType]]]
+    waiting: list[defaultdict[type[Token | NonTerminal] | Temporal, set[KeyType]]]
     #= CLASS -> INIT
     def __init__(self) -> None: self.reset()
     #= CLASS -> RESET
@@ -164,7 +164,7 @@ class Parser:
             while worklist:
                 value = (key := worklist.pop()).at
                 if value is not None and (
-                    value.__class__ == str
+                    value.__class__ == Temporal
                     or hasattr(value, "freeze")
                 ):
                     changed = []

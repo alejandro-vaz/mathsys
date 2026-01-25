@@ -5,6 +5,7 @@
 #> HEAD -> MODULES
 from re import search
 from collections import defaultdict
+from dataclasses import dataclass
 
 #> HEAD -> DATA
 from .tokenizer import Token, ORDER
@@ -136,12 +137,16 @@ class Grammar:
         for key, value in syntax.items(): frozen[key] = tuple(value)
         frozen["$"] = (Start,)
         return frozen
-    def transform(self, atom: str) -> type[NonTerminal | Token] | str:
+    def transform(self, atom: str) -> type[NonTerminal | Token] | Temporal:
         if atom in (token := {item.__name__: item for item in ORDER}): return token[atom]
         if atom in NONTERMINALS: return NONTERMINALS[atom]
         return atom
     def __repr__(self) -> str: return self.bnf
 
+#> SYNTAX -> TEMPORAL
+Temporal = str
+
+#> SYNTAX -> GRAMMAR
 GRAMMAR = Grammar(Extensor().run(r"""
 #> SYNTAX -> START
 Start -> (_NEWLINES? Level1 _SPACES? (_NEWLINES Level1 _SPACES?)*)? _NEWLINES? _EOF
