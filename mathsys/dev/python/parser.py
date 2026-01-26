@@ -95,8 +95,8 @@ class Parser:
         return chart[key]
     #= CLASS -> MATERIALIZE
     @cache
-    def materialize(self, index: int, key: Key, end: int) -> Access:
-        for backpointer in self.recall(index, key): self.pool[access := makeaccess(key[0], key[3], end)].add(backpointer)
+    def materialize(self, index: int, key: Key) -> Access:
+        for backpointer in self.recall(index, key): self.pool[access := makeaccess(key[0], key[3], index)].add(backpointer)
         return access
     #= CLASS -> BEST
     def best(self, access: Access) -> tuple[int, Any]:
@@ -165,7 +165,7 @@ class Parser:
                         extra = self.recall(index, advanced := makekey(other[0], other[1], other[2] + 1, other[3]))
                         stored = extra.__len__()
                         for backpointer in self.chart[key[3]][other]:
-                            extra.add(backpointer + (self.materialize(index, key, index),))
+                            extra.add(backpointer + (self.materialize(index, key),))
                         if extra.__len__() > stored: 
                             worklist.add(advanced)
                             worklist.update(element for element in self.chart[index] if element[4])
