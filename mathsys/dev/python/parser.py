@@ -3,8 +3,8 @@
 #^
 
 #> HEAD -> MODULES
-import cProfile
-from typing import cast
+from collections import defaultdict
+from typing import cast, TYPE_CHECKING
 
 #> HEAD -> DATA
 from .tokenizer import Token
@@ -44,15 +44,18 @@ def makekey(rule: type[NonTerminal] | str, productions: tuple[type[Token | NonTe
 class Parser:
     #= CLASS -> VARIABLES
     chart: list[set[Key]]
+    waiting: list[defaultdict[type[NonTerminal] | str, set[Key]]]
     #= CLASS -> INIT
     def __init__(self) -> None: self.reset()
     #= CLASS -> RESET
     def reset(self) -> None:
         self.chart = []
+        self.waiting = []
     #= CLASS -> RUN
     def run(self, tokens: list[Token]) -> Start:
         tokens = [token for token in tokens if token.compilable()]
         self.chart = [set() for index in range(len(tokens) + 1)]
+        self.waiting = [defaultdict(set) for index in range(len(tokens) + 1)]
         self.chart[0].add(makekey("$", (Start,), 0, 0))
         self.loop(tokens)
         print(makekey("$", (Start,), 1, 0) in self.chart[len(tokens)])
@@ -65,21 +68,21 @@ class Parser:
             while agenda:
                 rule, productions, slot, starting, full, at = agenda.pop()
                 #predict
-                if isinstance(at, str) or (isinstance(at, type) and issubclass(at, NonTerminal)):
-                    
+                if at.__class__ is str or hasattr(at, "freeze"):
+                    if TYPE_CHECKING: at = cast(type[NonTerminal] | str, at)
+                    self.waiting[index][at].add(makekey(rule, productions, slot + 1, starting))
                     for newrule in GRAMMAR.productions[at]:
                         key = makekey(rule, productions, slot + 1, starting) if not newrule else makekey(at, newrule, 0, index)
                         if key not in self.chart[index]:
                             self.chart[index].add(key)
                             agenda.append(key)
                 #scan
-                elif index < tklen and isinstance(at, type) and issubclass(at, Token):
+                elif index < tklen and hasattr(at, "compilable"):
                     if tokens[index].__class__ == at:
                         self.chart[index + 1].add(makekey(rule, productions, slot + 1, starting))
                 #complete
                 elif full:
-                    for (strule, stproductions, stslot, ststarting, stfull, stat) in [waiting for waiting in self.chart[starting] if waiting[5] == rule]:
-                        nextone = makekey(strule, stproductions, stslot + 1, ststarting)
+                    for nextone in [waiting for waiting in self.waiting[starting][rule]]:
                         if nextone not in self.chart[index]:
                             self.chart[index].add(nextone)
                             agenda.append(nextone)
