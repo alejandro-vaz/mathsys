@@ -2,9 +2,6 @@
 #^  HEAD
 #^
 
-#> HEAD -> MODULES
-from functools import lru_cache
-
 #> HEAD -> DATA
 from .tokenizer import Token
 from .start import Start
@@ -25,8 +22,7 @@ Key = tuple[
     bool,
     type[Token | NonTerminal] | str | None
 ]
-@lru_cache(512)
-def makekey(rule: type[NonTerminal] | str, productions: tuple[type[Token | NonTerminal] | str], slot: int, starting: int) -> Key: return (
+def makekey(rule: type[NonTerminal] | str, productions: tuple[type[Token | NonTerminal] | str, ...], slot: int, starting: int) -> Key: return (
     rule,
     productions,
     slot,
@@ -44,11 +40,13 @@ def makekey(rule: type[NonTerminal] | str, productions: tuple[type[Token | NonTe
 class Parser:
     #= CLASS -> VARIABLES
     chart: list[set[Key]]
+    autocompletions: dict[tuple[type[NonTerminal] | str, int], int]
     #= CLASS -> INIT
     def __init__(self) -> None: self.reset()
     #= CLASS -> RESET
     def reset(self) -> None:
         self.chart = []
+        self.autocompletions = {}
     #= CLASS -> RUN
     def run(self, tokens: list[Token]) -> Start:
         tokens = [token for token in tokens if token.compilable()]
@@ -61,27 +59,39 @@ class Parser:
     def loop(self, tokens: list[Token]) -> None:
         tklen = len(tokens)
         for index in range(tklen + 1):
-            changed = True
-            while changed:
-                changed = False
-                for popped in self.chart[index].copy():
-                    rule, productions, slot, starting, full, at = popped
+            agenda = list(self.chart[index])
+            seen = set()
+            while agenda:
+                while agenda:
+                    rule, productions, slot, starting, full, at = popped = agenda.pop()
+                    if popped in seen: continue
+                    seen.add(popped)
                     #predict
                     if isinstance(at, str) or (isinstance(at, type) and issubclass(at, NonTerminal)):
+                        existing = self.autocompletions.get((at, index))
+                        if existing is not None:
+                            forwards = makekey(rule, productions, slot + 1, existing)
+                            self.chart[existing].add(forwards)
+                            if existing == index: agenda.append(forwards)
+
                         for newrule in GRAMMAR.productions[at]:
-                            if (key := makekey(at, newrule, 0, index)) not in self.chart[index]:
+                            if not newrule:
+                                skip = makekey(rule, productions, slot + 1, starting)
+                                if skip not in self.chart[index]:
+                                    self.chart[index].add(skip)
+                                    agenda.append(skip)
+                            elif (key := makekey(at, newrule, 0, index)) not in self.chart[index]:
                                 self.chart[index].add(key)
-                                changed = True
-                                break
+                                agenda.append(key)
                     #scan
                     elif index < tklen and isinstance(at, type) and issubclass(at, Token):
                         if tokens[index].__class__ == at:
                             self.chart[index + 1].add(makekey(rule, productions, slot + 1, starting))
                     #complete
                     elif full:
+                        self.autocompletions[(rule, starting)] = index
                         for (strule, stproductions, stslot, ststarting, stfull, stat) in [waiting for waiting in self.chart[starting] if waiting[5] == rule]:
                             nextone = makekey(strule, stproductions, stslot + 1, ststarting)
                             if nextone not in self.chart[index]:
                                 self.chart[index].add(nextone)
-                                changed = True
-                                break
+                                agenda.append(nextone)
