@@ -4,7 +4,6 @@
 
 #> HEAD -> MODULES
 from collections import defaultdict
-from typing import cast, TYPE_CHECKING
 
 #> HEAD -> DATA
 from .tokenizer import Token
@@ -18,7 +17,7 @@ from .grammar import GRAMMAR
 #^
 
 #> RESOURCES -> KEY
-Key = tuple[
+State = tuple[
     type[NonTerminal] | str,
     tuple[type[Token | NonTerminal] | str, ...],
     int,
@@ -26,7 +25,7 @@ Key = tuple[
     bool,
     type[Token | NonTerminal] | str | None
 ]
-def makekey(rule: type[NonTerminal] | str, productions: tuple[type[Token | NonTerminal] | str, ...], slot: int, starting: int) -> Key: return (
+def makestate(rule: type[NonTerminal] | str, productions: tuple[type[Token | NonTerminal] | str, ...], slot: int, starting: int) -> State: return (
     rule,
     productions,
     slot,
@@ -43,8 +42,8 @@ def makekey(rule: type[NonTerminal] | str, productions: tuple[type[Token | NonTe
 #> PARSER -> CLASS
 class Parser:
     #= CLASS -> VARIABLES
-    chart: list[set[Key]]
-    waiting: list[defaultdict[type[NonTerminal] | str, set[Key]]]
+    chart: list[set[State]]
+    waiting: list[defaultdict[type[NonTerminal] | str, set[State]]]
     #= CLASS -> INIT
     def __init__(self) -> None: self.reset()
     #= CLASS -> RESET
@@ -56,9 +55,9 @@ class Parser:
         tokens = [token for token in tokens if token.compilable()]
         self.chart = [set() for index in range(len(tokens) + 1)]
         self.waiting = [defaultdict(set) for index in range(len(tokens) + 1)]
-        self.chart[0].add(makekey("$", (Start,), 0, 0))
+        self.chart[0].add(makestate("$", (Start,), 0, 0))
         self.loop(tokens)
-        print(makekey("$", (Start,), 1, 0) in self.chart[len(tokens)])
+        print(makestate("$", (Start,), 1, 0) in self.chart[len(tokens)])
         return Start([])
     #= CLASS -> LOOP
     def loop(self, tokens: list[Token]) -> None:
@@ -67,22 +66,21 @@ class Parser:
             agenda = list(self.chart[index])
             while agenda:
                 rule, productions, slot, starting, full, at = agenda.pop()
-                #predict
-                if at.__class__ is str or hasattr(at, "freeze"):
-                    if TYPE_CHECKING: at = cast(type[NonTerminal] | str, at)
-                    self.waiting[index][at].add(makekey(rule, productions, slot + 1, starting))
-                    for newrule in GRAMMAR.productions[at]:
-                        key = makekey(rule, productions, slot + 1, starting) if not newrule else makekey(at, newrule, 0, index)
-                        if key not in self.chart[index]:
-                            self.chart[index].add(key)
-                            agenda.append(key)
-                #scan
-                elif index < tklen and hasattr(at, "compilable"):
-                    if tokens[index].__class__ == at:
-                        self.chart[index + 1].add(makekey(rule, productions, slot + 1, starting))
                 #complete
-                elif full:
+                if full:
                     for nextone in [waiting for waiting in self.waiting[starting][rule]]:
                         if nextone not in self.chart[index]:
                             self.chart[index].add(nextone)
                             agenda.append(nextone)
+                #scan
+                elif hasattr(at, "compilable") and index < tklen:
+                    if tokens[index].__class__ == at:
+                        self.chart[index + 1].add(makestate(rule, productions, slot + 1, starting))
+                #predict
+                elif at.__class__ is str or hasattr(at, "freeze"):
+                    self.waiting[index][at].add(makestate(rule, productions, slot + 1, starting)) # type: ignore
+                    for newrule in GRAMMAR.productions[at]: # type: ignore
+                        key = makestate(rule, productions, slot + 1, starting) if not newrule else makestate(at, newrule, 0, index) # type: ignore
+                        if key not in self.chart[index]:
+                            self.chart[index].add(key)
+                            agenda.append(key)
