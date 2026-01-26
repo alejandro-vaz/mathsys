@@ -120,12 +120,12 @@ NONTERMINALS = {item.__name__: item for item in [
 
 #> SYNTAX -> GRAMMAR
 class Grammar:
-    productions: dict[Temporal | type[NonTerminal], tuple[tuple[Temporal | type[NonTerminal], ...]]]
+    productions: dict[str | type[NonTerminal], tuple[tuple[str | type[NonTerminal | Token], ...]]]
     bnf: str
     def __init__(self, bnf: str) -> None: 
         self.bnf = bnf
         self.productions = self.convert()
-    def convert(self) -> dict[Temporal | type[NonTerminal], tuple[tuple[Temporal | type[NonTerminal], ...]]]:
+    def convert(self) -> dict[str | type[NonTerminal], tuple[tuple[str | type[NonTerminal | Token], ...]]]:
         syntax = defaultdict(list)
         for line in [line.strip() for line in self.bnf.splitlines()]:
             rule, productions = [part.strip() for part in line.split("->", 1)]
@@ -136,14 +136,11 @@ class Grammar:
         for key, value in syntax.items(): frozen[key] = tuple(value)
         frozen["$"] = (Start,)
         return frozen
-    def transform(self, atom: str) -> type[NonTerminal | Token] | Temporal:
+    def transform(self, atom: str) -> type[NonTerminal | Token] | str:
         if atom in (token := {item.__name__: item for item in ORDER}): return token[atom]
         if atom in NONTERMINALS: return NONTERMINALS[atom]
         return atom
     def __repr__(self) -> str: return self.bnf
-
-#> SYNTAX -> TEMPORAL
-Temporal = str
 
 #> SYNTAX -> GRAMMAR
 GRAMMAR = Grammar(Extensor().run(r"""
@@ -188,7 +185,7 @@ Level5 -> Infinite | Variable | Nest | Tensor | Whole | Absolute | Undefined | R
 """))
 
 #> SYNTAX -> SCORE
-def score(symbol: type[NonTerminal] | Token | Temporal) -> int: return {
+def score(symbol: type[NonTerminal] | Token | str) -> int: return {
     Declaration: 1,
     Equation: 0
 }.get(symbol, 0)
