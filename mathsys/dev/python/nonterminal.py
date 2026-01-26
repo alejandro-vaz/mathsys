@@ -25,6 +25,8 @@ class NonTerminal(ABC):
     @abstractmethod
     def ir(self, binary: list[Binary], nodes: list[Binary]) -> Pointer: pass
     def freeze(self) -> None: self.frozen = True
+    @classmethod
+    def placeholder(cls) -> bool: return cls.__class__.__name__.startswith("Level")
     def __setattr__(self, name: str, value: Any) -> None:
         if self.frozen: raise FrozenInstanceError()
         return super().__setattr__(name, value)

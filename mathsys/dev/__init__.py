@@ -67,13 +67,11 @@ async def tokens(content: str) -> list[Token]: return _tokenizer(content)
 #> MAIN -> AST
 @alru_cache(maxsize = None)
 @timeWrapper
-async def ast(content: str) -> Start: return _parser(_tokenizer(content))
+async def ast(content: str) -> Start: return _parser(await tokens(content), True)
 
 ##> MAIN -> VALIDATE
 @alru_cache(maxsize = None)
-async def valid(content: str) -> bool:
-    try: await ast(content); return True
-    except Issue: return False
+async def valid(content: str) -> bool: return _parser(await tokens(content), False)
 
 ##> MAIN -> BINARY
 @alru_cache(maxsize = None)

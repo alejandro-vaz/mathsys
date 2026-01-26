@@ -4,6 +4,8 @@
 
 #> HEAD -> MODULES
 from collections import defaultdict
+from typing import overload, Literal, cast
+from functools import cache
 
 #> HEAD -> DATA
 from .tokenizer import Token
@@ -22,17 +24,23 @@ State = tuple[
     tuple[type[Token | NonTerminal] | str, ...],
     int,
     int,
-    bool,
     type[Token | NonTerminal] | str | None
 ]
-def makestate(rule: type[NonTerminal] | str, productions: tuple[type[Token | NonTerminal] | str, ...], slot: int, starting: int) -> State: return (
+def sign(rule: type[NonTerminal] | str, productions: tuple[type[Token | NonTerminal] | str, ...], slot: int, starting: int) -> State: return (
     rule,
     productions,
     slot,
     starting,
-    full := slot == productions.__len__(),
-    productions[slot] if not full else None
+    productions[slot] if not slot == productions.__len__() else None
 )
+
+#> RESOURCES -> SPPF
+SPPF = tuple[
+    str | type[NonTerminal] | Token,
+    int,
+    int
+]
+def record(symbol: str | type[NonTerminal] | Token, start: int, end: int) -> SPPF: return (symbol, start, end)
 
 
 #^
@@ -50,37 +58,41 @@ class Parser:
     def reset(self) -> None:
         self.chart = []
         self.waiting = []
+        self.creations = {}
+    #= CLASS -> RUN OVERLOADS
+    @overload
+    def run(self, tokens: list[Token], build: Literal[True]) -> Start: ...
+    @overload
+    def run(self, tokens: list[Token], build: Literal[False]) -> bool: ...
     #= CLASS -> RUN
-    def run(self, tokens: list[Token]) -> Start:
+    def run(self, tokens: list[Token], build: bool) -> Start | bool:
         tokens = [token for token in tokens if token.compilable()]
         self.chart = [set() for index in range(len(tokens) + 1)]
         self.waiting = [defaultdict(set) for index in range(len(tokens) + 1)]
-        self.chart[0].add(makestate("$", (Start,), 0, 0))
-        self.loop(tokens)
-        print(makestate("$", (Start,), 1, 0) in self.chart[len(tokens)])
-        return Start([])
+        self.chart[0].add(sign("$", (Start,), 0, 0))
+        self.parse(tokens)
+        root = sign("$", (Start,), 1, 0)
+        return Start([]) if build else root in self.chart[len(tokens)]
     #= CLASS -> LOOP
-    def loop(self, tokens: list[Token]) -> None:
+    def parse(self, tokens: list[Token]) -> None:
         tklen = len(tokens)
         for index in range(tklen + 1):
             agenda = list(self.chart[index])
             while agenda:
-                rule, productions, slot, starting, full, at = agenda.pop()
-                #complete
-                if full:
-                    for nextone in [waiting for waiting in self.waiting[starting][rule]]:
-                        if nextone not in self.chart[index]:
-                            self.chart[index].add(nextone)
-                            agenda.append(nextone)
-                #scan
+                rule, productions, slot, starting, at = popped = agenda.pop() # type: ignore
+                if at is None:
+                    for parent in [parent for parent in self.waiting[starting][rule]]:
+                        if parent not in self.chart[index]:
+                            self.chart[index].add(parent)
+                            agenda.append(parent)
                 elif hasattr(at, "compilable") and index < tklen:
                     if tokens[index].__class__ == at:
-                        self.chart[index + 1].add(makestate(rule, productions, slot + 1, starting))
-                #predict
+                        self.chart[index + 1].add(sign(rule, productions, slot + 1, starting))
                 elif at.__class__ is str or hasattr(at, "freeze"):
-                    self.waiting[index][at].add(makestate(rule, productions, slot + 1, starting)) # type: ignore
-                    for newrule in GRAMMAR.productions[at]: # type: ignore
-                        key = makestate(rule, productions, slot + 1, starting) if not newrule else makestate(at, newrule, 0, index) # type: ignore
+                    at: str | type[NonTerminal]
+                    self.waiting[index][at].add(sign(rule, productions, slot + 1, starting))
+                    for newrule in GRAMMAR.productions[at]:
+                        key = sign(rule, productions, slot + 1, starting) if not newrule else sign(at, newrule, 0, index)
                         if key not in self.chart[index]:
                             self.chart[index].add(key)
                             agenda.append(key)
