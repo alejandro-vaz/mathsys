@@ -4,7 +4,7 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    Regex, LazyLock, HashMap
+    Regex, LazyLock, HashMap, IndexMap
 };
 
 //> HEAD -> LOCAL
@@ -91,7 +91,7 @@ pub struct Token {
 }
 
 //> TOKENS -> ORDER
-pub static ORDER: LazyLock<HashMap<Kind, (Regex, Responsibility)>> = LazyLock::new(|| [
+pub static ORDER: LazyLock<IndexMap<Kind, (Regex, Responsibility)>> = LazyLock::new(|| {[
     (Kind::UNDEFINED, (Regex::new(r#"^\?"#).unwrap(), Responsibility::Structural)),
     (Kind::LIMIT, (Regex::new("^lim").unwrap(), Responsibility::Structural)),
     (Kind::PIPE, (Regex::new(r#"^\|"#).unwrap(), Responsibility::Structural)),
@@ -118,7 +118,8 @@ pub static ORDER: LazyLock<HashMap<Kind, (Regex, Responsibility)>> = LazyLock::n
     (Kind::MODULE, (Regex::new(r#"^"[a-z]+""#).unwrap(), Responsibility::Total)),
     (Kind::COMMENT, (Regex::new(r"^\#[^\n]*").unwrap(), Responsibility::Null)),
     (Kind::ENDOFFILE, (Regex::new("^$").unwrap(), Responsibility::Structural))
-].into_iter().collect());
+].into_iter().collect()});
+
 
 
 //^

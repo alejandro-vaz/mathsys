@@ -19,13 +19,14 @@ mod base {
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    Argument, File, Flag, Future, Instant, Target, LazyLock, HashMap
+    Argument, File, Flag, Future, Instant, Target
 };
 
 //> HEAD -> LOCAL
 use self::base::issues::{noFileProvided, noTargetProvided, Issue, unknownTarget};
 use self::base::tokenizer::{Token, Tokenizer};
 use self::base::grammar::{SYNTAX, Symbol, Rule};
+use self::base::parser::Parser;
 
 
 //^

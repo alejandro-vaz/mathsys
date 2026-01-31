@@ -46,3 +46,6 @@ pub use colored::Colorize;
 
 //> PRELUDE -> REGEX
 pub use regex::bytes::Regex;
+
+//> PRELUDE -> INDEXMAP
+pub use indexmap::IndexMap;
