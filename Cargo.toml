@@ -1,0 +1,25 @@
+[package]
+name = "mathsys"
+version = "7.0.0"
+edition = "2024"
+authors = ["Alejandro Vaz <alejandro.vaz.myt@gmail.com>"]
+description = "The Natural Language of Math."
+license = "MIT"
+repository = "https://github.com/alejandro-vaz/mathsys"
+
+[[bin]]
+name = "mathsys"
+path = "main.rs"
+
+[profile.release]
+opt-level = 3
+panic = "abort"
+lto = "fat"
+codegen-units = 1
+strip = true
+debug = false
+
+[dependencies]
+tokio = {version = "1.49.0", features = ["full"]}
+colored = "3.1.1"
+regex = "1.12.2"

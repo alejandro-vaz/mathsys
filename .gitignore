@@ -2,18 +2,6 @@
 #^  IGNORE
 #^
 
-#> IGNORE -> NODE
-node_modules/
-
-#> IGNORE -> BUILD
-*.js
-*.cjs
-dist/
-**/**.egg-info
-
-#> IGNORE -> PYCACHE
-**/__pycache__/
-
 #> IGNORE -> CARGO
 **/target/
 
