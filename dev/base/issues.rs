@@ -79,6 +79,6 @@ pub fn noTargetProvided() -> Issue {Issue::is("noTargetProvided", format!(
 ))}
 
 //> ISSUES -> INPUT TOO LONG
-pub fn inputTooLong(length: usize) -> Issue {Issue::is("inputTooLong", format!(
-    "Input size is too long ({length}/{MAXLEN})"
+pub fn inputTooLong() -> Issue {Issue::is("inputTooLong", format!(
+    "Input size exceeds limit of {MAXLEN}."
 ))}

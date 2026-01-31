@@ -27,7 +27,7 @@ pub enum NonTerminal {
 
 //> NONTERMINAL -> SYMBOLS
 #[derive(Eq, Hash, PartialEq, Debug, Clone)]
-pub enum NonTerminals {
+pub enum Objects {
     Start,
     Level1,
     Level2,
@@ -53,31 +53,4 @@ pub enum NonTerminals {
     Undefined,
     Rational,
     Casts
-} impl NonTerminals {pub fn byname(name: &str) -> NonTerminals {return match name {
-    "Start" => NonTerminals::Start,
-    "Level1" => NonTerminals::Level1,
-    "Level2" => NonTerminals::Level2,
-    "Level3" => NonTerminals::Level3,
-    "Level4" => NonTerminals::Level4,
-    "Level5" => NonTerminals::Level5,
-    "Declaration" => NonTerminals::Declaration,
-    "Definition" => NonTerminals::Definition,
-    "Annotation" => NonTerminals::Annotation,
-    "Node" => NonTerminals::Node,
-    "Equation" => NonTerminals::Equation,
-    "Use" => NonTerminals::Use,
-    "Expression" => NonTerminals::Expression,
-    "Term" => NonTerminals::Term,
-    "Factor" => NonTerminals::Factor,
-    "Limit" => NonTerminals::Limit,
-    "Infinite" => NonTerminals::Infinite,
-    "Variable" => NonTerminals::Variable,
-    "Nest" => NonTerminals::Nest,
-    "Tensor" => NonTerminals::Tensor,
-    "Whole" => NonTerminals::Whole,
-    "Absolute" => NonTerminals::Absolute,
-    "Undefined" => NonTerminals::Undefined,
-    "Rational" => NonTerminals::Rational,
-    "Casts" => NonTerminals::Casts,
-    other => panic!("{other}")
-}}}
+}

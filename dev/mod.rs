@@ -25,8 +25,6 @@ use crate::prelude::{
 //> HEAD -> LOCAL
 use self::base::issues::{noFileProvided, noTargetProvided, Issue, unknownTarget};
 use self::base::tokenizer::{Token, Tokenizer};
-use self::base::grammar::{SYNTAX, Symbol, Rule};
-use self::base::parser::Parser;
 
 
 //^
@@ -147,7 +145,6 @@ struct Settings {
 //> TARGETS -> WRAPPER
 pub async fn wrapper(arguments: Vec<Argument>) -> Result<(), Issue> {
     let settings = Settings::set(arguments)?;
-    println!("{:?}", &*SYNTAX);
     match &*settings.target.name {
         "tokens" => println!("{:#?}", Tokens::act(settings).await?),
         "length" => println!("{}", Length::act(settings).await?),

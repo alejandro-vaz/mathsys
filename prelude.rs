@@ -13,8 +13,7 @@ pub use std::{
     fmt,
     collections::{
         HashMap,
-        HashSet,
-        VecDeque
+        HashSet
     },
     sync::LazyLock
 };

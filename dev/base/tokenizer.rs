@@ -4,7 +4,7 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    Regex, LazyLock, HashMap, IndexMap
+    Regex, LazyLock, IndexMap
 };
 
 //> HEAD -> LOCAL
@@ -16,7 +16,6 @@ use super::issues::{unknownToken, Issue, inputTooLong};
 //^
 
 //> TOKENS -> RESPONSIBILITY
-#[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Responsibility {
     Null,
     Structural,
@@ -52,43 +51,17 @@ pub enum Kind {
     UNDEFINED,
     USE,
     ENDOFFILE
-} impl Kind {pub fn byname(name: &str) -> Kind {return match name {
-    "IDENTIFIER" => Kind::IDENTIFIER,
-    "MODULE" => Kind::BINDING,
-    "NUMBER" => Kind::NUMBER,
-    "OPERATOR" => Kind::OPERATOR,
-    "COMMENT" => Kind::COMMENT,
-    "RATIONAL" => Kind::RATIONAL,
-    "SIGN" => Kind::SIGN,
-    "GROUP" => Kind::GROUP,
-    "BINDING" => Kind::BINDING,
-    "CLOSE" => Kind::CLOSE,
-    "COMMA" => Kind::COMMA,
-    "ENTER" => Kind::ENTER,
-    "EQUALITY" => Kind::EQUALITY,
-    "EXIT" => Kind::EXIT,
-    "EXPONENTIATION" => Kind::EXPONENTIATION,
-    "INFINITE" => Kind::INFINITE,
-    "LIMIT" => Kind::LIMIT,
-    "NEWLINES" => Kind::NEWLINES,
-    "OF" => Kind::OF,
-    "OPEN" => Kind::OPEN,
-    "PIPE" => Kind::PIPE,
-    "SPACES" => Kind::SPACES,
-    "TO" => Kind::TO,
-    "UNDEFINED" => Kind::UNDEFINED,
-    "USE" => Kind::USE,
-    "ENDOFFILE" => Kind::ENDOFFILE,
-    other => panic!("{other}")
-}}}
+}
 
 //> TOKENS -> STRUCT
-#[derive(Debug, PartialEq, Eq, Hash, Clone)]
+#[derive(Debug)]
 pub struct Token {
     start: u32,
-    length: u8,
     pub kind: Kind
-}
+} impl Token {pub fn process(start: u32, kind: Kind) -> Self {return Token {
+    start: start,
+    kind: kind
+}}}
 
 //> TOKENS -> ORDER
 pub static ORDER: LazyLock<IndexMap<Kind, (Regex, Responsibility)>> = LazyLock::new(|| {[
@@ -127,7 +100,7 @@ pub static ORDER: LazyLock<IndexMap<Kind, (Regex, Responsibility)>> = LazyLock::
 //^
 
 //> TOKENIZER -> MAXLEN
-pub static MAXLEN: usize = 0x4096;
+pub static MAXLEN: usize = 0xFFF;
 
 //> TOKENIZER -> STRUCT
 pub struct Tokenizer {
@@ -152,47 +125,33 @@ pub struct Tokenizer {
     pub fn run(&mut self, content: String) -> Result<Vec<Token>, Issue> {
         let mut tokens = self.reset(content);
         loop {
-            let token = self.next()?;
-            let length = token.length;
+            if tokens.len() == MAXLEN {return Err(inputTooLong())};
+            let (token, length) = self.next()?;
             let kind = token.kind;
             tokens.push(token);
             match kind {
-                Kind::NEWLINES => {
-                    self.line += length as u16;
-                    self.column = 1;
-                },
-                Kind::ENDOFFILE => {
-                    break;
-                },
-                other => {
-                    self.column += length as u16;
-                }
+                Kind::NEWLINES => {self.line += length as u16; self.column = 1},
+                Kind::ENDOFFILE => break,
+                other => self.column += length as u16
             }
             self.cursor += length as u32;
         };
-        let total = tokens.len();
-        return if total > MAXLEN {Err(inputTooLong(total))} else {Ok(tokens)};
+        return Ok(tokens);
     }
     #[inline(always)]
-    fn next(&self) -> Result<Token, Issue> {
-        let mut best: Option<Token> = None;
+    fn next(&self) -> Result<(Token, usize), Issue> {
+        let mut best: Option<(Kind, usize)> = None;
         let slice = &self.content[self.cursor as usize..];
-        for (kind, pattern) in ORDER.iter().map(|item| (item.0, &item.1.0)) {if let Some(hit) = pattern.find(slice.as_bytes()) {
-            if let None = best {best = Some(Token {
-                start: self.cursor + 1,
-                length: hit.len() as u8,
-                kind: *kind
-            }); continue}
-            else if let Some(token) = &best && token.length < (hit.len() as u8) {best = Some(Token {
-                start: self.cursor + 1,
-                length: hit.len() as u8,
-                kind: *kind
-            })}
-        }};
-        return best.ok_or_else(|| unknownToken(
+        for (kind, pattern) in ORDER.iter().map(|item| (item.0, &item.1.0)) {
+            if let Some(hit) = pattern.find(slice.as_bytes()) {if best.is_none() || best.unwrap().1 < hit.len() {
+                best = Some((*kind, hit.len()))
+            }}
+        };
+        let data = best.ok_or_else(|| unknownToken(
             self.line, 
             self.column, 
             self.content.lines().nth((self.line - 1) as usize).unwrap()
-        ));
+        ))?;
+        return Ok((Token::process(self.cursor, data.0), data.1));
     }
 }
