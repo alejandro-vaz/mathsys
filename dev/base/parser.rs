@@ -10,7 +10,7 @@ use crate::prelude::{
 //> HEAD -> LOCAL
 use super::tokenizer::{Token, ORDER, Responsibility};
 use super::grammar::{GRAMMAR, Rule, Symbol};
-use super::issues::{syntax, Issue};
+use super::issues::Issue;
 
 
 //^
@@ -33,9 +33,17 @@ struct State {
         starting: starting
     }}
     #[inline(always)]
-    pub fn full(&self) -> bool {self.slot == GRAMMAR.get(&self.rule).unwrap()[self.variant as usize].len() as u8}
+    pub fn at(&self) -> Option<Symbol> {
+        let productions = GRAMMAR.get(&self.rule).unwrap();
+        if self.slot as usize == productions[self.variant as usize].len() {None} else {Some(productions[self.variant as usize][self.slot as usize])}
+    }
     #[inline(always)]
-    pub fn at(&self) -> Option<Symbol> {if self.full() {None} else {Some(GRAMMAR.get(&self.rule).unwrap()[self.variant as usize][self.slot as usize])}}
+    pub fn next(&self) -> State {return State {
+        rule: self.rule,
+        variant: self.variant,
+        slot: self.slot + 1,
+        starting: self.starting
+    }}
 }
 
 //> RESOURCES -> FOLLOW
@@ -78,8 +86,8 @@ pub struct Parser {
     fn recall(&mut self, index: u16, state: State) -> &mut AHashSet<SmallVec<[Follow; SAVEDFOLLOWERS]>> {return self.chart[index as usize].entry(state).or_default()}
     #[inline(always)]
     fn review(&mut self, index: u16, state: State) -> &AHashSet<SmallVec<[Follow; SAVEDFOLLOWERS]>> {return self.chart[index as usize].entry(state).or_default()}
-    fn reset(&mut self, mut tokens: Vec<Token>) -> Vec<Token> {
-        tokens = tokens.into_iter().filter(|token| ORDER.get(&token.kind).unwrap().1 != Responsibility::Null).collect();
+    fn reset(&mut self, tokens: &mut Vec<Token>) -> () {
+        tokens.retain(|token| ORDER.get(&token.kind).unwrap().1 != Responsibility::Null);
         self.chart.clear();
         self.pool.clear();
         self.waiting.clear();
@@ -88,10 +96,9 @@ pub struct Parser {
         let root = State::new(Rule::Internal(0), 0, 0, 0);
         self.recall(0, root).insert(SmallVec::new());
         self.wait(0, root);
-        return tokens;
     }
     pub fn run(&mut self, mut tokens: Vec<Token>) -> Result<bool, Issue> {
-        tokens = self.reset(tokens);
+        self.reset(&mut tokens);
         let end = self.parse(tokens);
         return Ok(!end.is_empty());
     }
@@ -104,9 +111,10 @@ pub struct Parser {
             agenda.extend(self.chart[index as usize].keys().cloned());
             while !agenda.is_empty() {
                 let state = agenda.pop_front().unwrap();
-                if state.at().is_none() {
+                let at = state.at();
+                if at.is_none() {
                     for awaiting in self.waiting[state.starting as usize].get(&state.rule.into()).cloned().unwrap_or_default() {
-                        let advanced = State::new(awaiting.rule, awaiting.variant, awaiting.slot + 1, awaiting.starting);
+                        let advanced = awaiting.next();
                         let stored = self.review(index, advanced).len();
                         let pointer = Follow::new(state.rule.into(), state.starting, index);
                         let current = self.review(index, state).clone();
@@ -121,19 +129,19 @@ pub struct Parser {
                         }
                     }
                     completed.insert(state);
-                } else if let (Some(Symbol::Kind(kind)), Some(value)) = (state.at(), token) && kind == value.kind {
+                } else if let (Some(Symbol::Kind(kind)), Some(value)) = (at, token) && kind == value.kind {
                     let addable = self.recall(index, state).clone().into_iter().map(|mut element| {element.push(Follow::new(Symbol::Kind(kind), index, index + 1)); element}).collect::<Vec<SmallVec<[Follow; SAVEDFOLLOWERS]>>>();
-                    let following = State::new(state.rule, state.variant, state.slot + 1, state.starting);
+                    let following = state.next();
                     self.recall(index + 1, following).extend(addable);
                     self.wait(index + 1, following);
                 } else {
-                    let rule = match state.at().unwrap() {
+                    let rule = match at.unwrap() {
                         Symbol::Internal(code) => Rule::Internal(code),
                         Symbol::NonTerminal(object) => Rule::NonTerminal(object), 
                         Symbol::Kind(kind) => continue
                     };
-                    for variant in 0..GRAMMAR.get(&rule).unwrap().len() {
-                        let possibility = State::new(rule, variant as u8, 0, index);
+                    for variant in (0 as u8)..(GRAMMAR.get(&rule).unwrap().len() as u8) {
+                        let possibility = State::new(rule, variant, 0, index);
                         self.wait(index, possibility);
                         let produced = self.recall(index, possibility);
                         if produced.is_empty() {
