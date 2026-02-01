@@ -4,7 +4,7 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    Regex, LazyLock, IndexMap
+    Regex, LazyLock, IndexMap, RegexSet
 };
 
 //> HEAD -> LOCAL
@@ -66,34 +66,36 @@ pub struct Token {
 
 //> TOKENS -> ORDER
 pub static ORDER: LazyLock<IndexMap<Kind, (Regex, Responsibility)>> = LazyLock::new(|| {[
-    (Kind::UNDEFINED, (Regex::new(r#"^\?"#).unwrap(), Responsibility::Structural)),
-    (Kind::LIMIT, (Regex::new("^lim").unwrap(), Responsibility::Structural)),
-    (Kind::PIPE, (Regex::new(r#"^\|"#).unwrap(), Responsibility::Structural)),
-    (Kind::TO, (Regex::new("^->").unwrap(), Responsibility::Structural)),
-    (Kind::OF, (Regex::new("^of").unwrap(), Responsibility::Structural)),
-    (Kind::INFINITE, (Regex::new("^inf").unwrap(), Responsibility::Structural)),
-    (Kind::USE, (Regex::new("^use").unwrap(), Responsibility::Structural)),
-    (Kind::GROUP, (Regex::new(r#"^\@(Infinite|Integer|Natural|Nexists|Rational|Tensor|Undefined|Variable|Whole)"#).unwrap(), Responsibility::Total)),
-    (Kind::IDENTIFIER, (Regex::new("^[A-Za-zº$%]+").unwrap(), Responsibility::Total)),
-    (Kind::EXPONENTIATION, (Regex::new(r#"^\^"#).unwrap(), Responsibility::Structural)),
-    (Kind::RATIONAL, (Regex::new(r#"^[0-9]*\.[0-9]+"#).unwrap(), Responsibility::Total)),
-    (Kind::NUMBER, (Regex::new("^[0-9]+").unwrap(), Responsibility::Total)),
-    (Kind::BINDING, (Regex::new("^==").unwrap(), Responsibility::Structural)),
-    (Kind::EQUALITY, (Regex::new("^=").unwrap(), Responsibility::Structural)),
-    (Kind::OPERATOR, (Regex::new(r#"^[\*\/]"#).unwrap(), Responsibility::Total)),
-    (Kind::SIGN, (Regex::new("^[+-]").unwrap(), Responsibility::Total)),
-    (Kind::OPEN, (Regex::new(r#"^\("#).unwrap(), Responsibility::Structural)),
-    (Kind::CLOSE, (Regex::new(r#"^\)"#).unwrap(), Responsibility::Structural)),
-    (Kind::ENTER, (Regex::new(r#"^\["#).unwrap(), Responsibility::Structural)),
-    (Kind::COMMA, (Regex::new(r#"^,"#).unwrap(), Responsibility::Structural)),
-    (Kind::EXIT, (Regex::new(r#"^\]"#).unwrap(), Responsibility::Structural)),
-    (Kind::SPACES, (Regex::new("^ +").unwrap(), Responsibility::Structural)),
-    (Kind::NEWLINES, (Regex::new(r#"^\n+"#).unwrap(), Responsibility::Structural)),
-    (Kind::MODULE, (Regex::new(r#"^"[a-z]+""#).unwrap(), Responsibility::Total)),
-    (Kind::COMMENT, (Regex::new(r"^\#[^\n]*").unwrap(), Responsibility::Null)),
-    (Kind::ENDOFFILE, (Regex::new("^$").unwrap(), Responsibility::Structural))
+    (Kind::UNDEFINED, (Regex::new(r#"^\?"#).unwrap(),Responsibility::Structural)),
+    (Kind::LIMIT, (Regex::new("^lim").unwrap(),Responsibility::Structural)),
+    (Kind::PIPE, (Regex::new(r#"^\|"#).unwrap(),Responsibility::Structural)),
+    (Kind::TO, (Regex::new("^->").unwrap(),Responsibility::Structural)),
+    (Kind::OF, (Regex::new("^of").unwrap(),Responsibility::Structural)),
+    (Kind::INFINITE, (Regex::new("^inf").unwrap(),Responsibility::Structural)),
+    (Kind::USE, (Regex::new("^use").unwrap(),Responsibility::Structural)),
+    (Kind::GROUP, (Regex::new(r#"^\@(Infinite|Integer|Natural|Nexists|Rational|Tensor|Undefined|Variable|Whole)"#).unwrap(),Responsibility::Total)),
+    (Kind::IDENTIFIER, (Regex::new("^[A-Za-zº$%]+").unwrap(),Responsibility::Total)),
+    (Kind::EXPONENTIATION, (Regex::new(r#"^\^"#).unwrap(),Responsibility::Structural)),
+    (Kind::RATIONAL, (Regex::new(r#"^[0-9]*\.[0-9]+"#).unwrap(),Responsibility::Total)),
+    (Kind::NUMBER, (Regex::new("^[0-9]+").unwrap(),Responsibility::Total)),
+    (Kind::BINDING, (Regex::new("^==").unwrap(),Responsibility::Structural)),
+    (Kind::EQUALITY, (Regex::new("^=").unwrap(),Responsibility::Structural)),
+    (Kind::OPERATOR, (Regex::new(r#"^[\*\/]"#).unwrap(),Responsibility::Total)),
+    (Kind::SIGN, (Regex::new("^[+-]").unwrap(),Responsibility::Total)),
+    (Kind::OPEN, (Regex::new(r#"^\("#).unwrap(),Responsibility::Structural)),
+    (Kind::CLOSE, (Regex::new(r#"^\)"#).unwrap(),Responsibility::Structural)),
+    (Kind::ENTER, (Regex::new(r#"^\["#).unwrap(),Responsibility::Structural)),
+    (Kind::COMMA, (Regex::new(r#"^,"#).unwrap(),Responsibility::Structural)),
+    (Kind::EXIT, (Regex::new(r#"^\]"#).unwrap(),Responsibility::Structural)),
+    (Kind::SPACES, (Regex::new("^ +").unwrap(),Responsibility::Structural)),
+    (Kind::NEWLINES, (Regex::new(r#"^\n+"#).unwrap(),Responsibility::Structural)),
+    (Kind::MODULE, (Regex::new(r#"^"[a-z]+""#).unwrap(),Responsibility::Total)),
+    (Kind::COMMENT, (Regex::new(r"^\#[^\n]*").unwrap(),Responsibility::Null)),
+    (Kind::ENDOFFILE, (Regex::new("^$").unwrap(),Responsibility::Structural))
 ].into_iter().collect()});
 
+//> TOKENS -> REGEXSET
+static REGEXSET: LazyLock<RegexSet> = LazyLock::new(|| RegexSet::new(ORDER.iter().map(|each| each.1.0.as_str())).unwrap());
 
 
 //^
@@ -142,12 +144,12 @@ pub struct Tokenizer {
     #[inline(always)]
     fn next(&self) -> Result<(Token, usize), Issue> {
         let mut best: Option<(Kind, usize)> = None;
-        let slice = &self.content[self.cursor as usize..];
-        for (kind, pattern) in ORDER.iter().map(|item| (item.0, &item.1.0)) {
-            if let Some(hit) = pattern.find(slice.as_bytes()) {if best.is_none() || best.unwrap().1 < hit.len() {
-                best = Some((*kind, hit.len()))
-            }}
-        };
+        let slice = self.content[self.cursor as usize..].as_bytes();
+        for chance in REGEXSET.matches(slice) {
+            let (kind, pattern) = (ORDER.get_index(chance).unwrap().0, &ORDER.get_index(chance).unwrap().1.0);
+            let hit = pattern.find(slice).unwrap();
+            if best.is_none() || best.unwrap().1 < hit.len() {best = Some((*kind, hit.len()))}
+        }
         let data = best.ok_or_else(|| unknownToken(
             self.line, 
             self.column, 

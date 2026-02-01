@@ -45,7 +45,10 @@ pub use tokio::{
 pub use colored::Colorize;
 
 //> PRELUDE -> REGEX
-pub use regex::bytes::Regex;
+pub use regex::bytes::{
+    Regex,
+    RegexSet
+};
 
 //> PRELUDE -> INDEXMAP
 pub use indexmap::IndexMap;
