@@ -13,7 +13,8 @@ pub use std::{
     fmt,
     collections::{
         HashMap,
-        HashSet
+        HashSet,
+        VecDeque
     },
     sync::LazyLock
 };
@@ -48,3 +49,14 @@ pub use regex::bytes::Regex;
 
 //> PRELUDE -> INDEXMAP
 pub use indexmap::IndexMap;
+
+//> PRELUDE -> AHASH
+pub use ahash::{
+    AHashMap,
+    AHashSet
+};
+
+//> PRELUDE -> SMALLVEC
+pub use smallvec::{
+    SmallVec
+};

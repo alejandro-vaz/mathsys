@@ -82,3 +82,8 @@ pub fn noTargetProvided() -> Issue {Issue::is("noTargetProvided", format!(
 pub fn inputTooLong() -> Issue {Issue::is("inputTooLong", format!(
     "Input size exceeds limit of {MAXLEN}."
 ))}
+
+//> ISSUES -> SYNTAX
+pub fn syntax() -> Issue {Issue::is("syntax", format!(
+    "Malformed syntax"
+))}

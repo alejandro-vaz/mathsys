@@ -16,6 +16,7 @@ use super::issues::{unknownToken, Issue, inputTooLong};
 //^
 
 //> TOKENS -> RESPONSIBILITY
+#[derive(PartialEq, Eq)]
 pub enum Responsibility {
     Null,
     Structural,

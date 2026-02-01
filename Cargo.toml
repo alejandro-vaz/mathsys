@@ -13,7 +13,6 @@ path = "main.rs"
 
 [profile.release]
 opt-level = 3
-panic = "abort"
 lto = "fat"
 codegen-units = 1
 strip = true
@@ -24,3 +23,5 @@ tokio = {version = "1.49.0", features = ["full"]}
 colored = "3.1.1"
 regex = "1.12.2"
 indexmap = "2.13.0"
+ahash = "0.8.12"
+smallvec = "1.15.1"

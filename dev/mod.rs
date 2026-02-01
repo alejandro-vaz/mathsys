@@ -17,6 +17,7 @@ mod base {
     pub mod tokenizer;
 }
 
+use crate::dev::base::tokenizer;
 //> HEAD -> PRELUDE
 use crate::prelude::{
     Argument, File, Flag, Future, Instant, Target
@@ -25,6 +26,7 @@ use crate::prelude::{
 //> HEAD -> LOCAL
 use self::base::issues::{noFileProvided, noTargetProvided, Issue, unknownTarget};
 use self::base::tokenizer::{Token, Tokenizer};
+use self::base::parser::Parser;
 
 
 //^
@@ -71,6 +73,19 @@ struct Length; impl TargetType for Length {
         let mut tokenizer = Tokenizer::new();
         //= LENGTH -> RUN
         return timed(async || Ok(tokenizer.run(content)?.len())).await;
+    }
+}
+
+//> PIPELINE -> VALIDATE
+struct Validate; impl TargetType for Validate {
+    type Output = bool;
+    async fn act(settings: Settings) -> Result<Self::Output, Issue> {
+        //= VALIDATE -> PRELOAD
+        let content = settings.content().await;
+        let mut tokenizer = Tokenizer::new();
+        let mut parser = Parser::new();
+        //= VALIDATE -> RUN
+        return timed(async || Ok(parser.run(tokenizer.run(content)?)?)).await;
     }
 }
 
@@ -148,13 +163,15 @@ pub async fn wrapper(arguments: Vec<Argument>) -> Result<(), Issue> {
     match &*settings.target.name {
         "tokens" => println!("{:#?}", Tokens::act(settings).await?),
         "length" => println!("{}", Length::act(settings).await?),
+        "validate" => println!("{}", Validate::act(settings).await?),
         other => return Err(unknownTarget(other))
     };
     return Ok(());
 }
 
 //> TARGETS -> FUNCTIONS
-pub static TARGETS: [&'static str; 2] = [
+pub static TARGETS: [&'static str; 3] = [
     "tokens",
-    "length"
+    "length",
+    "validate"
 ];

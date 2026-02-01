@@ -26,8 +26,8 @@ pub enum NonTerminal {
 }
 
 //> NONTERMINAL -> SYMBOLS
-#[derive(Eq, Hash, PartialEq, Debug, Clone)]
-pub enum Objects {
+#[derive(Eq, Hash, PartialEq, Debug, Clone, Copy)]
+pub enum Object {
     Start,
     Level1,
     Level2,

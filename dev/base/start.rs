@@ -17,4 +17,5 @@ pub struct Start {
     pub fn summon(items: Vec<Level1>) -> Self {return Start {
         stream: items
     }}
+    pub fn merge(&mut self, with: Start) -> () {self.stream.extend(with.stream)}
 }
