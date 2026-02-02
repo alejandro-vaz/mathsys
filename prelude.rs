@@ -6,7 +6,10 @@
 pub use std::{
     env::args,
     path::PathBuf,
-    future::Future,
+    fs::{
+        read_to_string,
+        write
+    },
     time::Instant,
     process::exit,
     error::Error,
@@ -30,15 +33,6 @@ pub use crate::{
         Target
     },
     dev::wrapper as wrapperDev
-};
-
-//> PRELUDE -> TOKIO
-pub use tokio::{
-    fs::{
-        read_to_string as read,
-        write
-    },
-    runtime::Builder
 };
 
 //> PRELUDE -> COLORED

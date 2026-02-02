@@ -59,10 +59,13 @@ pub enum Kind {
 pub struct Token {
     start: u32,
     pub kind: Kind
-} impl Token {pub fn process(start: u32, kind: Kind) -> Self {return Token {
-    start: start,
-    kind: kind
-}}}
+} impl From<(u32, Kind)> for Token {
+    #[inline(always)] 
+    fn from(value: (u32, Kind)) -> Self {Token {
+        start: value.0,
+        kind: value.1
+    }}
+}
 
 //> TOKENS -> ORDER
 pub static ORDER: LazyLock<IndexMap<Kind, (Regex, Responsibility)>> = LazyLock::new(|| {[
@@ -103,7 +106,7 @@ static REGEXSET: LazyLock<RegexSet> = LazyLock::new(|| RegexSet::new(ORDER.iter(
 //^
 
 //> TOKENIZER -> MAXLEN
-pub static MAXLEN: usize = 0xFFF;
+pub static MAXLEN: usize = 0xFFFFFFFF;
 
 //> TOKENIZER -> STRUCT
 pub struct Tokenizer {
@@ -127,34 +130,34 @@ pub struct Tokenizer {
     }
     pub fn run(&mut self, content: String) -> Result<Vec<Token>, Issue> {
         let mut tokens = self.reset(content);
-        loop {
-            if tokens.len() == MAXLEN {return Err(inputTooLong())};
+        while tokens.len() != MAXLEN {
             let (token, length) = self.next()?;
-            let kind = token.kind;
-            tokens.push(token);
-            match kind {
+            match token.kind {
                 Kind::NEWLINES => {self.line += length as u16; self.column = 1},
-                Kind::ENDOFFILE => break,
+                Kind::ENDOFFILE => return Ok(tokens),
                 other => self.column += length as u16
             }
+            tokens.push(token);
             self.cursor += length as u32;
         };
-        return Ok(tokens);
+        return Err(inputTooLong())
     }
     #[inline(always)]
     fn next(&self) -> Result<(Token, usize), Issue> {
         let mut best: Option<(Kind, usize)> = None;
         let slice = self.content[self.cursor as usize..].as_bytes();
-        for chance in REGEXSET.matches(slice) {
-            let (kind, pattern) = (ORDER.get_index(chance).unwrap().0, &ORDER.get_index(chance).unwrap().1.0);
-            let hit = pattern.find(slice).unwrap();
-            if best.is_none() || best.unwrap().1 < hit.len() {best = Some((*kind, hit.len()))}
+        for chance in REGEXSET.matches_at(slice, 0) {
+            let current = ORDER.get_index(chance).unwrap();
+            let (kind, length) = (current.0, current.1.0.find_at(slice, 0).unwrap().len());
+            if best.is_none() || best.unwrap().1 < length {best = Some((*kind, length))}
         }
-        let data = best.ok_or_else(|| unknownToken(
-            self.line, 
-            self.column, 
-            self.content.lines().nth((self.line - 1) as usize).unwrap()
-        ))?;
-        return Ok((Token::process(self.cursor, data.0), data.1));
+        return match best {
+            Some(data) => Ok(((self.cursor, data.0).into(), data.1)),
+            None => Err(unknownToken(
+                self.line, 
+                self.column, 
+                self.content.lines().nth((self.line - 1) as usize).unwrap()
+            ))
+        };
     }
 }

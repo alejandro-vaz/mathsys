@@ -10,7 +10,7 @@
 //> HEAD -> PRELUDE
 mod prelude;
 use prelude::{
-    args, File, Flag, Alias, Target, Argument, Builder, wrapperDev
+    args, File, Flag, Alias, Target, Argument, wrapperDev
 };
 
 //> HEAD -> ENTRY
@@ -48,7 +48,7 @@ fn main() -> () {
 }
 
 //> MAIN -> CALL
-fn call(version: usize, arguments: Vec<Argument>) -> () {if let Err(issue) = Builder::new_multi_thread().enable_all().build().unwrap().block_on(match version {
+fn call(version: usize, arguments: Vec<Argument>) -> () {if let Err(issue) = match version {
     1 => return,
     2 => return,
     3 => return,
@@ -57,4 +57,4 @@ fn call(version: usize, arguments: Vec<Argument>) -> () {if let Err(issue) = Bui
     6 => return,
     7 => wrapperDev(arguments),
     other => return
-}) {issue.consume()}}
+} {issue.consume()}}

@@ -17,10 +17,9 @@ mod base {
     pub mod tokenizer;
 }
 
-use crate::dev::base::tokenizer;
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    Argument, File, Flag, Future, Instant, Target
+    Argument, File, Flag, Instant, Target
 };
 
 //> HEAD -> LOCAL
@@ -34,9 +33,9 @@ use self::base::parser::Parser;
 //^
 
 //> UTILS -> TIMED
-async fn timed<Function, In, Return>(function: Function) -> Return where Function: FnOnce() -> In, In: Future<Output = Return> {
+fn timed<Function, Return>(function: Function) -> Return where Function: FnOnce() -> Return {
     let start = Instant::now();
-    let result = function().await;
+    let result = function();
     println!("[INFO] Compiled in {:.3?}", start.elapsed());
     return result;
 }
@@ -49,43 +48,43 @@ async fn timed<Function, In, Return>(function: Function) -> Return where Functio
 //> PIPELINE -> TARGET TRAIT
 trait TargetType {
     type Output;
-    async fn act(settings: Settings) -> Result<Self::Output, Issue>;
+    fn act(settings: Settings) -> Result<Self::Output, Issue>;
 }
 
 //> PIPELINE -> TOKENS
 struct Tokens; impl TargetType for Tokens {
     type Output = Vec<Token>; 
-    async fn act(settings: Settings) -> Result<Self::Output, Issue> {
+    fn act(settings: Settings) -> Result<Self::Output, Issue> {
         //= TOKENS -> PRELOAD
-        let content = settings.content().await;
+        let content = settings.file.read();
         let mut tokenizer = Tokenizer::new();
         //= TOKENS -> RUN
-        return timed(async || tokenizer.run(content)).await;
+        return timed(|| tokenizer.run(content));
     }
 }
 
 //> PIPELINE -> LENGTH
 struct Length; impl TargetType for Length {
     type Output = usize;
-    async fn act(settings: Settings) -> Result<Self::Output, Issue> {
+    fn act(settings: Settings) -> Result<Self::Output, Issue> {
         //= LENGTH -> PRELOAD
-        let content = settings.content().await;
+        let content = settings.file.read();
         let mut tokenizer = Tokenizer::new();
         //= LENGTH -> RUN
-        return timed(async || Ok(tokenizer.run(content)?.len())).await;
+        return timed(|| Ok(tokenizer.run(content)?.len()));
     }
 }
 
 //> PIPELINE -> VALIDATE
 struct Validate; impl TargetType for Validate {
     type Output = bool;
-    async fn act(settings: Settings) -> Result<Self::Output, Issue> {
+    fn act(settings: Settings) -> Result<Self::Output, Issue> {
         //= VALIDATE -> PRELOAD
-        let content = settings.content().await;
+        let content = settings.file.read();
         let mut tokenizer = Tokenizer::new();
         let mut parser = Parser::new();
         //= VALIDATE -> RUN
-        return timed(async || Ok(parser.run(tokenizer.run(content)?)?)).await;
+        return timed(|| Ok(parser.run(tokenizer.run(content)?)?));
     }
 }
 
@@ -154,16 +153,15 @@ struct Settings {
         },
         Argument::Target(target) => return
     }}
-    pub async fn content(&self) -> String {self.file.read().await}
 }
 
 //> TARGETS -> WRAPPER
-pub async fn wrapper(arguments: Vec<Argument>) -> Result<(), Issue> {
+pub fn wrapper(arguments: Vec<Argument>) -> Result<(), Issue> {
     let settings = Settings::set(arguments)?;
     match &*settings.target.name {
-        "tokens" => println!("{:#?}", Tokens::act(settings).await?),
-        "length" => println!("{}", Length::act(settings).await?),
-        "validate" => println!("{}", Validate::act(settings).await?),
+        "tokens" => println!("{:#?}", Tokens::act(settings)?),
+        "length" => println!("{}", Length::act(settings)?),
+        "validate" => println!("{}", Validate::act(settings)?),
         other => return Err(unknownTarget(other))
     };
     return Ok(());
