@@ -4,7 +4,7 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    exit, Error, fmt, Colorize
+    exit, Error, format, Colored
 };
 
 //> HEAD -> LOCAL
@@ -25,7 +25,7 @@ enum Style {
 }
 
 //> DEFAULTS -> COLOR
-fn color<Colorable: Colorize>(string: Colorable, style: Style) -> String {return (match style {
+fn color(string: impl Colored, style: Style) -> String {return (match style {
     Style::Code => string.truecolor(0xAA, 0xAA, 0xAA),
     Style::Place => string.cyan(),
     Style::Object => string.purple(),
@@ -46,14 +46,14 @@ pub struct Issue {
     pub fn is(name: &'static str, content: String) -> Self {Self {name: name, content: content}}
     pub fn consume(self) -> ! {println!("{self}"); exit(1)}
 } 
-impl fmt::Display for Issue {fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl format::Display for Issue {fn fmt(&self, formatter: &mut format::Formatter<'_>) -> format::Result {
     let base = format!("{} {} {}{}{}{}", "Raised".red(), color(self.name, Style::Object), "issue:".red(), "\n>\n> ".red(), self.content.replace("\n", &"\n> ".red().to_string()), "\n>\n".red());
     write!(formatter, "{base}")
 }}
 impl Error for Issue {}
 
 //> ISSUES -> UNKNOWN TOKEN
-pub fn unknownToken(line: u16, column: u16, code: &str) -> Issue {Issue::is("unknownToken", format!(
+pub fn unknownToken(line: u32, column: u32, code: &str) -> Issue {Issue::is("unknownToken", format!(
     "Unknown token at line {}\n\n    {}\n    {}",
     color(line.to_string().as_str(), Style::Place),
     color(code, Style::Code),

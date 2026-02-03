@@ -2,10 +2,9 @@
 //^ HEAD
 //^
 
-use crate::dev::base::nonterminal::NonTerminal;
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    HashMap, Regex, HashSet, LazyLock
+    Map, Regex, Set, LazyLock
 };
 
 //> HEAD -> LOCAL
@@ -19,7 +18,7 @@ use super::tokenizer::Kind;
 
 //> EBNF -> SYNTAX
 //> GRAMMAR -> SYNTAX
-pub static GRAMMAR: LazyLock<HashMap<Rule, Vec<Vec<Symbol>>>> = LazyLock::new(|| Extensor::new().run("
+pub static GRAMMAR: LazyLock<Map<Rule, Vec<Vec<Symbol>>>> = LazyLock::new(|| Extensor::new().run("
 //> SYNTAX -> START
 Start -> (NEWLINES? Level1 SPACES? (NEWLINES Level1 SPACES?)*)? NEWLINES? ENDOFFILE
 
@@ -67,27 +66,27 @@ static POSTFIXREGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?P<atom>\$
 //> EBNF -> EXTENSOR
 struct Extensor {
     counter: u8,
-    parentheses: HashMap<String, u8>,
-    more: HashMap<String, u8>,
-    multiple: HashMap<String, u8>,
-    optional: HashMap<String, u8>,
+    parentheses: Map<String, u8>,
+    more: Map<String, u8>,
+    multiple: Map<String, u8>,
+    optional: Map<String, u8>,
 } impl Extensor {
     pub fn new() -> Extensor {return Self {
         counter: 0,
-        parentheses: HashMap::new(),
-        more: HashMap::new(),
-        multiple: HashMap::new(),
-        optional: HashMap::new(),
+        parentheses: Map::new(),
+        more: Map::new(),
+        multiple: Map::new(),
+        optional: Map::new(),
     }}
-    fn reset(&mut self) -> HashSet<String> {
+    fn reset(&mut self) -> Set<String> {
         self.counter = 0;
         self.parentheses.clear();
         self.more.clear();
         self.multiple.clear();
         self.optional.clear();
-        return HashSet::new();
+        return Set::new();
     }
-    pub fn run(&mut self, ebnf: &str) -> HashMap<Rule, Vec<Vec<Symbol>>> {
+    pub fn run(&mut self, ebnf: &str) -> Map<Rule, Vec<Vec<Symbol>>> {
         let mut rules = self.reset();
         for line in ebnf.lines().map(str::trim) {
             if line.is_empty() || line.starts_with("//") {continue}
@@ -104,13 +103,13 @@ struct Extensor {
         });
         return self.serialize(ordered.join("\n"));
     }
-    fn expand(&mut self, expression: &str, rules: &mut HashSet<String>) -> String {
+    fn expand(&mut self, expression: &str, rules: &mut Set<String>) -> String {
         let mut result = expression.to_string();
         while result.contains("(") {result = self.collapse(&result, rules)};
         result = self.postfix(&result, rules);
         return result.to_string();
     }
-    fn collapse(&mut self, expression: &str, rules: &mut HashSet<String>) -> String {
+    fn collapse(&mut self, expression: &str, rules: &mut Set<String>) -> String {
         let Some(hit) = COLLAPSEREGEX.find(expression.as_bytes()) else {return expression.to_string()};
         let inner = &expression[hit.start() + 1 .. hit.end() - 1].to_string();
         let symbol = *self.parentheses.entry(inner.to_string()).or_insert_with(|| {self.counter += 1; self.counter});
@@ -118,7 +117,7 @@ struct Extensor {
         rules.insert(format!("${symbol} -> {expanded}"));
         return format!("{}${symbol}{}", &expression[..hit.start()], &expression[hit.end()..]);
     }
-    fn postfix(&mut self, expression: &str, rules: &mut HashSet<String>) -> String {
+    fn postfix(&mut self, expression: &str, rules: &mut Set<String>) -> String {
         let mut result = expression.to_string();
         while let Some(hit) = POSTFIXREGEX.captures(&result.as_bytes()) {
             let atom = String::from_utf8(hit.name("atom").unwrap().as_bytes().to_vec()).unwrap();
@@ -140,8 +139,8 @@ struct Extensor {
         };
         return result;
     }
-    fn serialize(&self, bnf: String) -> HashMap<Rule, Vec<Vec<Symbol>>> {
-        let mut map = HashMap::new();
+    fn serialize(&self, bnf: String) -> Map<Rule, Vec<Vec<Symbol>>> {
+        let mut map = Map::new();
         for line in bnf.lines() {
             let [rule, productions] = line.splitn(2, "->").map(str::trim).collect::<Vec<&str>>()[0..2] else {panic!("{line}")};
             for variant in productions.split("|").map(str::trim) {

@@ -19,7 +19,7 @@ mod base {
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    Argument, File, Flag, Instant, Target
+    Argument, File, Flag, Time, Target
 };
 
 //> HEAD -> LOCAL
@@ -34,7 +34,7 @@ use self::base::parser::Parser;
 
 //> UTILS -> TIMED
 fn timed<Function, Return>(function: Function) -> Return where Function: FnOnce() -> Return {
-    let start = Instant::now();
+    let start = Time::now();
     let result = function();
     println!("[INFO] Compiled in {:.3?}", start.elapsed());
     return result;

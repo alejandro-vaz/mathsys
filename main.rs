@@ -10,7 +10,7 @@
 //> HEAD -> PRELUDE
 mod prelude;
 use prelude::{
-    args, File, Flag, Alias, Target, Argument, wrapperDev
+    getArguments, File, Flag, Alias, Target, Argument, wrapperDev
 };
 
 //> HEAD -> ENTRY
@@ -28,7 +28,7 @@ pub static VERSION: usize = 6;
 //> MAIN -> EXECUTION
 fn main() -> () {
     let mut arguments = Vec::new();
-    for argument in args().skip(1) {match &argument {
+    for argument in getArguments().skip(1) {match &argument {
         file if file.split(".").last().unwrap().starts_with("ms") => arguments.push(Argument::File(File {
             name: argument.into()
         })),

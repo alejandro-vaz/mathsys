@@ -4,7 +4,7 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    AHashMap, AHashSet, VecDeque, SmallVec
+    FastMap, FastSet, Deque, SmallVec
 };
 
 //> HEAD -> LOCAL
@@ -71,28 +71,25 @@ static SAVEDFOLLOWERS: usize = 2;
 
 //> PARSER -> STRUCT
 pub struct Parser {
-    chart: Vec<AHashMap<State, AHashSet<SmallVec<[Follow; SAVEDFOLLOWERS]>>>>,
-    pool: AHashMap<Follow, AHashSet<SmallVec<[Follow; SAVEDFOLLOWERS]>>>,
-    waiting: Vec<AHashMap<Symbol, AHashSet<State>>>
+    chart: Vec<FastMap<State, FastSet<SmallVec<[Follow; SAVEDFOLLOWERS]>>>>,
+    waiting: Vec<FastMap<Symbol, FastSet<State>>>
 } impl Parser {
     pub fn new() -> Self {return Parser {
         chart: Vec::new(),
-        pool: AHashMap::new(),
         waiting: Vec::new()
     }}
     #[inline(always)]
     fn wait(&mut self, index: u16, state: State) -> () {if let Some(symbol) = state.at() {self.waiting[index as usize].entry(symbol).or_default().insert(state);}}
     #[inline(always)]
-    fn recall(&mut self, index: u16, state: State) -> &mut AHashSet<SmallVec<[Follow; SAVEDFOLLOWERS]>> {return self.chart[index as usize].entry(state).or_default()}
+    fn recall(&mut self, index: u16, state: State) -> &mut FastSet<SmallVec<[Follow; SAVEDFOLLOWERS]>> {return self.chart[index as usize].entry(state).or_default()}
     #[inline(always)]
-    fn review(&mut self, index: u16, state: State) -> &AHashSet<SmallVec<[Follow; SAVEDFOLLOWERS]>> {return self.chart[index as usize].entry(state).or_default()}
+    fn review(&mut self, index: u16, state: State) -> &FastSet<SmallVec<[Follow; SAVEDFOLLOWERS]>> {return self.chart[index as usize].entry(state).or_default()}
     fn reset(&mut self, tokens: &mut Vec<Token>) -> () {
         tokens.retain(|token| ORDER.get(&token.kind).unwrap().1 != Responsibility::Null);
         self.chart.clear();
-        self.pool.clear();
         self.waiting.clear();
-        self.chart.extend((0..(tokens.len() + 1)).map(|iteration| AHashMap::new()));
-        self.waiting.extend((0..(tokens.len() + 1)).map(|iteration| AHashMap::new()));
+        self.chart.extend((0..(tokens.len() + 1)).map(|iteration| FastMap::new()));
+        self.waiting.extend((0..(tokens.len() + 1)).map(|iteration| FastMap::new()));
         let root = State::new(Rule::Internal(0), 0, 0, 0);
         self.recall(0, root).insert(SmallVec::new());
         self.wait(0, root);
@@ -102,10 +99,11 @@ pub struct Parser {
         let end = self.parse(tokens);
         return Ok(!end.is_empty());
     }
-    fn parse(&mut self, tokens: Vec<Token>) -> &AHashSet<SmallVec<[Follow; SAVEDFOLLOWERS]>> {
+    fn parse(&mut self, tokens: Vec<Token>) -> &FastSet<SmallVec<[Follow; SAVEDFOLLOWERS]>> {
         let length = tokens.len();
-        let mut agenda = VecDeque::new();
-        let mut completed = AHashSet::new();
+        let mut pool: FastMap<Follow, FastSet<SmallVec<[Follow; SAVEDFOLLOWERS]>>> = FastMap::new();
+        let mut agenda = Deque::new();
+        let mut completed = FastSet::new();
         for index in (0 as u16)..((length + 1) as u16) {
             let token = tokens.get(index as usize);
             agenda.extend(self.chart[index as usize].keys().cloned());
@@ -117,8 +115,7 @@ pub struct Parser {
                         let advanced = awaiting.next();
                         let stored = self.review(index, advanced).len();
                         let pointer = Follow::new(state.rule.into(), state.starting, index);
-                        let current = self.review(index, state).clone();
-                        self.pool.entry(pointer).or_default().extend(current);
+                        pool.entry(pointer).or_default().extend(self.review(index, state).clone());
                         let backpointers = self.chart[state.starting as usize].get(&awaiting).cloned().unwrap_or_default().into_iter().map(|mut backpointer| {backpointer.push(pointer); backpointer}).collect::<Vec<SmallVec<[Follow; SAVEDFOLLOWERS]>>>();
                         self.wait(index, advanced);
                         let additional = self.recall(index, advanced);

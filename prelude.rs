@@ -4,21 +4,22 @@
 
 //> PRELUDE -> STD
 pub use std::{
-    env::args,
-    path::PathBuf,
+    env::args as getArguments,
+    path::PathBuf as FilePath,
     fs::{
-        read_to_string,
+        read_to_string as read,
         write
     },
-    time::Instant,
+    time::Instant as Time,
     process::exit,
     error::Error,
-    fmt,
+    fmt as format,
     collections::{
-        HashMap,
-        HashSet,
-        VecDeque
+        HashMap as Map,
+        HashSet as Set,
+        VecDeque as Deque
     },
+    thread::spawn,
     sync::LazyLock
 };
 
@@ -36,7 +37,7 @@ pub use crate::{
 };
 
 //> PRELUDE -> COLORED
-pub use colored::Colorize;
+pub use colored::Colorize as Colored;
 
 //> PRELUDE -> REGEX
 pub use regex::bytes::{
@@ -49,11 +50,16 @@ pub use indexmap::IndexMap;
 
 //> PRELUDE -> AHASH
 pub use ahash::{
-    AHashMap,
-    AHashSet
+    AHashMap as FastMap,
+    AHashSet as FastSet
 };
 
 //> PRELUDE -> SMALLVEC
 pub use smallvec::{
     SmallVec
+};
+
+//> PRELUDE -> NUM_CPUS
+pub use num_cpus::{
+    get as threadCount
 };

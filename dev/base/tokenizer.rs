@@ -57,11 +57,11 @@ pub enum Kind {
 //> TOKENS -> STRUCT
 #[derive(Debug)]
 pub struct Token {
-    start: u32,
+    start: u64,
     pub kind: Kind
-} impl From<(u32, Kind)> for Token {
+} impl From<(u64, Kind)> for Token {
     #[inline(always)] 
-    fn from(value: (u32, Kind)) -> Self {Token {
+    fn from(value: (u64, Kind)) -> Self {Token {
         start: value.0,
         kind: value.1
     }}
@@ -106,14 +106,14 @@ static REGEXSET: LazyLock<RegexSet> = LazyLock::new(|| RegexSet::new(ORDER.iter(
 //^
 
 //> TOKENIZER -> MAXLEN
-pub static MAXLEN: usize = 0xFFFFFFFF;
+pub static MAXLEN: usize = 0xFFFFFFFFF;
 
 //> TOKENIZER -> STRUCT
 pub struct Tokenizer {
     content: String,
-    column: u16,
-    line: u16,
-    cursor: u32
+    column: u32,
+    line: u32,
+    cursor: u64
 } impl Tokenizer {
     pub fn new() -> Tokenizer {return Self {
         content: String::new(),
@@ -133,12 +133,12 @@ pub struct Tokenizer {
         while tokens.len() != MAXLEN {
             let (token, length) = self.next()?;
             match token.kind {
-                Kind::NEWLINES => {self.line += length as u16; self.column = 1},
-                Kind::ENDOFFILE => return Ok(tokens),
-                other => self.column += length as u16
+                Kind::NEWLINES => {self.line += length as u32; self.column = 1},
+                Kind::ENDOFFILE => {tokens.push(token); return Ok(tokens)},
+                other => self.column += length as u32
             }
             tokens.push(token);
-            self.cursor += length as u32;
+            self.cursor += length as u64;
         };
         return Err(inputTooLong())
     }
