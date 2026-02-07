@@ -8,6 +8,7 @@ use crate::prelude::{
 };
 
 //> HEAD -> LOCAL
+use super::tokenizer::BindedToken;
 use super::start::Start;
 use super::level1::{Level1, Declaration, Definition, Annotation, Node, Equation, Use};
 use super::level2::{Level2, Expression};
@@ -28,11 +29,17 @@ pub enum NonTerminal {
     Level2(Level2),
     Level3(Level3),
     Level4(Level4),
-    Level5(Level5),
+    Level5(Level5)
+}
+
+//> NONTERMINAL -> PARTITION
+#[derive(Clone)]
+pub enum Partition {
+    NonTerminal(NonTerminal),
     Internal(Vec<NonTerminal>)
 }
 
-//> NONTERMINAL -> SYMBOLS
+//> NONTERMINAL -> OBJECT
 #[derive(Eq, Hash, PartialEq, Debug, Clone, Copy)]
 pub enum Object {
     Start,
@@ -61,7 +68,7 @@ pub enum Object {
     Rational,
     Casts
 } impl Object {
-    pub fn summon(&self, items: Vec<NonTerminal>) -> NonTerminal {return match self {
+    pub fn summon<'parsing>(&self, items: Vec<NonTerminal>) -> NonTerminal {return match self {
         Object::Start => Start::summon(items),
         Object::Level1 => if let NonTerminal::Level1(element) = &items[0] {items.into_iter().next().unwrap()} else {panic!("{items:?}")},
         Object::Level2 => if let NonTerminal::Level2(element) = &items[0] {items.into_iter().next().unwrap()} else {panic!("{items:?}")},

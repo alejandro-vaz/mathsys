@@ -26,7 +26,7 @@ use crate::prelude::{
 use self::base::issues::{noFileProvided, noTargetProvided, Issue, unknownTarget};
 use self::base::tokenizer::{ShallowToken, Tokenizer};
 use self::base::parser::Parser;
-use self::base::nonterminal::NonTerminal;
+use self::base::start::Start;
 
 
 //^
@@ -58,20 +58,20 @@ pub struct Transformers {
 //> PIPELINE -> TOKENS
 pub fn tokens(settings: &Settings, transformers: &mut Transformers) -> Result<Vec<ShallowToken>, Issue> {
     let content = settings.file.read();
-    return Ok(transformers.tokenizer.run(&content)?.into_iter().map(|token| token.fixate()).collect());
+    return Ok(transformers.tokenizer.run(&content, settings)?.into_iter().map(|token| token.fixate()).collect());
 }
 
 //> PIPELINE -> LENGTH
 pub fn length(settings: &Settings, transformers: &mut Transformers) -> Result<usize, Issue> {
     let content = settings.file.read();
-    return Ok(transformers.tokenizer.run(&content)?.len());
+    return Ok(transformers.tokenizer.run(&content, settings)?.len());
 }
 
 //> PIPELINE -> AST
-pub fn ast(settings: &Settings, transformers: &mut Transformers) -> Result<NonTerminal, Issue> {
+pub fn ast(settings: &Settings, transformers: &mut Transformers) -> Result<Start, Issue> {
     let content = settings.file.read();
-    let tokens = transformers.tokenizer.run(&content)?;
-    return transformers.parser.run(tokens);
+    let tokens = transformers.tokenizer.run(&content, settings)?;
+    return transformers.parser.run(tokens, settings);
 }
 
 
@@ -81,12 +81,12 @@ pub fn ast(settings: &Settings, transformers: &mut Transformers) -> Result<NonTe
 
 //> TARGETS -> RUN
 struct Run {
-    debug: bool,
-    class: bool,
-    chore: bool,
-    trace: bool,
-    alert: bool,
-    point: bool
+    debug: bool = false,
+    class: bool = false,
+    chore: bool = true,
+    trace: bool = true,
+    alert: bool = false,
+    point: bool = true
 }
 
 //> TARGETS -> SETTINGS
@@ -103,14 +103,7 @@ pub struct Settings {
         let mut settings = Settings {
             file: file.unwrap(),
             target: target.unwrap(),
-            run: Run {
-                debug: false,
-                class: false,
-                chore: true,
-                trace: true,
-                alert: false,
-                point: true
-            }
+            run: Run {..}
         };
         arguments.iter().for_each(|argument| settings.apply(argument));
         return Ok(settings);
@@ -145,18 +138,17 @@ pub struct Settings {
 pub fn wrapper(arguments: Vec<Argument>) -> Result<(), Issue> {timed(|| {
     let settings = Settings::set(arguments)?;
     let mut transformers = Transformers::new();
-    match &settings.target.name as &str {
-        "tokens" => println!("{:#?}", tokens(&settings, &mut transformers)?),
-        "length" => println!("{}", length(&settings, &mut transformers)?),
-        "ast" => println!("{:#?}", ast(&settings, &mut transformers)?),
+    return Ok(match &settings.target.name as &str {
+        target if target == TARGETS[0] => println!("{:#?}", tokens(&settings, &mut transformers)?),
+        target if target == TARGETS[1] => println!("{}", length(&settings, &mut transformers)?),
+        target if target == TARGETS[2] => println!("{:#?}", ast(&settings, &mut transformers)?),
         other => return Err(unknownTarget(other))
-    };
-    return Ok(());
+    });
 })}
 
 //> TARGETS -> FUNCTIONS
 pub static TARGETS: [&'static str; 3] = [
     "tokens",
     "length",
-    "validate"
+    "ast"
 ];

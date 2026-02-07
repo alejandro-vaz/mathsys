@@ -8,10 +8,12 @@ use crate::prelude::{
 };
 
 //> HEAD -> LOCAL
+use super::super::Settings;
 use super::tokenizer::{BindedToken, ORDER, Responsibility};
 use super::grammar::{GRAMMAR, Rule, Symbol};
 use super::issues::Issue;
-use super::nonterminal::{Object, NonTerminal};
+use super::nonterminal::{Object, NonTerminal, Partition};
+use super::start::Start;
 
 
 //^
@@ -19,7 +21,7 @@ use super::nonterminal::{Object, NonTerminal};
 //^
 
 //> RESOURCES -> STATE
-#[derive(Clone, Copy, Hash, PartialEq, Eq, Debug)]
+#[derive(Clone, Hash, PartialEq, Eq)]
 struct State {
     rule: Rule,
     variant: u8,
@@ -48,7 +50,7 @@ struct State {
 }
 
 //> RESOURCES -> FOLLOW
-#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
 struct Backpointer {
     symbol: Symbol,
     start: u32,
@@ -80,12 +82,12 @@ pub struct Parser {
         waiting: Vec::new()
     }}
     #[inline(always)]
-    fn wait(&mut self, index: u32, state: State) -> () {if let Some(symbol) = state.at() {self.waiting[index as usize].entry(symbol).or_default().insert(state);}}
+    fn wait(&mut self, index: u32, state: &State) -> () {if let Some(symbol) = state.at() {self.waiting[index as usize].entry(symbol).or_default().insert(state.clone());}}
     #[inline(always)]
-    fn recall(&mut self, index: u32, state: State) -> &mut FastSet<SmallVec<[Backpointer; SAVEDFOLLOWERS]>> {return self.chart[index as usize].entry(state).or_default()}
+    fn recall(&mut self, index: u32, state: &State) -> &mut FastSet<SmallVec<[Backpointer; SAVEDFOLLOWERS]>> {return self.chart[index as usize].entry(state.clone()).or_default()}
     #[inline(always)]
-    fn review(&mut self, index: u32, state: State) -> &FastSet<SmallVec<[Backpointer; SAVEDFOLLOWERS]>> {return self.chart[index as usize].entry(state).or_default()}
-    fn best(&self, pool: &FastMap<Backpointer, FastSet<SmallVec<[Backpointer; SAVEDFOLLOWERS]>>>, node: &Backpointer, memory: &mut FastMap<Backpointer, (usize, Option<NonTerminal>)>) -> (usize, Option<NonTerminal>) {
+    fn review(&mut self, index: u32, state: &State) -> &FastSet<SmallVec<[Backpointer; SAVEDFOLLOWERS]>> {return self.chart[index as usize].entry(state.clone()).or_default()}
+    fn best(&self, pool: &FastMap<Backpointer, FastSet<SmallVec<[Backpointer; SAVEDFOLLOWERS]>>>, node: &Backpointer, memory: &mut FastMap<Backpointer, (usize, Option<Partition>)>) -> (usize, Option<Partition>) {
         if let Some(result) = memory.get(node) {return result.clone()};
         if let Symbol::Kind(kind) = node.symbol {
             let result = (0, None);
@@ -106,18 +108,17 @@ pub struct Parser {
                     let (ccore, ctree) = self.best(pool, child, memory);
                     score += ccore;
                     if let Some(tree) = ctree {
-                        if let NonTerminal::Internal(items) = tree {
-                            children.extend(items);
-                        } else {
-                            children.push(tree);
+                        match tree {
+                            Partition::Internal(items) => children.extend(items),
+                            Partition::NonTerminal(items) => children.push(items),
                         }
                     };
                 }
                 if score > bcore || btree.is_none() {
                     bcore = score;
                     btree = Some(match node.symbol {
-                        Symbol::NonTerminal(object) => object.summon(children),
-                        Symbol::Internal(code) => NonTerminal::Internal(children),
+                        Symbol::NonTerminal(object) => Partition::NonTerminal(object.summon(children)),
+                        Symbol::Internal(code) => Partition::Internal(children),
                         Symbol::Kind(kind) => unreachable!()
                     });
                 }
@@ -134,19 +135,18 @@ pub struct Parser {
         self.chart.extend((0..(tokens.len() + 1)).map(|iteration| FastMap::new()));
         self.waiting.extend((0..(tokens.len() + 1)).map(|iteration| FastMap::new()));
         let root = State::new(Rule::Internal(0), 0, 0, 0);
-        self.recall(0, root).insert(SmallVec::new());
-        self.wait(0, root);
+        self.recall(0, &root).insert(SmallVec::new());
+        self.wait(0, &root);
     }
-    pub fn run(&mut self, mut tokens: Vec<BindedToken>) -> Result<NonTerminal, Issue> {
+    pub fn run(&mut self, mut tokens: Vec<BindedToken>, settings: &Settings) -> Result<Start, Issue> {
         self.reset(&mut tokens);
         let pool = self.parse(&tokens);
-        let last = Backpointer::new(Symbol::NonTerminal(Object::Start), 0, tokens.len() as u32);
-        let end = pool.get(&last).cloned().unwrap_or_default();
-        return Ok(self.best(&pool, &last, &mut FastMap::new()).1.unwrap());
+        let Partition::NonTerminal(NonTerminal::Start(root)) = self.best(&pool, &Backpointer::new(Symbol::NonTerminal(Object::Start), 0, tokens.len() as u32), &mut FastMap::new()).1.unwrap() else {unreachable!()};
+        return Ok(root);
     }
     fn parse(&mut self, tokens: &Vec<BindedToken>) -> FastMap<Backpointer, FastSet<SmallVec<[Backpointer; SAVEDFOLLOWERS]>>> {
         let length = tokens.len();
-        let mut pool: FastMap<Backpointer, FastSet<SmallVec<[Backpointer; SAVEDFOLLOWERS]>>> = FastMap::new();
+        let mut pool = FastMap::new() as FastMap<Backpointer, FastSet<SmallVec<[Backpointer; SAVEDFOLLOWERS]>>>;
         let mut agenda = Deque::new();
         let mut completed = FastSet::new();
         for index in (0 as u32)..((length + 1) as u32) {
@@ -158,24 +158,24 @@ pub struct Parser {
                 if at.is_none() {
                     for awaiting in self.waiting[state.starting as usize].get(&state.rule.into()).cloned().unwrap_or_default() {
                         let advanced = awaiting.next();
-                        let stored = self.review(index, advanced).len();
+                        let stored = self.review(index, &advanced).len();
                         let pointer = Backpointer::new(state.rule.into(), state.starting, index);
-                        pool.entry(pointer).or_default().extend(self.review(index, state).clone());
+                        pool.entry(pointer).or_default().extend(self.review(index, &state).clone());
                         let backpointers = self.chart[state.starting as usize].get(&awaiting).cloned().unwrap_or_default().into_iter().map(|mut backpointer| {backpointer.push(pointer); backpointer}).collect::<Vec<SmallVec<[Backpointer; SAVEDFOLLOWERS]>>>();
-                        self.wait(index, advanced);
-                        let additional = self.recall(index, advanced);
+                        self.wait(index, &advanced);
+                        let additional = self.recall(index, &advanced);
                         additional.extend(backpointers);
                         if additional.len() > stored {
                             agenda.push_back(advanced);
-                            agenda.extend(&completed);
+                            agenda.extend(completed.clone());
                         }
                     }
                     completed.insert(state);
                 } else if let (Some(Symbol::Kind(kind)), Some(value)) = (at, token) && kind == value.kind {
-                    let addable = self.recall(index, state).clone().into_iter().map(|mut element| {element.push(Backpointer::new(Symbol::Kind(kind), index, index + 1)); element}).collect::<Vec<SmallVec<[Backpointer; SAVEDFOLLOWERS]>>>();
+                    let addable = self.recall(index, &state).clone().into_iter().map(|mut element| {element.push(Backpointer::new(Symbol::Kind(kind), index, index + 1)); element}).collect::<Vec<SmallVec<[Backpointer; SAVEDFOLLOWERS]>>>();
                     let following = state.next();
-                    self.recall(index + 1, following).extend(addable);
-                    self.wait(index + 1, following);
+                    self.recall(index + 1, &following).extend(addable);
+                    self.wait(index + 1, &following);
                 } else {
                     let rule = match at.unwrap() {
                         Symbol::Internal(code) => Rule::Internal(code),
@@ -184,8 +184,8 @@ pub struct Parser {
                     };
                     for variant in (0 as u8)..(GRAMMAR.get(&rule).unwrap().len() as u8) {
                         let possibility = State::new(rule, variant, 0, index);
-                        self.wait(index, possibility);
-                        let produced = self.recall(index, possibility);
+                        self.wait(index, &possibility);
+                        let produced = self.recall(index, &possibility);
                         if produced.is_empty() {
                             produced.insert(SmallVec::new());
                             agenda.push_back(possibility);

@@ -161,7 +161,7 @@ struct Extensor {
 //^
 
 //> GRAMMAR -> RULE
-#[derive(Eq, Hash, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, Hash, PartialEq, Clone, Copy)]
 pub enum Rule {
     NonTerminal(Object),
     Internal(u8)
@@ -199,7 +199,7 @@ pub enum Rule {
 }}}
 
 //> GRAMMAR -> SYMBOL
-#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Symbol {
     NonTerminal(Object),
     Internal(u8),

@@ -6,6 +6,7 @@
 #![allow(unused_variables)]
 #![allow(nonstandard_style)]
 #![feature(try_trait_v2)]
+#![feature(default_field_values)]
 
 //> HEAD -> PRELUDE
 mod prelude;

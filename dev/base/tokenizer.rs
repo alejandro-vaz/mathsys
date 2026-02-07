@@ -8,6 +8,7 @@ use crate::prelude::{
 };
 
 //> HEAD -> LOCAL
+use super::super::Settings;
 use super::issues::{unknownToken, Issue, inputTooLong};
 
 
@@ -55,6 +56,7 @@ pub enum Kind {
 }
 
 //> TOKENS -> BINDED
+#[derive(Debug, Clone)]
 pub struct BindedToken<'processing> {
     start: u64,
     value: &'processing str,
@@ -132,7 +134,7 @@ pub struct Tokenizer {
         line: 1,
         cursor: 0
     }}
-    pub fn run<'tokenizing>(&mut self, content: &'tokenizing str) -> Result<Vec<BindedToken<'tokenizing>>, Issue> {
+    pub fn run<'tokenizing>(&mut self, content: &'tokenizing str, settings: &Settings) -> Result<Vec<BindedToken<'tokenizing>>, Issue> {
         self.column = 1;
         self.line = 1;
         self.cursor = 0;
@@ -147,7 +149,7 @@ pub struct Tokenizer {
             tokens.push(token);
             self.cursor += length as u64;
         };
-        return Err(inputTooLong())
+        return Err(inputTooLong());
     }
     #[inline(always)]
     fn next<'tokenizing>(&self, content: &'tokenizing str) -> Result<(BindedToken<'tokenizing>, usize), Issue> {
@@ -163,7 +165,7 @@ pub struct Tokenizer {
             None => Err(unknownToken(
                 self.line, 
                 self.column, 
-                content.lines().nth((self.line - 1) as usize).unwrap()
+                content.lines().nth(self.line as usize - 1).unwrap()
             ))
         };
     }
