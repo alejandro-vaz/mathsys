@@ -3,6 +3,7 @@
 //^
 
 //> HEAD -> LOCAL
+use super::nonterminal::{Spawn, NonTerminal};
 use super::level2::Level2;
 
 
@@ -11,6 +12,7 @@ use super::level2::Level2;
 //^
 
 //> 5ºLEVEL -> NAMESPACE
+#[derive(Debug, Clone)]
 pub enum Level5 {
     Infinite(Infinite),
     Variable(Variable),
@@ -24,67 +26,45 @@ pub enum Level5 {
 }
 
 //> 5ºLEVEL -> INFINITE
-pub struct Infinite {
-
-} impl Infinite {
-    pub fn summon() -> Self {return Infinite {}}
-}
+#[derive(Debug, Clone)]
+pub struct Infinite {} impl Spawn for Infinite {fn summon(items: Vec<NonTerminal>) -> NonTerminal {return NonTerminal::Level5(Level5::Infinite(Self {}))}}
 
 //> 5ºLEVEL -> VARIABLE
-pub struct Variable {
-
-} impl Variable {
-    pub fn summon() -> Self {return Variable {}}
-}
+#[derive(Debug, Clone)]
+pub struct Variable {} impl Spawn for Variable {fn summon(items: Vec<NonTerminal>) -> NonTerminal {return NonTerminal::Level5(Level5::Variable(Self {}))}}
 
 //> 5ºLEVEL -> NEST
+#[derive(Debug, Clone)]
 pub struct Nest {
     value: Option<Level2>
-} impl Nest {
-    pub fn summon() -> Self {return Nest {
-        value: None
-    }}
-}
+} impl Spawn for Nest {fn summon(items: Vec<NonTerminal>) -> NonTerminal {return NonTerminal::Level5(Level5::Nest(Self {
+    value: None
+}))}}
 
 //> 5ºLEVEL -> TENSOR
+#[derive(Debug, Clone)]
 pub struct Tensor {
     values: Vec<Level2>
-} impl Tensor {
-    pub fn summon() -> Self {return Tensor {
-        values: Vec::new()
-    }}
-}
+} impl Spawn for Tensor {fn summon(items: Vec<NonTerminal>) -> NonTerminal {return NonTerminal::Level5(Level5::Tensor(Self {
+    values: Vec::new()
+}))}}
 
 //> 5ºLEVEL -> WHOLE
-pub struct Whole {
-
-} impl Whole {
-    pub fn summon() -> Self {return Whole {}}
-}
+#[derive(Debug, Clone)]
+pub struct Whole {} impl Spawn for Whole {fn summon(items: Vec<NonTerminal>) -> NonTerminal {return NonTerminal::Level5(Level5::Whole(Self {}))}}
 
 //> 5ºLEVEL -> ABSOLUTE
-pub struct Absolute {
-} impl Absolute {
-    pub fn summon() -> Self {return  Absolute {}}
-}
+#[derive(Debug, Clone)]
+pub struct Absolute {} impl Spawn for Absolute {fn summon(items: Vec<NonTerminal>) -> NonTerminal {return NonTerminal::Level5(Level5::Absolute(Self {}))}}
 
 //> 5ºLEVEL -> UNDEFINED
-pub struct Undefined {
-
-} impl Undefined {
-    pub fn summon() -> Self {return Undefined {}}
-}
+#[derive(Debug, Clone)]
+pub struct Undefined {} impl Spawn for Undefined {fn summon(items: Vec<NonTerminal>) -> NonTerminal {return NonTerminal::Level5(Level5::Undefined(Self {}))}}
 
 //> 5ºLEVEL -> RATIONAL
-pub struct Rational {
-
-} impl Rational {
-    pub fn summon() -> Self {return Rational {}}
-}
+#[derive(Debug, Clone)]
+pub struct Rational {} impl Spawn for Rational {fn summon(items: Vec<NonTerminal>) -> NonTerminal {return NonTerminal::Level5(Level5::Rational(Self {}))}}
 
 //> 5ºLEVEL -> CASTS
-pub struct Casts {
-
-} impl Casts {
-    pub fn summon() -> Self {return Casts {}}
-}
+#[derive(Debug, Clone)]
+pub struct Casts {} impl Spawn for Casts {fn summon(items: Vec<NonTerminal>) -> NonTerminal {return NonTerminal::Level5(Level5::Casts(Self {}))}}

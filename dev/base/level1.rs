@@ -3,8 +3,8 @@
 //^
 
 //> HEAD -> LOCAL
+use super::nonterminal::{Spawn, NonTerminal};
 use super::start::Start;
-use super::level2::Level2;
 
 
 //^
@@ -12,6 +12,7 @@ use super::level2::Level2;
 //^
 
 //> 1ºLEVEL -> NAMESPACE
+#[derive(Debug, Clone)]
 pub enum Level1 {
     Declaration(Declaration),
     Definition(Definition),
@@ -22,41 +23,29 @@ pub enum Level1 {
 }
 
 //> 1ºLEVEL -> DECLARATION
-pub struct Declaration {
-} impl Declaration {
-    pub fn summon() -> Self {return Declaration {}}
-}
+#[derive(Debug, Clone)]
+pub struct Declaration {} impl Spawn for Declaration {fn summon(items: Vec<NonTerminal>) -> NonTerminal {return NonTerminal::Level1(Level1::Declaration(Self {}))}}
 
 //> 1ºLEVEL -> DEFINITION
-pub struct Definition {
-} impl Definition {
-    pub fn summon() -> Self {return Definition {}}
-}
+#[derive(Debug, Clone)]
+pub struct Definition {} impl Spawn for Definition {fn summon(items: Vec<NonTerminal>) -> NonTerminal {return NonTerminal::Level1(Level1::Definition(Self {}))}}
 
 //> 1ºLEVEL -> ANNOTATION
-pub struct Annotation {
-    
-} impl Annotation {
-    pub fn summon() -> Self {return Annotation {}}
-}
+#[derive(Debug, Clone)]
+pub struct Annotation {} impl Spawn for Annotation {fn summon(items: Vec<NonTerminal>) -> NonTerminal {return NonTerminal::Level1(Level1::Annotation(Self {}))}}
 
 //> 1ºLEVEL -> NODE
-pub struct Node {
-} impl Node {
-    pub fn summon() -> Self {return Node {}}
-}
+#[derive(Debug, Clone)]
+pub struct Node {} impl Spawn for Node {fn summon(items: Vec<NonTerminal>) -> NonTerminal {return NonTerminal::Level1(Level1::Node(Self {}))}}
 
 //> 1ºLEVEL -> EQUATION
-pub struct Equation {
-} impl Equation {
-    pub fn summon() -> Self {return Equation {}}
-}
+#[derive(Debug, Clone)]
+pub struct Equation {} impl Spawn for Equation {fn summon(items: Vec<NonTerminal>) -> NonTerminal {return NonTerminal::Level1(Level1::Equation(Self {}))}}
 
 //> 1ºLEVEL -> USE
+#[derive(Debug, Clone)]
 pub struct Use {
     start: Option<Start>
-} impl Use {
-    pub fn summon() -> Self {return Use {
-        start: None
-    }}
-}
+} impl Spawn for Use {fn summon(items: Vec<NonTerminal>) -> NonTerminal {return NonTerminal::Level1(Level1::Use(Self {
+    start: None
+}))}}

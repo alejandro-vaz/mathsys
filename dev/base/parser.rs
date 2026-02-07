@@ -11,6 +11,7 @@ use crate::prelude::{
 use super::tokenizer::{Token, ORDER, Responsibility};
 use super::grammar::{GRAMMAR, Rule, Symbol};
 use super::issues::Issue;
+use super::nonterminal::{Object, NonTerminal};
 
 
 //^
@@ -23,10 +24,10 @@ struct State {
     rule: Rule,
     variant: u8,
     slot: u8,
-    starting: u16
+    starting: u32
 } impl State {
     #[inline(always)]
-    pub fn new(rule: Rule, variant: u8, slot: u8, starting: u16) -> Self {return State {
+    pub fn new(rule: Rule, variant: u8, slot: u8, starting: u32) -> Self {return State {
         rule: rule,
         variant: variant,
         slot: slot,
@@ -48,13 +49,13 @@ struct State {
 
 //> RESOURCES -> FOLLOW
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
-struct Follow {
+struct Backpointer {
     symbol: Symbol,
-    start: u16,
-    end: u16
-} impl Follow {
+    start: u32,
+    end: u32
+} impl Backpointer {
     #[inline(always)]
-    pub fn new(symbol: Symbol, start: u16, end: u16) -> Self {return Follow {
+    pub fn new(symbol: Symbol, start: u32, end: u32) -> Self {return Backpointer {
         symbol: symbol,
         start: start,
         end: end
@@ -71,7 +72,7 @@ static SAVEDFOLLOWERS: usize = 2;
 
 //> PARSER -> STRUCT
 pub struct Parser {
-    chart: Vec<FastMap<State, FastSet<SmallVec<[Follow; SAVEDFOLLOWERS]>>>>,
+    chart: Vec<FastMap<State, FastSet<SmallVec<[Backpointer; SAVEDFOLLOWERS]>>>>,
     waiting: Vec<FastMap<Symbol, FastSet<State>>>
 } impl Parser {
     pub fn new() -> Self {return Parser {
@@ -79,11 +80,53 @@ pub struct Parser {
         waiting: Vec::new()
     }}
     #[inline(always)]
-    fn wait(&mut self, index: u16, state: State) -> () {if let Some(symbol) = state.at() {self.waiting[index as usize].entry(symbol).or_default().insert(state);}}
+    fn wait(&mut self, index: u32, state: State) -> () {if let Some(symbol) = state.at() {self.waiting[index as usize].entry(symbol).or_default().insert(state);}}
     #[inline(always)]
-    fn recall(&mut self, index: u16, state: State) -> &mut FastSet<SmallVec<[Follow; SAVEDFOLLOWERS]>> {return self.chart[index as usize].entry(state).or_default()}
+    fn recall(&mut self, index: u32, state: State) -> &mut FastSet<SmallVec<[Backpointer; SAVEDFOLLOWERS]>> {return self.chart[index as usize].entry(state).or_default()}
     #[inline(always)]
-    fn review(&mut self, index: u16, state: State) -> &FastSet<SmallVec<[Follow; SAVEDFOLLOWERS]>> {return self.chart[index as usize].entry(state).or_default()}
+    fn review(&mut self, index: u32, state: State) -> &FastSet<SmallVec<[Backpointer; SAVEDFOLLOWERS]>> {return self.chart[index as usize].entry(state).or_default()}
+    fn best(&self, pool: &FastMap<Backpointer, FastSet<SmallVec<[Backpointer; SAVEDFOLLOWERS]>>>, node: &Backpointer, memory: &mut FastMap<Backpointer, (usize, Option<NonTerminal>)>) -> (usize, Option<NonTerminal>) {
+        if let Some(result) = memory.get(node) {return result.clone()};
+        if let Symbol::Kind(kind) = node.symbol {
+            let result = (0, None);
+            memory.insert(*node, result.clone());
+            return result;
+        };
+        let mut bcore = 0;
+        let mut btree = None;
+        if let Some(derivations) = pool.get(node) {
+            for derivation in derivations {
+                let mut score = match node.symbol {
+                    Symbol::NonTerminal(object) => object.score(),
+                    Symbol::Internal(code) => 0,
+                    Symbol::Kind(kind) => unreachable!()
+                };
+                let mut children = Vec::new();
+                for child in derivation {
+                    let (ccore, ctree) = self.best(pool, child, memory);
+                    score += ccore;
+                    if let Some(tree) = ctree {
+                        if let NonTerminal::Internal(items) = tree {
+                            children.extend(items);
+                        } else {
+                            children.push(tree);
+                        }
+                    };
+                }
+                if score > bcore || btree.is_none() {
+                    bcore = score;
+                    btree = Some(match node.symbol {
+                        Symbol::NonTerminal(object) => object.summon(children),
+                        Symbol::Internal(code) => NonTerminal::Internal(children),
+                        Symbol::Kind(kind) => unreachable!()
+                    });
+                }
+            }
+        };
+        let result = (bcore, btree);
+        memory.insert(*node, result.clone());
+        return result;
+    }
     fn reset(&mut self, tokens: &mut Vec<Token>) -> () {
         tokens.retain(|token| ORDER.get(&token.kind).unwrap().1 != Responsibility::Null);
         self.chart.clear();
@@ -94,17 +137,19 @@ pub struct Parser {
         self.recall(0, root).insert(SmallVec::new());
         self.wait(0, root);
     }
-    pub fn run(&mut self, mut tokens: Vec<Token>) -> Result<bool, Issue> {
+    pub fn run(&mut self, mut tokens: Vec<Token>) -> Result<NonTerminal, Issue> {
         self.reset(&mut tokens);
-        let end = self.parse(tokens);
-        return Ok(!end.is_empty());
+        let pool = self.parse(&tokens);
+        let last = Backpointer::new(Symbol::NonTerminal(Object::Start), 0, tokens.len() as u32);
+        let end = pool.get(&last).cloned().unwrap_or_default();
+        return Ok(self.best(&pool, &last, &mut FastMap::new()).1.unwrap());
     }
-    fn parse(&mut self, tokens: Vec<Token>) -> &FastSet<SmallVec<[Follow; SAVEDFOLLOWERS]>> {
+    fn parse(&mut self, tokens: &Vec<Token>) -> FastMap<Backpointer, FastSet<SmallVec<[Backpointer; SAVEDFOLLOWERS]>>> {
         let length = tokens.len();
-        let mut pool: FastMap<Follow, FastSet<SmallVec<[Follow; SAVEDFOLLOWERS]>>> = FastMap::new();
+        let mut pool: FastMap<Backpointer, FastSet<SmallVec<[Backpointer; SAVEDFOLLOWERS]>>> = FastMap::new();
         let mut agenda = Deque::new();
         let mut completed = FastSet::new();
-        for index in (0 as u16)..((length + 1) as u16) {
+        for index in (0 as u32)..((length + 1) as u32) {
             let token = tokens.get(index as usize);
             agenda.extend(self.chart[index as usize].keys().cloned());
             while !agenda.is_empty() {
@@ -114,9 +159,9 @@ pub struct Parser {
                     for awaiting in self.waiting[state.starting as usize].get(&state.rule.into()).cloned().unwrap_or_default() {
                         let advanced = awaiting.next();
                         let stored = self.review(index, advanced).len();
-                        let pointer = Follow::new(state.rule.into(), state.starting, index);
+                        let pointer = Backpointer::new(state.rule.into(), state.starting, index);
                         pool.entry(pointer).or_default().extend(self.review(index, state).clone());
-                        let backpointers = self.chart[state.starting as usize].get(&awaiting).cloned().unwrap_or_default().into_iter().map(|mut backpointer| {backpointer.push(pointer); backpointer}).collect::<Vec<SmallVec<[Follow; SAVEDFOLLOWERS]>>>();
+                        let backpointers = self.chart[state.starting as usize].get(&awaiting).cloned().unwrap_or_default().into_iter().map(|mut backpointer| {backpointer.push(pointer); backpointer}).collect::<Vec<SmallVec<[Backpointer; SAVEDFOLLOWERS]>>>();
                         self.wait(index, advanced);
                         let additional = self.recall(index, advanced);
                         additional.extend(backpointers);
@@ -127,7 +172,7 @@ pub struct Parser {
                     }
                     completed.insert(state);
                 } else if let (Some(Symbol::Kind(kind)), Some(value)) = (at, token) && kind == value.kind {
-                    let addable = self.recall(index, state).clone().into_iter().map(|mut element| {element.push(Follow::new(Symbol::Kind(kind), index, index + 1)); element}).collect::<Vec<SmallVec<[Follow; SAVEDFOLLOWERS]>>>();
+                    let addable = self.recall(index, state).clone().into_iter().map(|mut element| {element.push(Backpointer::new(Symbol::Kind(kind), index, index + 1)); element}).collect::<Vec<SmallVec<[Backpointer; SAVEDFOLLOWERS]>>>();
                     let following = state.next();
                     self.recall(index + 1, following).extend(addable);
                     self.wait(index + 1, following);
@@ -150,6 +195,6 @@ pub struct Parser {
             }
             completed.clear();
         };
-        return self.chart[length].entry(State::new(Rule::Internal(0), 0, 1, 0)).or_default();
+        return pool;
     }
 }

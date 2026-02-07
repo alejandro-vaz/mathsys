@@ -26,6 +26,7 @@ use crate::prelude::{
 use self::base::issues::{noFileProvided, noTargetProvided, Issue, unknownTarget};
 use self::base::tokenizer::{Token, Tokenizer};
 use self::base::parser::Parser;
+use self::base::nonterminal::NonTerminal;
 
 
 //^
@@ -77,7 +78,7 @@ struct Length; impl TargetType for Length {
 
 //> PIPELINE -> VALIDATE
 struct Validate; impl TargetType for Validate {
-    type Output = bool;
+    type Output = NonTerminal;
     fn act(settings: Settings) -> Result<Self::Output, Issue> {
         //= VALIDATE -> PRELOAD
         let content = settings.file.read();
@@ -161,7 +162,7 @@ pub fn wrapper(arguments: Vec<Argument>) -> Result<(), Issue> {
     match &*settings.target.name {
         "tokens" => println!("{:#?}", Tokens::act(settings)?),
         "length" => println!("{}", Length::act(settings)?),
-        "validate" => println!("{}", Validate::act(settings)?),
+        "validate" => println!("{:#?}", Validate::act(settings)?),
         other => return Err(unknownTarget(other))
     };
     return Ok(());
