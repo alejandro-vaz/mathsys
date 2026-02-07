@@ -19,7 +19,6 @@ pub use std::{
         HashSet as Set,
         VecDeque as Deque
     },
-    thread::spawn,
     sync::LazyLock
 };
 
@@ -57,9 +56,4 @@ pub use ahash::{
 //> PRELUDE -> SMALLVEC
 pub use smallvec::{
     SmallVec
-};
-
-//> PRELUDE -> NUM_CPUS
-pub use num_cpus::{
-    get as threadCount
 };

@@ -24,7 +24,7 @@ use crate::prelude::{
 
 //> HEAD -> LOCAL
 use self::base::issues::{noFileProvided, noTargetProvided, Issue, unknownTarget};
-use self::base::tokenizer::{Token, Tokenizer};
+use self::base::tokenizer::{ShallowToken, Tokenizer};
 use self::base::parser::Parser;
 use self::base::nonterminal::NonTerminal;
 
@@ -46,47 +46,32 @@ fn timed<Function, Return>(function: Function) -> Return where Function: FnOnce(
 //^ PIPELINE
 //^
 
-//> PIPELINE -> TARGET TRAIT
-trait TargetType {
-    type Output;
-    fn act(settings: Settings) -> Result<Self::Output, Issue>;
-}
+//> PIPELINE -> TRANSFORMERS
+pub struct Transformers {
+    tokenizer: Tokenizer,
+    parser: Parser
+} impl Transformers {pub fn new() -> Self {return Transformers {
+    tokenizer: Tokenizer::new(),
+    parser: Parser::new()
+}}}
 
 //> PIPELINE -> TOKENS
-struct Tokens; impl TargetType for Tokens {
-    type Output = Vec<Token>; 
-    fn act(settings: Settings) -> Result<Self::Output, Issue> {
-        //= TOKENS -> PRELOAD
-        let content = settings.file.read();
-        let mut tokenizer = Tokenizer::new();
-        //= TOKENS -> RUN
-        return timed(|| tokenizer.run(content));
-    }
+pub fn tokens(settings: &Settings, transformers: &mut Transformers) -> Result<Vec<ShallowToken>, Issue> {
+    let content = settings.file.read();
+    return Ok(transformers.tokenizer.run(&content)?.into_iter().map(|token| token.fixate()).collect());
 }
 
 //> PIPELINE -> LENGTH
-struct Length; impl TargetType for Length {
-    type Output = usize;
-    fn act(settings: Settings) -> Result<Self::Output, Issue> {
-        //= LENGTH -> PRELOAD
-        let content = settings.file.read();
-        let mut tokenizer = Tokenizer::new();
-        //= LENGTH -> RUN
-        return timed(|| Ok(tokenizer.run(content)?.len()));
-    }
+pub fn length(settings: &Settings, transformers: &mut Transformers) -> Result<usize, Issue> {
+    let content = settings.file.read();
+    return Ok(transformers.tokenizer.run(&content)?.len());
 }
 
-//> PIPELINE -> VALIDATE
-struct Validate; impl TargetType for Validate {
-    type Output = NonTerminal;
-    fn act(settings: Settings) -> Result<Self::Output, Issue> {
-        //= VALIDATE -> PRELOAD
-        let content = settings.file.read();
-        let mut tokenizer = Tokenizer::new();
-        let mut parser = Parser::new();
-        //= VALIDATE -> RUN
-        return timed(|| Ok(parser.run(tokenizer.run(content)?)?));
-    }
+//> PIPELINE -> AST
+pub fn ast(settings: &Settings, transformers: &mut Transformers) -> Result<NonTerminal, Issue> {
+    let content = settings.file.read();
+    let tokens = transformers.tokenizer.run(&content)?;
+    return transformers.parser.run(tokens);
 }
 
 
@@ -105,7 +90,7 @@ struct Run {
 }
 
 //> TARGETS -> SETTINGS
-struct Settings {
+pub struct Settings {
     file: File,
     target: Target,
     run: Run
@@ -113,8 +98,8 @@ struct Settings {
     pub fn set(arguments: Vec<Argument>) -> Result<Settings, Issue> {
         let file = arguments.iter().find_map(|argument| if let Argument::File(value) = argument {Some(value.clone())} else {None});
         let target = arguments.iter().find_map(|argument| if let Argument::Target(value) = argument {Some(value.clone())} else {None});
-        if let None = file {return Err(noFileProvided())};
-        if let None = target {return Err(noTargetProvided())};
+        if file.is_none() {return Err(noFileProvided())};
+        if target.is_none() {return Err(noTargetProvided())};
         let mut settings = Settings {
             file: file.unwrap(),
             target: target.unwrap(),
@@ -143,7 +128,7 @@ struct Settings {
             other => return
         })}))),
         Argument::File(file) => return,
-        Argument::Flag(flag) => match flag.value.as_str() {
+        Argument::Flag(flag) => match &flag.value as &str {
             "debug" => self.run.debug = true,
             "class" => self.run.class = true,
             "no-chore" => self.run.chore = false,
@@ -157,16 +142,17 @@ struct Settings {
 }
 
 //> TARGETS -> WRAPPER
-pub fn wrapper(arguments: Vec<Argument>) -> Result<(), Issue> {
+pub fn wrapper(arguments: Vec<Argument>) -> Result<(), Issue> {timed(|| {
     let settings = Settings::set(arguments)?;
-    match &*settings.target.name {
-        "tokens" => println!("{:#?}", Tokens::act(settings)?),
-        "length" => println!("{}", Length::act(settings)?),
-        "validate" => println!("{:#?}", Validate::act(settings)?),
+    let mut transformers = Transformers::new();
+    match &settings.target.name as &str {
+        "tokens" => println!("{:#?}", tokens(&settings, &mut transformers)?),
+        "length" => println!("{}", length(&settings, &mut transformers)?),
+        "ast" => println!("{:#?}", ast(&settings, &mut transformers)?),
         other => return Err(unknownTarget(other))
     };
     return Ok(());
-}
+})}
 
 //> TARGETS -> FUNCTIONS
 pub static TARGETS: [&'static str; 3] = [

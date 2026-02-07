@@ -8,7 +8,7 @@ use crate::prelude::{
 };
 
 //> HEAD -> LOCAL
-use super::tokenizer::{Token, ORDER, Responsibility};
+use super::tokenizer::{BindedToken, ORDER, Responsibility};
 use super::grammar::{GRAMMAR, Rule, Symbol};
 use super::issues::Issue;
 use super::nonterminal::{Object, NonTerminal};
@@ -127,7 +127,7 @@ pub struct Parser {
         memory.insert(*node, result.clone());
         return result;
     }
-    fn reset(&mut self, tokens: &mut Vec<Token>) -> () {
+    fn reset(&mut self, tokens: &mut Vec<BindedToken>) -> () {
         tokens.retain(|token| ORDER.get(&token.kind).unwrap().1 != Responsibility::Null);
         self.chart.clear();
         self.waiting.clear();
@@ -137,14 +137,14 @@ pub struct Parser {
         self.recall(0, root).insert(SmallVec::new());
         self.wait(0, root);
     }
-    pub fn run(&mut self, mut tokens: Vec<Token>) -> Result<NonTerminal, Issue> {
+    pub fn run(&mut self, mut tokens: Vec<BindedToken>) -> Result<NonTerminal, Issue> {
         self.reset(&mut tokens);
         let pool = self.parse(&tokens);
         let last = Backpointer::new(Symbol::NonTerminal(Object::Start), 0, tokens.len() as u32);
         let end = pool.get(&last).cloned().unwrap_or_default();
         return Ok(self.best(&pool, &last, &mut FastMap::new()).1.unwrap());
     }
-    fn parse(&mut self, tokens: &Vec<Token>) -> FastMap<Backpointer, FastSet<SmallVec<[Backpointer; SAVEDFOLLOWERS]>>> {
+    fn parse(&mut self, tokens: &Vec<BindedToken>) -> FastMap<Backpointer, FastSet<SmallVec<[Backpointer; SAVEDFOLLOWERS]>>> {
         let length = tokens.len();
         let mut pool: FastMap<Backpointer, FastSet<SmallVec<[Backpointer; SAVEDFOLLOWERS]>>> = FastMap::new();
         let mut agenda = Deque::new();
