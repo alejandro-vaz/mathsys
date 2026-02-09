@@ -9,7 +9,7 @@ use crate::prelude::{
 
 //> HEAD -> LOCAL
 use super::super::Settings;
-use super::issues::{unknownToken, Issue, inputTooLong};
+use super::issues::{UnknownToken, Issue, InputTooLong};
 
 
 //^
@@ -17,7 +17,6 @@ use super::issues::{unknownToken, Issue, inputTooLong};
 //^
 
 //> TOKENS -> RESPONSIBILITY
-#[derive(PartialEq, Eq)]
 pub enum Responsibility {
     Null,
     Structural,
@@ -56,7 +55,7 @@ pub enum Kind {
 }
 
 //> TOKENS -> BINDED
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct BindedToken<'processing> {
     start: u64,
     value: &'processing str,
@@ -125,22 +124,21 @@ pub static MAXLEN: usize = 0xFFF;
 
 //> TOKENIZER -> STRUCT
 pub struct Tokenizer {
-    column: u32,
-    line: u32,
-    cursor: u64
+    column: u32 = 1,
+    line: u32 = 1,
+    cursor: u64 = 0
 } impl Tokenizer {
-    pub fn new() -> Tokenizer {return Self {
-        column: 1,
-        line: 1,
-        cursor: 0
-    }}
+    pub fn new() -> Tokenizer {return Self {..}}
     pub fn run<'tokenizing>(&mut self, content: &'tokenizing str, settings: &Settings) -> Result<Vec<BindedToken<'tokenizing>>, Issue> {
         self.column = 1;
         self.line = 1;
         self.cursor = 0;
         let mut tokens = Vec::with_capacity(MAXLEN);
         while tokens.len() != MAXLEN {
-            let (token, length) = self.next(content)?;
+            let (token, length) = self.next(content).ok_or_else(|| UnknownToken(
+                self.line, 
+                self.column, content.lines().nth(self.line as usize - 1).unwrap()
+            ))?;
             match token.kind {
                 Kind::NEWLINES => {self.line += length as u32; self.column = 1},
                 Kind::ENDOFFILE => {tokens.push(token); return Ok(tokens)},
@@ -149,10 +147,10 @@ pub struct Tokenizer {
             tokens.push(token);
             self.cursor += length as u64;
         };
-        return Err(inputTooLong());
+        return Err(InputTooLong());
     }
     #[inline(always)]
-    fn next<'tokenizing>(&self, content: &'tokenizing str) -> Result<(BindedToken<'tokenizing>, usize), Issue> {
+    fn next<'tokenizing>(&self, content: &'tokenizing str) -> Option<(BindedToken<'tokenizing>, usize)> {
         let mut best: Option<(Kind, usize)> = None;
         let slice = content[self.cursor as usize..].as_bytes();
         for chance in REGEXSET.matches_at(slice, 0) {
@@ -160,13 +158,6 @@ pub struct Tokenizer {
             let (kind, length) = (current.0, current.1.0.find_at(slice, 0).unwrap().len());
             if best.is_none() || best.unwrap().1 < length {best = Some((*kind, length))}
         }
-        return match best {
-            Some(data) => Ok((BindedToken::new(self.cursor, str::from_utf8(&slice[..data.1]).unwrap(), data.0), data.1)),
-            None => Err(unknownToken(
-                self.line, 
-                self.column, 
-                content.lines().nth(self.line as usize - 1).unwrap()
-            ))
-        };
+        return if let Some(data) = best {Some((BindedToken::new(self.cursor, str::from_utf8(&slice[..data.1]).unwrap(), data.0), data.1))} else {None}
     }
 }

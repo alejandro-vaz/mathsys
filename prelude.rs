@@ -4,16 +4,28 @@
 
 //> PRELUDE -> STD
 pub use std::{
-    env::args as getArguments,
+    env::{
+        args as getArguments,
+        consts::{
+            OS,
+            ARCH
+        },
+        current_dir as currentDir
+    },
     path::PathBuf as FilePath,
     fs::{
-        read_to_string as read,
-        write
+        read_to_string as readFile,
+        write,
+        read_dir as readDir
     },
     time::Instant as Time,
     process::exit,
     error::Error,
-    fmt as format,
+    fmt::{
+        Formatter,
+        Display,
+        Result as Rst
+    },
     collections::{
         HashMap as Map,
         HashSet as Set,
@@ -57,3 +69,6 @@ pub use ahash::{
 pub use smallvec::{
     SmallVec
 };
+
+//> PRELUDE -> RUSTC_VERSION_RUNTIME
+pub use rustc_version_runtime::version as rustcv;

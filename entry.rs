@@ -4,7 +4,7 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    FilePath, VERSION, read, write
+    FilePath, VERSION, readFile, write
 };
 
 
@@ -30,7 +30,7 @@ pub enum Argument {
 pub struct File {
     pub name: FilePath
 } impl File {
-    pub fn read(&self) -> String {read(&self.name).unwrap()}
+    pub fn read(&self) -> String {readFile(&self.name).unwrap()}
     pub async fn write(&self, extension: &str, content: String) -> () {
         let mut path = self.name.clone();
         path.set_extension(extension);

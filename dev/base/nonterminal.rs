@@ -2,13 +2,7 @@
 //^ HEAD
 //^
 
-//> HEAD -> PRELUDE
-use crate::prelude::{
-    Map
-};
-
 //> HEAD -> LOCAL
-use super::tokenizer::BindedToken;
 use super::start::Start;
 use super::level1::{Level1, Declaration, Definition, Annotation, Node, Equation, Use};
 use super::level2::{Level2, Expression};

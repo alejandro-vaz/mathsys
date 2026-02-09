@@ -37,7 +37,7 @@ fn main() -> () {
             value: argument.chars().skip(2).collect()
         })),
         alias if alias.starts_with("-") => arguments.push(Argument::Alias(Alias {
-            letters: argument.chars().collect()
+            letters: argument.chars().skip(1).collect()
         })),
         target => arguments.push(Argument::Target(Target {
             name: argument
@@ -45,17 +45,11 @@ fn main() -> () {
     }};
     call(arguments.iter().find_map(|argument| {
         if let Argument::File(file) = argument {Some(file.version())} else {None}
-    }).unwrap_or(VERSION), arguments);
+    }).unwrap_or(VERSION + 1), &arguments);
 }
 
 //> MAIN -> CALL
-fn call(version: usize, arguments: Vec<Argument>) -> () {if let Err(issue) = match version {
-    1 => return,
-    2 => return,
-    3 => return,
-    4 => return,
-    5 => return,
-    6 => return,
+fn call(version: usize, arguments: &[Argument]) -> () {if let Err(issue) = match version {
     7 => wrapperDev(arguments),
     other => return
 } {issue.consume()}}

@@ -199,38 +199,12 @@ pub enum Rule {
 }}}
 
 //> GRAMMAR -> SYMBOL
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub enum Symbol {
     NonTerminal(Object),
     Internal(u8),
     Kind(Kind)
 } impl From<&str> for Symbol {fn from(value: &str) -> Self {match value {
-    internal if internal.starts_with("$") => Symbol::Internal(internal[1..].parse().unwrap()),
-    "Start" => Symbol::NonTerminal(Object::Start),
-    "Level1" => Symbol::NonTerminal(Object::Level1),
-    "Level2" => Symbol::NonTerminal(Object::Level2),
-    "Level3" => Symbol::NonTerminal(Object::Level3),
-    "Level4" => Symbol::NonTerminal(Object::Level4),
-    "Level5" => Symbol::NonTerminal(Object::Level5),
-    "Declaration" => Symbol::NonTerminal(Object::Declaration),
-    "Definition" => Symbol::NonTerminal(Object::Definition),
-    "Annotation" => Symbol::NonTerminal(Object::Annotation),
-    "Node" => Symbol::NonTerminal(Object::Node),
-    "Equation" => Symbol::NonTerminal(Object::Equation),
-    "Use" => Symbol::NonTerminal(Object::Use),
-    "Expression" => Symbol::NonTerminal(Object::Expression),
-    "Term" => Symbol::NonTerminal(Object::Term),
-    "Factor" => Symbol::NonTerminal(Object::Factor),
-    "Limit" => Symbol::NonTerminal(Object::Limit),
-    "Infinite" => Symbol::NonTerminal(Object::Infinite),
-    "Variable" => Symbol::NonTerminal(Object::Variable),
-    "Nest" => Symbol::NonTerminal(Object::Nest),
-    "Tensor" => Symbol::NonTerminal(Object::Tensor),
-    "Whole" => Symbol::NonTerminal(Object::Whole),
-    "Absolute" => Symbol::NonTerminal(Object::Absolute),
-    "Undefined" => Symbol::NonTerminal(Object::Undefined),
-    "Rational" => Symbol::NonTerminal(Object::Rational),
-    "Casts" => Symbol::NonTerminal(Object::Casts),
     "IDENTIFIER" => Symbol::Kind(Kind::IDENTIFIER),
     "MODULE" => Symbol::Kind(Kind::MODULE),
     "NUMBER" => Symbol::Kind(Kind::NUMBER),
@@ -257,5 +231,5 @@ pub enum Symbol {
     "UNDEFINED" => Symbol::Kind(Kind::UNDEFINED),
     "USE" => Symbol::Kind(Kind::USE),
     "ENDOFFILE" => Symbol::Kind(Kind::ENDOFFILE),
-    other => panic!("{other}")
+    other => Rule::from(value).into()
 }}}

@@ -4,6 +4,7 @@
 
 //> HEAD -> BASE
 mod base {
+    pub mod builder;
     pub mod grammar;
     pub mod issues;
     pub mod level1;
@@ -12,34 +13,22 @@ mod base {
     pub mod level4;
     pub mod level5;
     pub mod nonterminal;
-    pub mod parser;
+    pub mod recognizer;
     pub mod start;
     pub mod tokenizer;
 }
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    Argument, File, Flag, Time, Target
+    Argument, File, Flag, Time, Target, VERSION, OS, ARCH, rustcv
 };
 
 //> HEAD -> LOCAL
-use self::base::issues::{noFileProvided, noTargetProvided, Issue, unknownTarget};
-use self::base::tokenizer::{ShallowToken, Tokenizer};
-use self::base::parser::Parser;
-use self::base::start::Start;
-
-
-//^
-//^ UTILS
-//^
-
-//> UTILS -> TIMED
-fn timed<Function, Return>(function: Function) -> Return where Function: FnOnce() -> Return {
-    let start = Time::now();
-    let result = function();
-    println!("[INFO] Compiled in {:.3?}", start.elapsed());
-    return result;
-}
+use self::base::issues::{MissingFile, Issue, UnknownTarget, UnknownFlag, UnknownAliasCharacter, GetHelp};
+use self::base::tokenizer::{ShallowToken, Tokenizer, MAXLEN};
+use self::base::recognizer::{Recognizer, Backpointer};
+use self::base::nonterminal::Object;
+use self::base::grammar::Symbol;
 
 
 //^
@@ -49,29 +38,42 @@ fn timed<Function, Return>(function: Function) -> Return where Function: FnOnce(
 //> PIPELINE -> TRANSFORMERS
 pub struct Transformers {
     tokenizer: Tokenizer,
-    parser: Parser
+    recognizer: Recognizer
 } impl Transformers {pub fn new() -> Self {return Transformers {
     tokenizer: Tokenizer::new(),
-    parser: Parser::new()
+    recognizer: Recognizer::new()
 }}}
+
+//> PIPELINE -> HELP
+pub fn help(settings: &Settings, transformers: &mut Transformers) -> Result<(), Issue> {return Err(GetHelp())}
+
+//> PIPELINE -> VERSION
+pub fn version(settings: &Settings, transformers: &mut Transformers) -> Result<usize, Issue> {return Ok(VERSION)}
 
 //> PIPELINE -> TOKENS
 pub fn tokens(settings: &Settings, transformers: &mut Transformers) -> Result<Vec<ShallowToken>, Issue> {
-    let content = settings.file.read();
-    return Ok(transformers.tokenizer.run(&content, settings)?.into_iter().map(|token| token.fixate()).collect());
+    let content = settings.file.clone().ok_or_else(MissingFile)?.read();
+    let tokens = transformers.tokenizer.run(&content, settings)?;
+    return Ok(tokens.into_iter().map(|token| token.fixate()).collect());
 }
 
 //> PIPELINE -> LENGTH
 pub fn length(settings: &Settings, transformers: &mut Transformers) -> Result<usize, Issue> {
-    let content = settings.file.read();
-    return Ok(transformers.tokenizer.run(&content, settings)?.len());
+    let content = settings.file.clone().ok_or_else(MissingFile)?.read();
+    let tokens = transformers.tokenizer.run(&content, settings)?;
+    return Ok(tokens.len());
 }
 
-//> PIPELINE -> AST
-pub fn ast(settings: &Settings, transformers: &mut Transformers) -> Result<Start, Issue> {
-    let content = settings.file.read();
+//> PIPELINE -> VALIDATE
+pub fn check(settings: &Settings, transformers: &mut Transformers) -> Result<bool, Issue> {
+    let content = settings.file.clone().ok_or_else(MissingFile)?.read();
     let tokens = transformers.tokenizer.run(&content, settings)?;
-    return transformers.parser.run(tokens, settings);
+    let pool = transformers.recognizer.run(&tokens, settings);
+    return Ok(pool.get(&Backpointer {
+        symbol: Symbol::NonTerminal(Object::Start), 
+        start: 0, 
+        end: tokens.len() as u32
+    }).is_some_and(|set| !set.is_empty()));
 }
 
 
@@ -79,76 +81,88 @@ pub fn ast(settings: &Settings, transformers: &mut Transformers) -> Result<Start
 //^ TARGETS
 //^
 
-//> TARGETS -> RUN
-struct Run {
-    debug: bool = false,
-    class: bool = false,
-    chore: bool = true,
-    trace: bool = true,
-    alert: bool = false,
-    point: bool = true
+//> TARGETS -> NOISE
+enum Noise {
+    Debug,
+    Verbose,
+    Normal,
+    Quiet,
+    Zero
+} impl Noise {
+    fn change(&mut self, shift: bool) -> () {*self = match self {
+        Noise::Debug => if shift {Noise::Debug} else {Noise::Verbose},
+        Noise::Normal => if shift {Noise::Verbose} else {Noise::Quiet},
+        Noise::Quiet => if shift {Noise::Normal} else {Noise::Zero},
+        Noise::Verbose => if shift {Noise::Debug} else {Noise::Normal},
+        Noise::Zero => if shift {Noise::Quiet} else {Noise::Zero}
+    }}
+    fn verbose(&self) -> bool {match self {
+        Noise::Debug | Noise::Verbose => true,
+        other => false
+    }}
+    fn quiet(&self) -> bool {match self {
+        Noise::Quiet | Noise::Zero => true,
+        other => false
+    }}
+    fn debug(&self) -> bool {if let Noise::Debug = self {true} else {false}}
+    fn zero(&self) -> bool {if let Noise::Zero = self {true} else {false}}
 }
 
 //> TARGETS -> SETTINGS
 pub struct Settings {
-    file: File,
-    target: Target,
-    run: Run
+    file: Option<File> = None,
+    target: Option<Target> = None,
+    noise: Noise = Noise::Normal
 } impl Settings {
-    pub fn set(arguments: Vec<Argument>) -> Result<Settings, Issue> {
-        let file = arguments.iter().find_map(|argument| if let Argument::File(value) = argument {Some(value.clone())} else {None});
-        let target = arguments.iter().find_map(|argument| if let Argument::Target(value) = argument {Some(value.clone())} else {None});
-        if file.is_none() {return Err(noFileProvided())};
-        if target.is_none() {return Err(noTargetProvided())};
-        let mut settings = Settings {
-            file: file.unwrap(),
-            target: target.unwrap(),
-            run: Run {..}
-        };
-        arguments.iter().for_each(|argument| settings.apply(argument));
+    pub fn set(arguments: &[Argument]) -> Result<Settings, Issue> {
+        let mut settings = Settings {..};
+        for argument in arguments {settings.apply(argument)?}
         return Ok(settings);
     }
-    pub fn apply(&mut self, argument: &Argument) -> () {match argument {
-        Argument::Alias(alias) => alias.letters.iter().for_each(|letter| self.apply(&Argument::Flag(Flag {value: String::from(match letter {
-            'z' => "optsize",
-            'o' => "optimize",
-            'd' => "debug",
-            'c' => "class",
-            'h' => "no-chore",
-            't' => "no-trace",
-            'a' => "alert",
-            'p' => "no-point",
-            other => return
-        })}))),
-        Argument::File(file) => return,
-        Argument::Flag(flag) => match &flag.value as &str {
-            "debug" => self.run.debug = true,
-            "class" => self.run.class = true,
-            "no-chore" => self.run.chore = false,
-            "no-trace" => self.run.trace = false,
-            "alert" => self.run.alert = true,
-            "no-point" => self.run.point = false,
-            other => return
+    pub fn apply(&mut self, argument: &Argument) -> Result<(), Issue> {return Ok(match argument {
+        Argument::Alias(alias) => for (index, letter) in alias.letters.iter().enumerate() {if let Some((character, aliasing)) = FLAGLIASES.iter().find_map(|(key, second, third)| if key == letter {Some((key, second))} else {None}) {
+            self.apply(&Argument::Flag(Flag {value: aliasing.to_string()}))?;
+        } else {return Err(UnknownAliasCharacter(alias, index))}}
+        Argument::File(file) => if self.file.is_none() {self.file = Some(file.clone())},
+        Argument::Flag(flag) => match &flag.value.to_lowercase() as &str {
+            name if name == FLAGLIASES[0].1 => return Err(GetHelp()),
+            name if name == FLAGLIASES[1].1 => self.noise.change(false),
+            name if name == FLAGLIASES[2].1 => self.noise.change(true),
+            other => return Err(UnknownFlag(&flag))
         },
-        Argument::Target(target) => return
-    }}
+        Argument::Target(target) => if self.target.is_none() {self.target = Some(target.clone())}
+    })}
 }
 
 //> TARGETS -> WRAPPER
-pub fn wrapper(arguments: Vec<Argument>) -> Result<(), Issue> {timed(|| {
+pub fn wrapper(arguments: &[Argument]) -> Result<(), Issue> {
+    let time = Time::now();
     let settings = Settings::set(arguments)?;
     let mut transformers = Transformers::new();
-    return Ok(match &settings.target.name as &str {
-        target if target == TARGETS[0] => println!("{:#?}", tokens(&settings, &mut transformers)?),
-        target if target == TARGETS[1] => println!("{}", length(&settings, &mut transformers)?),
-        target if target == TARGETS[2] => println!("{:#?}", ast(&settings, &mut transformers)?),
-        other => return Err(unknownTarget(other))
-    });
-})}
+    match &settings.target.clone().unwrap_or(Target {name: String::from("help")}).name as &str {
+        target if target == TARGETS[0].0 => help(&settings, &mut transformers)?,
+        target if target == TARGETS[1].0 => println!("Running Mathsys v{} on {}/{}/{}", version(&settings, &mut transformers)?, OS, ARCH, rustcv()),
+        target if target == TARGETS[2].0 => println!("{:#?}", tokens(&settings, &mut transformers)?),
+        target if target == TARGETS[3].0 => {let len = length(&settings, &mut transformers)?; println!("Token length: {len} / {MAXLEN} ({}%)", len as f32 / MAXLEN as f32 * 100.0)},
+        target if target == TARGETS[4].0 => println!("{}", if check(&settings, &mut transformers)? {"Valid"} else {"Invalid"}),
+        other => return Err(UnknownTarget(other))
+    };
+    if settings.noise.verbose() {println!("Execution time: {:?}", time.elapsed())}
+    return Ok(());
+}
 
-//> TARGETS -> FUNCTIONS
-pub static TARGETS: [&'static str; 3] = [
-    "tokens",
-    "length",
-    "ast"
+//> TARGETS -> LIST
+pub static TARGETS: [(&'static str, &'static str); 5] = [
+    ("help", "show this informative menu"),
+    ("version", "check current Mathsys version"),
+    ("tokens", "tokenize the input file"),
+    ("length", "show length of token stream"),
+    ("check", "validate the semantics")
+];
+
+//> TARGETS -> FLAGS AND ALIASES
+pub static FLAGLIASES: [(char, &'static str, &'static str); 3] = [
+    ('h', "help", "show help menu"),
+    ('q', "quiet", "silence the output"),
+    ('v', "verbose", "increase program verbosity")
 ];
