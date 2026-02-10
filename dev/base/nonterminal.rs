@@ -3,6 +3,7 @@
 //^
 
 //> HEAD -> LOCAL
+use super::tokenizer::BindedToken;
 use super::start::Start;
 use super::level1::{Level1, Declaration, Definition, Annotation, Node, Equation, Use};
 use super::level2::{Level2, Expression};
@@ -28,9 +29,10 @@ pub enum NonTerminal {
 
 //> NONTERMINAL -> PARTITION
 #[derive(Clone)]
-pub enum Partition {
+pub enum Partition<'resolving> {
     NonTerminal(NonTerminal),
-    Internal(Vec<NonTerminal>)
+    Internal(Vec<Item<'resolving>>),
+    Token(BindedToken<'resolving>)
 }
 
 //> NONTERMINAL -> OBJECT
@@ -62,13 +64,13 @@ pub enum Object {
     Rational,
     Casts
 } impl Object {
-    pub fn summon<'parsing>(&self, items: Vec<NonTerminal>) -> NonTerminal {return match self {
+    pub fn summon<'parsing>(&self, items: Vec<Item>) -> NonTerminal {return match self {
         Object::Start => Start::summon(items),
-        Object::Level1 => if let NonTerminal::Level1(element) = &items[0] {items.into_iter().next().unwrap()} else {panic!("{items:?}")},
-        Object::Level2 => if let NonTerminal::Level2(element) = &items[0] {items.into_iter().next().unwrap()} else {panic!("{items:?}")},
-        Object::Level3 => if let NonTerminal::Level3(element) = &items[0] {items.into_iter().next().unwrap()} else {panic!("{items:?}")},
-        Object::Level4 => if let NonTerminal::Level4(element) = &items[0] {items.into_iter().next().unwrap()} else {panic!("{items:?}")},
-        Object::Level5 => if let NonTerminal::Level5(element) = &items[0] {items.into_iter().next().unwrap()} else {panic!("{items:?}")},
+        Object::Level1 => if let Item::NonTerminal(NonTerminal::Level1(element)) = &items[0] {items.into_iter().next().unwrap().getnt()} else {panic!("{items:?}")},
+        Object::Level2 => if let Item::NonTerminal(NonTerminal::Level2(element)) = &items[0] {items.into_iter().next().unwrap().getnt()} else {panic!("{items:?}")},
+        Object::Level3 => if let Item::NonTerminal(NonTerminal::Level3(element)) = &items[0] {items.into_iter().next().unwrap().getnt()} else {panic!("{items:?}")},
+        Object::Level4 => if let Item::NonTerminal(NonTerminal::Level4(element)) = &items[0] {items.into_iter().next().unwrap().getnt()} else {panic!("{items:?}")},
+        Object::Level5 => if let Item::NonTerminal(NonTerminal::Level5(element)) = &items[0] {items.into_iter().next().unwrap().getnt()} else {panic!("{items:?}")},
         Object::Declaration => Declaration::summon(items),
         Object::Definition => Definition::summon(items),
         Object::Annotation => Annotation::summon(items),
@@ -97,8 +99,20 @@ pub enum Object {
 
 //> NONTERMINAL -> SPAWN
 pub trait Spawn {
-    fn summon(items: Vec<NonTerminal>) -> NonTerminal;
+    fn summon(items: Vec<Item>) -> NonTerminal;
 }
 
 //> NONTERMINAL -> BACKENDS
 pub trait Backends {}
+
+//> NONTERMINAL -> ITEM
+#[derive(Clone, Debug)]
+pub enum Item<'resolving> {
+    NonTerminal(NonTerminal),
+    Token(BindedToken<'resolving>)
+} impl<'resolving> Item<'resolving> {
+    fn getnt(self) -> NonTerminal {match self {
+        Item::NonTerminal(item) => return item,
+        other => panic!("{other:?}")
+    }}
+}

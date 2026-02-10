@@ -4,7 +4,6 @@
 
 //> HEAD -> BASE
 mod base {
-    pub mod builder;
     pub mod grammar;
     pub mod issues;
     pub mod level1;
@@ -13,7 +12,8 @@ mod base {
     pub mod level4;
     pub mod level5;
     pub mod nonterminal;
-    pub mod recognizer;
+    pub mod parser;
+    pub mod resolver;
     pub mod start;
     pub mod tokenizer;
 }
@@ -24,11 +24,11 @@ use crate::prelude::{
 };
 
 //> HEAD -> LOCAL
-use self::base::issues::{MissingFile, Issue, UnknownTarget, UnknownFlag, UnknownAliasCharacter, GetHelp};
+use self::base::start::Start;
+use self::base::issues::Issue;
 use self::base::tokenizer::{ShallowToken, Tokenizer, MAXLEN};
-use self::base::recognizer::{Recognizer, Backpointer};
-use self::base::nonterminal::Object;
-use self::base::grammar::Symbol;
+use self::base::parser::Parser;
+use self::base::resolver::Resolver;
 
 
 //^
@@ -38,42 +38,50 @@ use self::base::grammar::Symbol;
 //> PIPELINE -> TRANSFORMERS
 pub struct Transformers {
     tokenizer: Tokenizer,
-    recognizer: Recognizer
+    parser: Parser,
+    resolver: Resolver
 } impl Transformers {pub fn new() -> Self {return Transformers {
     tokenizer: Tokenizer::new(),
-    recognizer: Recognizer::new()
+    parser: Parser::new(),
+    resolver: Resolver::new()
 }}}
 
 //> PIPELINE -> HELP
-pub fn help(settings: &Settings, transformers: &mut Transformers) -> Result<(), Issue> {return Err(GetHelp())}
+pub fn help(settings: &Settings, transformers: &mut Transformers) -> Result<(), Issue> {return Err(Issue::GetHelp)}
 
 //> PIPELINE -> VERSION
 pub fn version(settings: &Settings, transformers: &mut Transformers) -> Result<usize, Issue> {return Ok(VERSION)}
 
 //> PIPELINE -> TOKENS
 pub fn tokens(settings: &Settings, transformers: &mut Transformers) -> Result<Vec<ShallowToken>, Issue> {
-    let content = settings.file.clone().ok_or_else(MissingFile)?.read();
+    let content = settings.file.clone().ok_or(Issue::MissingFile)?.read();
     let tokens = transformers.tokenizer.run(&content, settings)?;
     return Ok(tokens.into_iter().map(|token| token.fixate()).collect());
 }
 
 //> PIPELINE -> LENGTH
 pub fn length(settings: &Settings, transformers: &mut Transformers) -> Result<usize, Issue> {
-    let content = settings.file.clone().ok_or_else(MissingFile)?.read();
+    let content = settings.file.clone().ok_or(Issue::MissingFile)?.read();
     let tokens = transformers.tokenizer.run(&content, settings)?;
     return Ok(tokens.len());
 }
 
-//> PIPELINE -> VALIDATE
-pub fn check(settings: &Settings, transformers: &mut Transformers) -> Result<bool, Issue> {
-    let content = settings.file.clone().ok_or_else(MissingFile)?.read();
+//> PIPELINE -> CHECK
+pub fn check(settings: &Settings, transformers: &mut Transformers) -> Result<(), Issue> {
+    let content = settings.file.clone().ok_or(Issue::MissingFile)?.read();
     let tokens = transformers.tokenizer.run(&content, settings)?;
-    let pool = transformers.recognizer.run(&tokens, settings);
-    return Ok(pool.get(&Backpointer {
-        symbol: Symbol::NonTerminal(Object::Start), 
-        start: 0, 
-        end: tokens.len() as u32
-    }).is_some_and(|set| !set.is_empty()));
+    let pool = transformers.parser.run(&tokens, settings);
+    let start = transformers.resolver.run(&pool)?;
+    return Ok(());
+}
+
+//> PIPELINE -> AST
+pub fn ast(settings: &Settings, transformers: &mut Transformers) -> Result<Start, Issue> {
+    let content = settings.file.clone().ok_or(Issue::MissingFile)?.read();
+    let tokens = transformers.tokenizer.run(&content, settings)?;
+    let pool = transformers.parser.run(&tokens, settings);
+    let start = transformers.resolver.run(&pool)?;
+    return Ok(start);
 }
 
 
@@ -122,13 +130,16 @@ pub struct Settings {
     pub fn apply(&mut self, argument: &Argument) -> Result<(), Issue> {return Ok(match argument {
         Argument::Alias(alias) => for (index, letter) in alias.letters.iter().enumerate() {if let Some((character, aliasing)) = FLAGLIASES.iter().find_map(|(key, second, third)| if key == letter {Some((key, second))} else {None}) {
             self.apply(&Argument::Flag(Flag {value: aliasing.to_string()}))?;
-        } else {return Err(UnknownAliasCharacter(alias, index))}}
+        } else {return Err(Issue::UnknownAliasCharacter {
+            alias: alias.clone(), 
+            at: index
+        })}}
         Argument::File(file) => if self.file.is_none() {self.file = Some(file.clone())},
         Argument::Flag(flag) => match &flag.value.to_lowercase() as &str {
-            name if name == FLAGLIASES[0].1 => return Err(GetHelp()),
+            name if name == FLAGLIASES[0].1 => return Err(Issue::GetHelp),
             name if name == FLAGLIASES[1].1 => self.noise.change(false),
             name if name == FLAGLIASES[2].1 => self.noise.change(true),
-            other => return Err(UnknownFlag(&flag))
+            other => return Err(Issue::UnknownFlag(flag.clone()))
         },
         Argument::Target(target) => if self.target.is_none() {self.target = Some(target.clone())}
     })}
@@ -144,20 +155,22 @@ pub fn wrapper(arguments: &[Argument]) -> Result<(), Issue> {
         target if target == TARGETS[1].0 => println!("Running Mathsys v{} on {}/{}/{}", version(&settings, &mut transformers)?, OS, ARCH, rustcv()),
         target if target == TARGETS[2].0 => println!("{:#?}", tokens(&settings, &mut transformers)?),
         target if target == TARGETS[3].0 => {let len = length(&settings, &mut transformers)?; println!("Token length: {len} / {MAXLEN} ({}%)", len as f32 / MAXLEN as f32 * 100.0)},
-        target if target == TARGETS[4].0 => println!("{}", if check(&settings, &mut transformers)? {"Valid"} else {"Invalid"}),
-        other => return Err(UnknownTarget(other))
+        target if target == TARGETS[4].0 => println!("{}", {check(&settings, &mut transformers)?; "Valid"}),
+        target if target == TARGETS[5].0 => println!("{:#?}", ast(&settings, &mut transformers)?),
+        other => return Err(Issue::UnknownTarget(other.to_string()))
     };
     if settings.noise.verbose() {println!("Execution time: {:?}", time.elapsed())}
     return Ok(());
 }
 
 //> TARGETS -> LIST
-pub static TARGETS: [(&'static str, &'static str); 5] = [
+pub static TARGETS: [(&'static str, &'static str); 6] = [
     ("help", "show this informative menu"),
     ("version", "check current Mathsys version"),
     ("tokens", "tokenize the input file"),
     ("length", "show length of token stream"),
-    ("check", "validate the semantics")
+    ("check", "validate the semantics"),
+    ("ast", "build the abstract syntax tree")
 ];
 
 //> TARGETS -> FLAGS AND ALIASES

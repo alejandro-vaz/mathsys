@@ -26,7 +26,7 @@ pub enum Argument {
 //^
 
 //> INPUT -> FILE
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct File {
     pub name: FilePath
 } impl File {
@@ -47,19 +47,19 @@ pub struct File {
 }
 
 //> INPUT -> FLAG
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Flag {
     pub value: String
 }
 
 //> INPUT -> ALIAS
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Alias {
     pub letters: Vec<char>
 }
 
 //> INPUT -> TARGET
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Target {
     pub name: String
 }

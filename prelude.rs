@@ -72,3 +72,6 @@ pub use smallvec::{
 
 //> PRELUDE -> RUSTC_VERSION_RUNTIME
 pub use rustc_version_runtime::version as rustcv;
+
+//> PRELUDE -> STRUM_MACROS
+pub use strum_macros::AsRefStr;

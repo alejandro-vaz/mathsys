@@ -9,7 +9,7 @@ use crate::prelude::{
 
 //> HEAD -> LOCAL
 use super::super::Settings;
-use super::issues::{UnknownToken, Issue, InputTooLong};
+use super::issues::Issue;
 
 
 //^
@@ -58,7 +58,7 @@ pub enum Kind {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct BindedToken<'processing> {
     start: u64,
-    value: &'processing str,
+    pub value: &'processing str,
     pub kind: Kind
 } impl<'processing> BindedToken<'processing> {
     #[inline(always)]
@@ -135,10 +135,11 @@ pub struct Tokenizer {
         self.cursor = 0;
         let mut tokens = Vec::with_capacity(MAXLEN);
         while tokens.len() != MAXLEN {
-            let (token, length) = self.next(content).ok_or_else(|| UnknownToken(
-                self.line, 
-                self.column, content.lines().nth(self.line as usize - 1).unwrap()
-            ))?;
+            let (token, length) = self.next(content).ok_or_else(|| Issue::UnknownToken {
+                line: self.line, 
+                column: self.column, 
+                code: content.lines().nth(self.line as usize - 1).unwrap().to_string()
+            })?;
             match token.kind {
                 Kind::NEWLINES => {self.line += length as u32; self.column = 1},
                 Kind::ENDOFFILE => {tokens.push(token); return Ok(tokens)},
@@ -147,7 +148,7 @@ pub struct Tokenizer {
             tokens.push(token);
             self.cursor += length as u64;
         };
-        return Err(InputTooLong());
+        return Err(Issue::InputTooLong);
     }
     #[inline(always)]
     fn next<'tokenizing>(&self, content: &'tokenizing str) -> Option<(BindedToken<'tokenizing>, usize)> {

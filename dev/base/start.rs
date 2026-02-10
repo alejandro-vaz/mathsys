@@ -3,7 +3,7 @@
 //^
 
 //> HEAD -> LOCAL
-use super::nonterminal::{NonTerminal, Spawn};
+use super::nonterminal::{Item, Spawn, NonTerminal};
 use super::level1::Level1;
 
 
@@ -15,6 +15,6 @@ use super::level1::Level1;
 #[derive(Debug, Clone)]
 pub struct Start {
     stream: Vec<Level1>
-} impl Spawn for Start {fn summon(items: Vec<NonTerminal>) -> NonTerminal {return NonTerminal::Start(Self {
-    stream: items.into_iter().map(|element| if let NonTerminal::Level1(level1) = element {level1} else {panic!()}).collect()
+} impl Spawn for Start {fn summon(items: Vec<Item>) -> NonTerminal {return NonTerminal::Start(Self {
+    stream: items.into_iter().map(|element| if let Item::NonTerminal(NonTerminal::Level1(level1)) = element {level1} else {panic!("{element:?}")}).collect()
 })}}
