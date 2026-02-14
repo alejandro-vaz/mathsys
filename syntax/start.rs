@@ -6,7 +6,7 @@
 use super::{
     level1::Level1,
     super::{
-        runtime::traits::{Spawn, Backends},
+        backends::traits::{Spawn, Backends},
         solver::nonterminal::{Item, NonTerminal}
     }
 };

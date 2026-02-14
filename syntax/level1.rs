@@ -13,7 +13,7 @@ use super::{
     level2::Level2,
     level5::{Variable, Level5},
     super::{
-        runtime::traits::{Backends, Spawn},
+        backends::traits::{Backends, Spawn},
         solver::nonterminal::{NonTerminal, Item}
     }
 };

@@ -4,7 +4,7 @@
 
 //> HEAD -> LOCAL
 use super::super::{
-    runtime::traits::Spawn,
+    backends::traits::Spawn,
     tokenizer::tokenizer::BindedToken,
     syntax::{
         start::Start,

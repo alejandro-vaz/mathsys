@@ -31,7 +31,8 @@ mod syntax {
     pub mod level5;
     pub mod start;
 }
-mod runtime {
+mod backends {
+    pub mod latex;
     pub mod traits;
 }
 
@@ -46,7 +47,7 @@ use self::{
     tokenizer::tokenizer::{ShallowToken, Tokenizer, MAXLEN},
     parser::parser::Parser,
     solver::solver::Solver,
-    runtime::traits::Backends,
+    backends::traits::Backends,
     issues::Issue,
     entry::{Argument, File, Flag, Target, Alias}
 };

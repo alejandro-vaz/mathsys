@@ -42,7 +42,8 @@ pub use colored::Colorize as Colored;
 //> PRELUDE -> REGEX
 pub use regex::bytes::{
     Regex,
-    RegexSet
+    RegexSet,
+    Captures
 };
 
 //> PRELUDE -> INDEXMAP

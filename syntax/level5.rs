@@ -11,7 +11,10 @@ use crate::prelude::{
 use super::{
     level2::Level2,
     super::{
-        runtime::traits::{Backends, Spawn},
+        backends::{
+            traits::{Backends, Spawn},
+            latex::augmentVariables
+        },
         solver::nonterminal::{NonTerminal, Item}
     }
 };
@@ -46,7 +49,7 @@ pub struct Infinite {} impl Backends for Infinite {
 pub struct Variable {
     name: String
 } impl Backends for Variable {
-    fn latex(&self) -> String {return self.name.clone()}
+    fn latex(&self) -> String {return augmentVariables(&self.name)}
 } impl Spawn for Variable {fn summon(items: Vec<Item>) -> NonTerminal {
     return NonTerminal::Level5(Level5::Variable(Self {
         name: if let Item::Token(token) = items.into_iter().next().unwrap() {token.value.to_string()} else {panic!()}
@@ -115,6 +118,12 @@ pub struct Undefined {} impl Backends for Undefined {
 
 //> 5ºLEVEL -> RATIONAL
 #[derive(Debug, Clone)]
-pub struct Rational {} impl Backends for Rational {
-    fn latex(&self) -> String {return "".to_string()}
-} impl Spawn for Rational {fn summon(items: Vec<Item>) -> NonTerminal {return NonTerminal::Level5(Level5::Rational(Self {}))}}
+pub struct Rational {
+    number: String
+} impl Backends for Rational {
+    fn latex(&self) -> String {return self.number.clone()}
+} impl Spawn for Rational {fn summon(items: Vec<Item>) -> NonTerminal {
+    return NonTerminal::Level5(Level5::Rational(Self {
+        number: if let Item::Token(token) = items.into_iter().next().unwrap() {token.value.to_string()} else {panic!()}
+    }))
+}}

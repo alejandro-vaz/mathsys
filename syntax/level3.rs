@@ -11,7 +11,7 @@ use crate::prelude::{
 use super::{
     level4::Level4,
     super::{
-        runtime::traits::{Backends, Spawn},
+        backends::traits::{Backends, Spawn},
         solver::nonterminal::{NonTerminal, Item}
     }
 };

@@ -1,30 +1,26 @@
 # Mathsys
 
-![Pepy Total Downloads](https://img.shields.io/pepy/dt/mathsys?logo=pypi&label=Pypi%20downloads&link=https%3A%2F%2Fpypi.org%2Fproject%2Fmathsys%2F)
-![NPM Downloads](https://img.shields.io/npm/dm/mathsys?logo=npm&label=NPM%20downloads&link=https%3A%2F%2Fwww.npmjs.com%2Fpackage%2Fmathsys)
 ![Crates.io Total Downloads](https://img.shields.io/crates/d/mathsys)
 
 Mathsys is an educational math language for students and teachers who want to write, read, and experiment with mathematics in a clear, human-readable way.
 
-It looks like math, not code -- but it can still be checked, validated and converted into LaTeX or runnable programs for interactive exploration.
+It looks like math, not code -- but it can still be checked and converted into LaTeX.
 
 ## Example
 
 ```
 x = 2 + 3*7/4
 
-@Number e == lim n->inf of (1 + 1/n)^n^
+e == lim n->inf of (1 + 1/n)^n^
 
-@Tensor u, v
-u*v
+pi = 3.14159
+
+L = |alpha - 4|
 ```
 
 compiles to:
 
-$$x=2.0+\frac{3.0\cdot 7.0}{4.0}$$
-$$\pi \equiv 3.14159$$
-$$e\equiv \lim_{\substack{n\to \infty }}\left( 1.0+\frac{1.0}{n}\right) ^{n}$$
-$$\overline{u}\cdot \overline{v}$$
+$$x=2+\frac{3\cdot 7}{4}\\ e\equiv \lim_{\substack{n\to \infty }}\left( 1+\frac{1}{n}\right) ^{n}\\ \pi =3.14159\\ L=\left| \alpha -4\right| $$
 
 See more examples in [the documentation.](https://docs.abscissa.eu)
 
@@ -37,10 +33,6 @@ See more examples in [the documentation.](https://docs.abscissa.eu)
 - Allows for greek letters, multicharacter variables and easy syntax
 
 ## Try it now
-
-### Online
-
-[Go to playground.](https://app.abscissa.eu/playground)
 
 ### Local installation
 

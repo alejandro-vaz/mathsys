@@ -192,3 +192,19 @@ mode: "wide"
 1. Added TypeScript package
 1. Migrated to Cargo
 1. Divided `@Number` type into individual types
+
+## v6
+No changelog available.
+
+## v7
+### Added
+1. Full migration to Rust.
+### Changed
+1. Migrated from Python to Rust.
+1. Simplified syntax without types.
+### Removed
+1. Executable building.
+1. IR target.
+1. Runtime flags.
+### Fixed
+1. Full issue coverage now.
