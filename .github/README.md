@@ -20,7 +20,10 @@ L = |alpha - 4|
 
 compiles to:
 
-$$x=2+\frac{3\cdot 7}{4}\\ e\equiv \lim_{\substack{n\to \infty }}\left( 1+\frac{1}{n}\right) ^{n}\\ \pi =3.14159\\ L=\left| \alpha -4\right| $$
+$$x=2+\frac{3\cdot 7}{4}$$ 
+$$e\equiv \lim_{\substack{n\to \infty }}\left( 1+\frac{1}{n}\right) ^{n}$$
+$$\pi =3.14159$$ 
+$$L=\left| \alpha -4\right| $$
 
 See more examples in [the documentation.](https://docs.abscissa.eu)
 
