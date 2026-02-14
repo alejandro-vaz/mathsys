@@ -2,26 +2,14 @@
 #^  IGNORE
 #^
 
-#> IGNORE -> NODE
-node_modules/
-
-#> IGNORE -> BUILD
-*.js
-*.cjs
-dist/
-**/**.egg-info
-
-#> IGNORE -> PYCACHE
-**/__pycache__/
-
 #> IGNORE -> CARGO
 **/target/
 
-#> IGNORE -> PERF
-perf.*
-
-#> IGNORE -> ENVIRONMENT
-.venv/
-
 #> IGNORE -> FOLDER INFO
 **/.DS_Store
+
+#> IGNORE -> SYMLINK
+mathsys
+
+#> IGNORE -> TEST FILE
+file.msm
