@@ -60,7 +60,7 @@ pub struct Limit {
     fn latex(&self) -> String {
         let direction = if let Some(value) = self.direction {if value {"+"} else {"-"}} else {""};
         let exponent = if let Some(level2) = &self.exponent {&format!("^{{{}}}", level2.latex())} else {""};
-        return format!(r"\lim_{{\substack{{{}\to {}{direction}}}}}{exponent}", self.variable.latex(), self.approach.latex());
+        return format!(r"\lim_{{\substack{{{}\to {}{direction}}}}}{}{exponent}", self.variable.latex(), self.approach.latex(), self.nest.latex());
     }
 } impl Spawn for Limit {fn summon(items: Vec<Item>) -> NonTerminal {
     let mut iterator = items.into_iter();

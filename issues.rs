@@ -4,14 +4,15 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    exit, Error, Display, Formatter, Rst, Colored, Flag, currentDir, readDir, Alias, AsRefStr, Debug
+    exit, Error, Display, Formatter, Rst, Colored, currentDir, readDir, AsRefStr, Debug
 };
 
 //> HEAD -> LOCAL
 use super::{
     TARGETS,
     FLAGLIASES,
-    tokenizer::tokenizer::MAXLEN
+    tokenizer::tokenizer::MAXLEN,
+    entry::{Flag, Alias}
 };
 
 
@@ -63,7 +64,8 @@ pub enum Issue {
         at: usize
     },
     GetHelp,
-    SyntaxError
+    SyntaxError,
+    FileNotFound(String)
 } impl Issue {
     pub fn consume(self) -> ! {println!("{self}"); exit(&self as *const Issue as i32)}
     fn content(&self) -> String {match self {
@@ -104,9 +106,15 @@ pub enum Issue {
         ),
         Issue::SyntaxError => format!(
             "Syntax error."
+        ),
+        Issue::FileNotFound(name) => format!(
+            "File {} not found.\n\nAvailable files in {}:\n{}",
+            color(&name as &str, Style::Place),
+            color(currentDir().unwrap().to_str().unwrap(), Style::Place),
+            readDir(currentDir().unwrap()).unwrap().into_iter().filter_map(|entry| if let Ok(thing) = entry && thing.path().is_file() {Some(thing.path())} else {None}).filter_map(|file| if let Some(extension) = file.extension() && extension.to_str().unwrap() == "msm" {Some("- ".to_string() + &color(file.strip_prefix(currentDir().unwrap()).unwrap().to_str().unwrap(), Style::Place))} else {None}).collect::<Vec<String>>().join("\n")
         )
     }}
-} impl Display for Issue {fn fmt(&self, formatter: &mut Formatter<'_>) -> Rst {write!(formatter, "{}", format!(
+} impl Display for Issue {fn fmt(&self, formatter: &mut Formatter) -> Rst {write!(formatter, "{}", format!(
     "{} {} {}{}{}{}", 
     color("Raised", Style::Issue), 
     color(self.as_ref(), Style::Object),
@@ -114,4 +122,4 @@ pub enum Issue {
     color("\n>\n> ", Style::Issue), 
     self.content().replace("\n", &color("\n> ", Style::Issue)), 
     color("\n>\n", Style::Issue)
-))}} impl Debug for Issue {fn fmt(&self, formatter: &mut Formatter<'_>) -> Rst {Display::fmt(&self, formatter)}} impl Error for Issue {}
+))}} impl Debug for Issue {fn fmt(&self, formatter: &mut Formatter) -> Rst {Display::fmt(&self, formatter)}} impl Error for Issue {}

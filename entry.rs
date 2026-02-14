@@ -4,8 +4,11 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    FilePath, VERSION, readFile, writeFile
+    FilePath, readFile, writeFile
 };
+
+//> HEAD -> LOCAL
+use super::issues::Issue;
 
 
 //^
@@ -30,7 +33,7 @@ pub enum Argument {
 pub struct File {
     pub name: FilePath
 } impl File {
-    pub fn read(&self) -> String {readFile(&self.name).unwrap()}
+    pub fn read(&self) -> Result<String, Issue> {readFile(&self.name).ok().ok_or_else(|| Issue::FileNotFound(self.name.to_str().unwrap().to_string()))}
     pub async fn write(&self, extension: &str, content: String) -> () {
         let mut path = self.name.clone();
         path.set_extension(extension);

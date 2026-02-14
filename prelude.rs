@@ -36,19 +36,6 @@ pub use std::{
     mem::take
 };
 
-//> PRELUDE -> ENTRY
-pub use crate::{
-    VERSION,
-    entry::{
-        Argument,
-        File,
-        Flag,
-        Alias,
-        Target
-    },
-    dev::wrapper as wrapperDev
-};
-
 //> PRELUDE -> COLORED
 pub use colored::Colorize as Colored;
 

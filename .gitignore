@@ -7,3 +7,9 @@
 
 #> IGNORE -> FOLDER INFO
 **/.DS_Store
+
+#> IGNORE -> SYMLINK
+mathsys
+
+#> IGNORE -> TEST FILE
+file.msm
