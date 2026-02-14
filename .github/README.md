@@ -39,25 +39,8 @@ See more examples in [the documentation.](https://docs.abscissa.eu)
 Install the latest version via `pip`:
 
 ```sh
-pip install mathsys
+cargo install mathsys
 ```
-
-Compile a Mathsys file to different targets with:
-
-```sh
-mathsys <target> <filename>.msX
-```
-
-where `.msX` is the file extension stands for `.ms1`, `.ms2`, `.ms3` ... (versioned), `.msr` or `.msd` (release and dev).
-
-`mathsys.release` is the last stable version, whilst `mathsys.dev` is the latest version published.
-
-> [!NOTE]
-> To view all available targets, run `mathsys help <filename>.msX`.
-
-> [!WARNING]
-> You'll need Rust installed in order to compile to `native` target, with the nightly toolchain, and the `wasm32-unknown-unknown` toolchain for compiling to WebAssembly.
-> The compiler will also try to optimize the executable so it is recommended that you install `wasm-opt` and `upx`.
 
 ## Project Status
 
