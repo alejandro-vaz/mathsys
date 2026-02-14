@@ -1,1 +1,1 @@
-e = lim n->inf of (1 + 1/n)^n^
+x = ()

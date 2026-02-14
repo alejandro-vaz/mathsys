@@ -3,13 +3,13 @@
 //^
 
 //> HEAD -> LOCAL
-use super::tokenizer::BindedToken;
-use super::start::Start;
-use super::level1::{Level1, Declaration, Definition, Annotation, Node, Equation, Use};
-use super::level2::{Level2, Expression};
-use super::level3::{Level3, Term};
-use super::level4::{Level4, Factor, Limit};
-use super::level5::{Level5, Absolute, Casts, Infinite, Nest, Rational, Tensor, Undefined, Variable, Whole};
+use super::super::tokenizer::tokenizer::BindedToken;
+use super::super::syntax::start::Start;
+use super::super::syntax::level1::{Level1, Declaration, Definition, Annotation, Node, Equation, Use};
+use super::super::syntax::level2::{Level2, Expression};
+use super::super::syntax::level3::{Level3, Term};
+use super::super::syntax::level4::{Level4, Factor, Limit};
+use super::super::syntax::level5::{Level5, Absolute, Casts, Infinite, Nest, Rational, Tensor, Undefined, Variable, Whole};
 
 
 //^
@@ -103,7 +103,7 @@ pub trait Spawn {
 }
 
 //> NONTERMINAL -> BACKENDS
-pub trait Backends {}
+pub trait Backends: Spawn {}
 
 //> NONTERMINAL -> ITEM
 #[derive(Clone, Debug)]

@@ -2,20 +2,26 @@
 //^ HEAD
 //^
 
-//> HEAD -> BASE
-mod base {
+//> HEAD -> MODULES
+mod issues;
+mod tokenizer {
+    pub mod tokenizer;
+}
+mod parser {
     pub mod grammar;
-    pub mod issues;
+    pub mod parser;
+}
+mod solver {
+    pub mod nonterminal;
+    pub mod solver;
+}
+mod syntax {
     pub mod level1;
     pub mod level2;
     pub mod level3;
     pub mod level4;
     pub mod level5;
-    pub mod nonterminal;
-    pub mod parser;
-    pub mod resolver;
     pub mod start;
-    pub mod tokenizer;
 }
 
 //> HEAD -> PRELUDE
@@ -24,11 +30,11 @@ use crate::prelude::{
 };
 
 //> HEAD -> LOCAL
-use self::base::start::Start;
-use self::base::issues::Issue;
-use self::base::tokenizer::{ShallowToken, Tokenizer, MAXLEN};
-use self::base::parser::Parser;
-use self::base::resolver::Resolver;
+use self::syntax::start::Start;
+use self::issues::Issue;
+use self::tokenizer::tokenizer::{ShallowToken, Tokenizer, MAXLEN};
+use self::parser::parser::Parser;
+use self::solver::solver::Solver;
 
 
 //^
@@ -39,11 +45,11 @@ use self::base::resolver::Resolver;
 pub struct Transformers {
     tokenizer: Tokenizer,
     parser: Parser,
-    resolver: Resolver
+    solver: Solver
 } impl Transformers {pub fn new() -> Self {return Transformers {
     tokenizer: Tokenizer::new(),
     parser: Parser::new(),
-    resolver: Resolver::new()
+    solver: Solver::new()
 }}}
 
 //> PIPELINE -> HELP
@@ -71,7 +77,7 @@ pub fn check(settings: &Settings, transformers: &mut Transformers) -> Result<(),
     let content = settings.file.clone().ok_or(Issue::MissingFile)?.read();
     let tokens = transformers.tokenizer.run(&content, settings)?;
     let pool = transformers.parser.run(&tokens, settings);
-    let start = transformers.resolver.run(&pool)?;
+    let start = transformers.solver.run(&pool)?;
     return Ok(());
 }
 
@@ -80,7 +86,7 @@ pub fn ast(settings: &Settings, transformers: &mut Transformers) -> Result<Start
     let content = settings.file.clone().ok_or(Issue::MissingFile)?.read();
     let tokens = transformers.tokenizer.run(&content, settings)?;
     let pool = transformers.parser.run(&tokens, settings);
-    let start = transformers.resolver.run(&pool)?;
+    let start = transformers.solver.run(&pool)?;
     return Ok(start);
 }
 

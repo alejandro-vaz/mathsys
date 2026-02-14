@@ -9,7 +9,7 @@ use crate::prelude::{
 
 //> HEAD -> LOCAL
 use super::super::Settings;
-use super::issues::Issue;
+use super::super::issues::Issue;
 
 
 //^

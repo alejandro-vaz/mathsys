@@ -8,20 +8,20 @@ use crate::prelude::{
 };
 
 //> HEAD -> LOCAL
-use super::issues::Issue;
-use super::tokenizer::{ORDER, Responsibility};
+use super::super::issues::Issue;
+use super::super::tokenizer::tokenizer::{ORDER, Responsibility};
 use super::nonterminal::{Partition, Object, NonTerminal, Item};
-use super::parser::{Backpointer, MINPOINTERS, Part};
-use super::start::Start;
+use super::super::parser::parser::{Backpointer, MINPOINTERS, Part};
+use super::super::syntax::start::Start;
 
 
 //^
-//^ RESOLVER
+//^ SOLVER
 //^
 
-//> RESOLVER -> STRUCT
-pub struct Resolver {} impl Resolver {
-    pub fn new() -> Self {return Resolver {}}
+//> SOLVER -> STRUCT
+pub struct Solver {} impl Solver {
+    pub fn new() -> Self {return Solver {}}
     pub fn run<'resolving>(&self, pool: &FastMap<Backpointer<'resolving>, FastSet<SmallVec<[Backpointer<'resolving>; MINPOINTERS]>>>) -> Result<Start, Issue> {
         let mut memory = FastMap::new();
         let Partition::NonTerminal(NonTerminal::Start(start)) = self.best(pool, pool.iter().map(|item| item.0).find(|backpointer| if let Part::NonTerminal(Object::Start) = backpointer.symbol {true} else {false}).ok_or(Issue::SyntaxError)?, &mut memory).1.ok_or(Issue::SyntaxError)? else {return Err(Issue::SyntaxError)};

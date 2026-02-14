@@ -9,8 +9,8 @@ use crate::prelude::{
 
 //> HEAD -> LOCAL
 use super::super::Settings;
-use super::nonterminal::Object;
-use super::tokenizer::{BindedToken, ORDER, Responsibility};
+use super::super::solver::nonterminal::Object;
+use super::super::tokenizer::tokenizer::{BindedToken, ORDER, Responsibility};
 use super::grammar::{GRAMMAR, Rule, Symbol};
 
 

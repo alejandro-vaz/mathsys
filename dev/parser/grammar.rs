@@ -8,8 +8,8 @@ use crate::prelude::{
 };
 
 //> HEAD -> LOCAL
-use super::nonterminal::Object;
-use super::tokenizer::Kind;
+use super::super::solver::nonterminal::Object;
+use super::super::tokenizer::tokenizer::Kind;
 
 
 //^

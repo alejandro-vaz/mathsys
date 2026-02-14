@@ -8,8 +8,8 @@ use crate::prelude::{
 };
 
 //> HEAD -> LOCAL
-use super::tokenizer::MAXLEN;
-use super::super::{TARGETS, FLAGLIASES};
+use super::tokenizer::tokenizer::MAXLEN;
+use super::{TARGETS, FLAGLIASES};
 
 
 //^

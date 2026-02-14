@@ -3,7 +3,7 @@
 //^
 
 //> HEAD -> LOCAL
-use super::nonterminal::{Item, Spawn, NonTerminal};
+use super::super::solver::nonterminal::{Item, Spawn, NonTerminal};
 use super::level1::Level1;
 
 
