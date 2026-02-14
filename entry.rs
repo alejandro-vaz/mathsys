@@ -4,7 +4,7 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    FilePath, VERSION, readFile, write
+    FilePath, VERSION, readFile, writeFile
 };
 
 
@@ -34,15 +34,7 @@ pub struct File {
     pub async fn write(&self, extension: &str, content: String) -> () {
         let mut path = self.name.clone();
         path.set_extension(extension);
-        write(path, content).unwrap();
-    }
-    pub fn version(&self) -> usize {
-        let after = self.name.to_str().unwrap()[2..].to_string();
-        match after.chars().last().unwrap() {
-            'd' => VERSION + 1,
-            'r' => VERSION,
-            other => after.parse().unwrap()
-        }
+        writeFile(path, content).unwrap();
     }
 }
 

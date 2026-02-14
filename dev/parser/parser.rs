@@ -8,10 +8,14 @@ use crate::prelude::{
 };
 
 //> HEAD -> LOCAL
-use super::super::Settings;
-use super::super::solver::nonterminal::Object;
-use super::super::tokenizer::tokenizer::{BindedToken, ORDER, Responsibility};
-use super::grammar::{GRAMMAR, Rule, Symbol};
+use super::{
+    grammar::{GRAMMAR, Rule, Symbol},
+    super::{
+        Settings,
+        solver::nonterminal::Object,
+        tokenizer::tokenizer::{BindedToken, ORDER, Responsibility}
+    }
+};
 
 
 //^

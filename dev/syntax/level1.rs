@@ -2,11 +2,21 @@
 //^ HEAD
 //^
 
+//> HEAD -> PRELUDE
+use crate::prelude::{
+    dispatch
+};
+
 //> HEAD -> LOCAL
-use super::super::solver::nonterminal::{Spawn, NonTerminal, Item};
-use super::start::Start;
-use super::level2::Level2;
-use super::level5::{Variable, Level5};
+use super::{
+    start::Start,
+    level2::Level2,
+    level5::{Variable, Level5},
+    super::{
+        runtime::traits::{Backends, Spawn},
+        solver::nonterminal::{NonTerminal, Item}
+    }
+};
 
 
 //^
@@ -14,14 +24,14 @@ use super::level5::{Variable, Level5};
 //^
 
 //> 1ºLEVEL -> NAMESPACE
+#[dispatch(Backends)]
 #[derive(Debug, Clone)]
 pub enum Level1 {
-    Declaration(Declaration),
-    Definition(Definition),
-    Annotation(Annotation),
-    Node(Node),
-    Equation(Equation),
-    Use(Use)
+    Declaration,
+    Definition,
+    Node,
+    Equation,
+    Use
 }
 
 //> 1ºLEVEL -> DECLARATION
@@ -29,6 +39,8 @@ pub enum Level1 {
 pub struct Declaration {
     variable: Variable,
     value: Level2
+} impl Backends for Declaration {
+    fn latex(&self) -> String {return format!("{}={}", self.variable.latex(), self.value.latex())}
 } impl Spawn for Declaration {fn summon(items: Vec<Item>) -> NonTerminal {
     let mut variable = None;
     let mut value = None;
@@ -48,6 +60,8 @@ pub struct Declaration {
 pub struct Definition {
     variable: Variable,
     value: Level2
+} impl Backends for Definition {
+    fn latex(&self) -> String {return format!(r"{}\equiv {}", self.variable.latex(), self.value.latex())}
 } impl Spawn for Definition {fn summon(items: Vec<Item>) -> NonTerminal {
     let mut variable = None;
     let mut value = None;
@@ -62,25 +76,12 @@ pub struct Definition {
     }));
 }}
 
-//> 1ºLEVEL -> ANNOTATION
-#[derive(Debug, Clone)]
-pub struct Annotation {
-    variables: Vec<Variable>
-} impl Spawn for Annotation {fn summon(items: Vec<Item>) -> NonTerminal {
-    let mut variables = Vec::new();
-    for item in items {match item {
-        Item::NonTerminal(NonTerminal::Level5(Level5::Variable(variable))) => variables.push(variable),
-        other => panic!()
-    }}
-    return NonTerminal::Level1(Level1::Annotation(Self {
-        variables: variables
-    }));
-}}
-
 //> 1ºLEVEL -> NODE
 #[derive(Debug, Clone)]
 pub struct Node {
     value: Level2
+} impl Backends for Node {
+    fn latex(&self) -> String {return self.value.latex()}
 } impl Spawn for Node {fn summon(items: Vec<Item>) -> NonTerminal {
     return NonTerminal::Level1(Level1::Node(Self {
         value: if let Item::NonTerminal(NonTerminal::Level2(level2)) = items.into_iter().next().unwrap() {level2} else {panic!()}
@@ -92,6 +93,8 @@ pub struct Node {
 pub struct Equation {
     left: Level2,
     right: Level2
+} impl Backends for Equation {
+    fn latex(&self) -> String {return format!("{}={}", self.left.latex(), self.right.latex())}
 } impl Spawn for Equation {fn summon(items: Vec<Item>) -> NonTerminal {
     let mut iterator = items.into_iter();
     return NonTerminal::Level1(Level1::Equation(Self {
@@ -105,6 +108,14 @@ pub struct Equation {
 pub struct Use {
     module: String,
     start: Option<Start>
+} impl Backends for Use {
+    fn latex(&self) -> String {
+        let (start, end) = match &self.start {
+            None => (r"\color{brown}", r"\color{black}"),
+            Some(thing) => ("", "")
+        };
+        return format!(r"{start}\text{{use {}}}{end}", self.module);
+    }
 } impl Spawn for Use {fn summon(items: Vec<Item>) -> NonTerminal {
     return NonTerminal::Level1(Level1::Use(Self {
         module: if let Item::Token(token) = items.into_iter().next().unwrap() {token.value.to_string()} else {panic!()},

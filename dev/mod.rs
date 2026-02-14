@@ -23,18 +23,25 @@ mod syntax {
     pub mod level5;
     pub mod start;
 }
+mod runtime {
+    pub mod runtime;
+    pub mod traits;
+}
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    Argument, File, Flag, Time, Target, VERSION, OS, ARCH, rustcv
+    ARCH, Argument, File, Flag, OS, Target, Time, VERSION, rustcv, getArguments, Alias
 };
 
 //> HEAD -> LOCAL
-use self::syntax::start::Start;
-use self::issues::Issue;
-use self::tokenizer::tokenizer::{ShallowToken, Tokenizer, MAXLEN};
-use self::parser::parser::Parser;
-use self::solver::solver::Solver;
+use self::{
+    syntax::start::Start,
+    tokenizer::tokenizer::{ShallowToken, Tokenizer, MAXLEN},
+    parser::parser::Parser,
+    solver::solver::Solver,
+    runtime::traits::Backends
+};
+pub use self::issues::Issue;
 
 
 //^
@@ -45,49 +52,62 @@ use self::solver::solver::Solver;
 pub struct Transformers {
     tokenizer: Tokenizer,
     parser: Parser,
-    solver: Solver
-} impl Transformers {pub fn new() -> Self {return Transformers {
+    solver: Solver,
+    settings: Settings,
+    time: Time
+} impl Transformers {pub fn new(arguments: &[Argument]) -> Result<Self, Issue> {return Ok(Transformers {
     tokenizer: Tokenizer::new(),
     parser: Parser::new(),
-    solver: Solver::new()
-}}}
+    solver: Solver::new(),
+    settings: Settings::set(arguments)?,
+    time: Time::now()
+})}}
 
 //> PIPELINE -> HELP
-pub fn help(settings: &Settings, transformers: &mut Transformers) -> Result<(), Issue> {return Err(Issue::GetHelp)}
+pub fn help(transformers: &mut Transformers) -> Result<(), Issue> {return Err(Issue::GetHelp)}
 
 //> PIPELINE -> VERSION
-pub fn version(settings: &Settings, transformers: &mut Transformers) -> Result<usize, Issue> {return Ok(VERSION)}
+pub fn version(transformers: &mut Transformers) -> Result<usize, Issue> {return Ok(VERSION)}
 
 //> PIPELINE -> TOKENS
-pub fn tokens(settings: &Settings, transformers: &mut Transformers) -> Result<Vec<ShallowToken>, Issue> {
-    let content = settings.file.clone().ok_or(Issue::MissingFile)?.read();
-    let tokens = transformers.tokenizer.run(&content, settings)?;
+pub fn tokens(transformers: &mut Transformers) -> Result<Vec<ShallowToken>, Issue> {
+    let content = transformers.settings.file.as_ref().ok_or(Issue::MissingFile)?.read();
+    let tokens = transformers.tokenizer.run(&content, &transformers.settings)?;
     return Ok(tokens.into_iter().map(|token| token.fixate()).collect());
 }
 
 //> PIPELINE -> LENGTH
-pub fn length(settings: &Settings, transformers: &mut Transformers) -> Result<usize, Issue> {
-    let content = settings.file.clone().ok_or(Issue::MissingFile)?.read();
-    let tokens = transformers.tokenizer.run(&content, settings)?;
+pub fn length(transformers: &mut Transformers) -> Result<usize, Issue> {
+    let content = transformers.settings.file.as_ref().ok_or(Issue::MissingFile)?.read();
+    let tokens = transformers.tokenizer.run(&content, &transformers.settings)?;
     return Ok(tokens.len());
 }
 
 //> PIPELINE -> CHECK
-pub fn check(settings: &Settings, transformers: &mut Transformers) -> Result<(), Issue> {
-    let content = settings.file.clone().ok_or(Issue::MissingFile)?.read();
-    let tokens = transformers.tokenizer.run(&content, settings)?;
-    let pool = transformers.parser.run(&tokens, settings);
+pub fn check(transformers: &mut Transformers) -> Result<(), Issue> {
+    let content = transformers.settings.file.as_ref().ok_or(Issue::MissingFile)?.read();
+    let tokens = transformers.tokenizer.run(&content, &transformers.settings)?;
+    let pool = transformers.parser.run(&tokens, &transformers.settings);
     let start = transformers.solver.run(&pool)?;
     return Ok(());
 }
 
 //> PIPELINE -> AST
-pub fn ast(settings: &Settings, transformers: &mut Transformers) -> Result<Start, Issue> {
-    let content = settings.file.clone().ok_or(Issue::MissingFile)?.read();
-    let tokens = transformers.tokenizer.run(&content, settings)?;
-    let pool = transformers.parser.run(&tokens, settings);
+pub fn ast(transformers: &mut Transformers) -> Result<Start, Issue> {
+    let content = transformers.settings.file.as_ref().ok_or(Issue::MissingFile)?.read();
+    let tokens = transformers.tokenizer.run(&content, &transformers.settings)?;
+    let pool = transformers.parser.run(&tokens, &transformers.settings);
     let start = transformers.solver.run(&pool)?;
     return Ok(start);
+}
+
+//> PIPELINE -> LATEX
+pub fn latex(transformers: &mut Transformers) -> Result<String, Issue> {
+    let content = transformers.settings.file.as_ref().ok_or(Issue::MissingFile)?.read();
+    let tokens = transformers.tokenizer.run(&content, &transformers.settings)?;
+    let pool = transformers.parser.run(&tokens, &transformers.settings);
+    let start = transformers.solver.run(&pool)?;
+    return Ok(start.latex());
 }
 
 
@@ -152,31 +172,44 @@ pub struct Settings {
 }
 
 //> TARGETS -> WRAPPER
-pub fn wrapper(arguments: &[Argument]) -> Result<(), Issue> {
-    let time = Time::now();
-    let settings = Settings::set(arguments)?;
-    let mut transformers = Transformers::new();
-    match &settings.target.clone().unwrap_or(Target {name: String::from("help")}).name as &str {
-        target if target == TARGETS[0].0 => help(&settings, &mut transformers)?,
-        target if target == TARGETS[1].0 => println!("Running Mathsys v{} on {}/{}/{}", version(&settings, &mut transformers)?, OS, ARCH, rustcv()),
-        target if target == TARGETS[2].0 => println!("{:#?}", tokens(&settings, &mut transformers)?),
-        target if target == TARGETS[3].0 => {let len = length(&settings, &mut transformers)?; println!("Token length: {len} / {MAXLEN} ({}%)", len as f32 / MAXLEN as f32 * 100.0)},
-        target if target == TARGETS[4].0 => println!("{}", {check(&settings, &mut transformers)?; "Valid"}),
-        target if target == TARGETS[5].0 => println!("{:#?}", ast(&settings, &mut transformers)?),
+pub fn wrapper() -> Result<(), Issue> {
+    let mut transformers = Transformers::new(&getArguments().skip(1).map(|argument| match &argument {
+        file if file.split(".").last().unwrap() == "msm" => Argument::File(File {
+            name: argument.into()
+        }),
+        flag if flag.starts_with("--") => Argument::Flag(Flag {
+            value: argument.chars().skip(2).collect()
+        }),
+        alias if alias.starts_with("-") => Argument::Alias(Alias {
+            letters: argument.chars().skip(1).collect()
+        }),
+        target => Argument::Target(Target {
+            name: argument
+        }),
+    }).collect::<Vec<Argument>>())?;
+    match &transformers.settings.target.clone().unwrap_or(Target {name: String::from("help")}).name as &str {
+        target if target == TARGETS[0].0 => help(&mut transformers)?,
+        target if target == TARGETS[1].0 => println!("Running Mathsys v{} on {}/{}/{}", version(&mut transformers)?, OS, ARCH, rustcv()),
+        target if target == TARGETS[2].0 => println!("{:#?}", tokens(&mut transformers)?),
+        target if target == TARGETS[3].0 => {let len = length(&mut transformers)?; println!("Token length: {len} / {MAXLEN} ({}%)", len as f32 / MAXLEN as f32 * 100.0)},
+        target if target == TARGETS[4].0 => println!("{}", {check(&mut transformers)?; "Valid"}),
+        target if target == TARGETS[5].0 => println!("{:#?}", ast(&mut transformers)?),
+        target if target == TARGETS[6].0 => println!("{}", latex(&mut transformers)?),
         other => return Err(Issue::UnknownTarget(other.to_string()))
     };
-    if settings.noise.verbose() {println!("Execution time: {:?}", time.elapsed())}
+    if transformers.settings.noise.verbose() {println!("Execution time: {:?}", transformers.time.elapsed())}
     return Ok(());
 }
 
 //> TARGETS -> LIST
-pub static TARGETS: [(&'static str, &'static str); 6] = [
+pub static TARGETS: [(&'static str, &'static str); 7] = [
     ("help", "show this informative menu"),
     ("version", "check current Mathsys version"),
     ("tokens", "tokenize the input file"),
     ("length", "show length of token stream"),
     ("check", "validate the semantics"),
-    ("ast", "build the abstract syntax tree")
+    ("ast", "build the abstract syntax tree"),
+    ("latex", "show the latex program equivalency")
 ];
 
 //> TARGETS -> FLAGS AND ALIASES

@@ -8,8 +8,10 @@ use crate::prelude::{
 };
 
 //> HEAD -> LOCAL
-use super::super::solver::nonterminal::Object;
-use super::super::tokenizer::tokenizer::Kind;
+use super::super::{
+    solver::nonterminal::Object,
+    tokenizer::tokenizer::Kind
+};
 
 
 //^
@@ -17,30 +19,28 @@ use super::super::tokenizer::tokenizer::Kind;
 //^
 
 //> EBNF -> SYNTAX
-//> GRAMMAR -> SYNTAX
 pub static GRAMMAR: LazyLock<Map<Rule, Vec<Vec<Symbol>>>> = LazyLock::new(|| Extensor::new().run("
-//> SYNTAX -> START
+//> EBNF -> START
 Start -> (NEWLINES? Level1 SPACES? (NEWLINES Level1 SPACES?)*)? NEWLINES? ENDOFFILE
 
-//> SYNTAX -> 1ºLEVEL
-Declaration -> (GROUP SPACES)? Variable SPACES? EQUALITY SPACES? Level2
-Definition -> (GROUP SPACES)? Variable SPACES? BINDING SPACES? Level2
-Annotation -> GROUP SPACES Variable (SPACES? COMMA SPACES? Variable)*
+//> EBNF -> 1ºLEVEL
+Declaration -> Variable SPACES? EQUALITY SPACES? Level2
+Definition -> Variable SPACES? BINDING SPACES? Level2
 Node -> Level2
 Equation -> Level2 SPACES? EQUALITY SPACES? Level2
 Use -> USE SPACES MODULE
 
-//> SYNTAX -> 2ºLEVEL
+//> EBNF -> 2ºLEVEL
 Expression -> (SIGN SPACES?)* Level3 ((SPACES? SIGN)+ SPACES? Level3)*
 
-//> SYNTAX -> 3ºLEVEL
+//> EBNF -> 3ºLEVEL
 Term -> Level4 ((SPACES? OPERATOR)? SPACES? Level4)*
 
-//> SYNTAX -> 4ºLEVEL
+//> EBNF -> 4ºLEVEL
 Factor -> Level5 (EXPONENTIATION SPACES? Level2 SPACES? EXPONENTIATION)?
 Limit -> LIMIT SPACES Variable SPACES? TO SPACES? Level2 SIGN? SPACES OF SPACES Nest (EXPONENTIATION SPACES? Level2 SPACES? EXPONENTIATION)?
 
-//> SYNTAX -> 5ºLEVEL
+//> EBNF -> 5ºLEVEL
 Infinite -> INFINITE
 Variable -> IDENTIFIER
 Nest -> OPEN SPACES? Level2? SPACES? CLOSE
@@ -49,14 +49,13 @@ Whole -> NUMBER
 Absolute -> PIPE SPACES? Level2 SPACES? PIPE
 Undefined -> UNDEFINED
 Rational -> RATIONAL
-Casts -> Level5 GROUP
 
-//> SYNTAX -> LEVELS
-Level1 -> Declaration | Definition | Annotation | Node | Equation | Use
+//> EBNF -> LEVELS
+Level1 -> Declaration | Definition | Node | Equation | Use
 Level2 -> Expression
 Level3 -> Term
 Level4 -> Factor | Limit
-Level5 -> Infinite | Variable | Nest | Tensor | Whole | Absolute | Undefined | Rational | Casts
+Level5 -> Infinite | Variable | Nest | Tensor | Whole | Absolute | Undefined | Rational
 "));
 
 //> EBNF -> PATTERNS
@@ -175,7 +174,6 @@ pub enum Rule {
     "Level5" => Rule::NonTerminal(Object::Level5),
     "Declaration" => Rule::NonTerminal(Object::Declaration),
     "Definition" => Rule::NonTerminal(Object::Definition),
-    "Annotation" => Rule::NonTerminal(Object::Annotation),
     "Node" => Rule::NonTerminal(Object::Node),
     "Equation" => Rule::NonTerminal(Object::Equation),
     "Use" => Rule::NonTerminal(Object::Use),
@@ -191,7 +189,6 @@ pub enum Rule {
     "Absolute" => Rule::NonTerminal(Object::Absolute),
     "Undefined" => Rule::NonTerminal(Object::Undefined),
     "Rational" => Rule::NonTerminal(Object::Rational),
-    "Casts" => Rule::NonTerminal(Object::Casts),
     other => panic!("{other}")
 }}} impl Into<Symbol> for Rule {fn into(self) -> Symbol {return match self {
     Rule::NonTerminal(object) => Symbol::NonTerminal(object),
@@ -212,7 +209,6 @@ pub enum Symbol {
     "COMMENT" => Symbol::Kind(Kind::COMMENT),
     "RATIONAL" => Symbol::Kind(Kind::RATIONAL),
     "SIGN" => Symbol::Kind(Kind::SIGN),
-    "GROUP" => Symbol::Kind(Kind::GROUP),
     "BINDING" => Symbol::Kind(Kind::BINDING),
     "CLOSE" => Symbol::Kind(Kind::CLOSE),
     "COMMA" => Symbol::Kind(Kind::COMMA),

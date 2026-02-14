@@ -8,11 +8,15 @@ use crate::prelude::{
 };
 
 //> HEAD -> LOCAL
-use super::super::issues::Issue;
-use super::super::tokenizer::tokenizer::{ORDER, Responsibility};
-use super::nonterminal::{Partition, Object, NonTerminal, Item};
-use super::super::parser::parser::{Backpointer, MINPOINTERS, Part};
-use super::super::syntax::start::Start;
+use super::{
+    nonterminal::{Partition, Object, NonTerminal, Item},
+    super::{
+        issues::Issue,
+        tokenizer::tokenizer::{ORDER, Responsibility},
+        parser::parser::{Backpointer, MINPOINTERS, Part},
+        syntax::start::Start
+    }
+};
 
 
 //^

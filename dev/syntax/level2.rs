@@ -2,9 +2,19 @@
 //^ HEAD
 //^
 
+//> HEAD -> PRELUDE
+use crate::prelude::{
+    take, dispatch
+};
+
 //> HEAD -> LOCAL
-use super::super::solver::nonterminal::{Spawn, NonTerminal, Item};
-use super::level3::Level3;
+use super::{
+    level3::Level3,
+    super::{
+        runtime::traits::{Backends, Spawn},
+        solver::nonterminal::{NonTerminal, Item}
+    }
+};
 
 
 //^
@@ -12,31 +22,27 @@ use super::level3::Level3;
 //^
 
 //> 2ºLEVEL -> NAMESPACE
+#[dispatch(Backends)]
 #[derive(Debug, Clone)]
 pub enum Level2 {
-    Expression(Expression)
+    Expression
 }
 
 //> 2ºLEVEL -> EXPRESSION
 #[derive(Debug, Clone)]
 pub struct Expression {
-    signs: Vec<Vec<bool>>,
-    terms: Vec<Level3>
+    terms: Vec<(Vec<bool>, Level3)>
+} impl Backends for Expression {
+    fn latex(&self) -> String {return self.terms.iter().map(|term| term.0.iter().map(|each| if *each {'+'} else {'-'}).collect::<String>() + &term.1.latex()).collect::<String>()}
 } impl Spawn for Expression {fn summon(items: Vec<Item>) -> NonTerminal {
-    let mut signs = Vec::new();
     let mut terms = Vec::new();
     let mut current = Vec::new();
-    for item in items {
-        if let Item::Token(token) = item {current.push(token.value == "+")}
-        else {
-            signs.push(current.clone());
-            let Item::NonTerminal(NonTerminal::Level3(level3)) = item else {panic!()};
-            terms.push(level3);
-            current.clear();
-        }
-    }
+    for item in items {match item {
+        Item::Token(token) => current.push(token.value == "+"),
+        Item::NonTerminal(NonTerminal::Level3(level3)) => terms.push((take(&mut current), level3)),
+        other => panic!()
+    }};
     return NonTerminal::Level2(Level2::Expression(Self {
-        signs: signs,
         terms: terms
     }));
 }}

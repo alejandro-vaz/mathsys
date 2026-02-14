@@ -8,8 +8,10 @@ use crate::prelude::{
 };
 
 //> HEAD -> LOCAL
-use super::super::Settings;
-use super::super::issues::Issue;
+use super::super::{
+    Settings,
+    issues::Issue
+};
 
 
 //^
@@ -33,7 +35,6 @@ pub enum Kind {
     COMMENT,
     RATIONAL,
     SIGN,
-    GROUP,
     BINDING,
     CLOSE,
     COMMA,
@@ -90,7 +91,6 @@ pub static ORDER: LazyLock<IndexMap<Kind, (Regex, Responsibility)>> = LazyLock::
     (Kind::OF, (Regex::new("^of").unwrap(), Responsibility::Structural)),
     (Kind::INFINITE, (Regex::new("^inf").unwrap(), Responsibility::Structural)),
     (Kind::USE, (Regex::new("^use").unwrap(), Responsibility::Structural)),
-    (Kind::GROUP, (Regex::new(r#"^\@(Infinite|Integer|Natural|Nexists|Rational|Tensor|Undefined|Variable|Whole)"#).unwrap(), Responsibility::Total)),
     (Kind::IDENTIFIER, (Regex::new("^[A-Za-zº$%]+").unwrap(), Responsibility::Total)),
     (Kind::EXPONENTIATION, (Regex::new(r#"^\^"#).unwrap(), Responsibility::Structural)),
     (Kind::RATIONAL, (Regex::new(r#"^[0-9]*\.[0-9]+"#).unwrap(), Responsibility::Total)),

@@ -15,7 +15,7 @@ pub use std::{
     path::PathBuf as FilePath,
     fs::{
         read_to_string as readFile,
-        write,
+        write as writeFile,
         read_dir as readDir
     },
     time::Instant as Time,
@@ -24,14 +24,16 @@ pub use std::{
     fmt::{
         Formatter,
         Display,
-        Result as Rst
+        Result as Rst,
+        Debug
     },
     collections::{
         HashMap as Map,
         HashSet as Set,
         VecDeque as Deque
     },
-    sync::LazyLock
+    sync::LazyLock,
+    mem::take
 };
 
 //> PRELUDE -> ENTRY
@@ -75,3 +77,6 @@ pub use rustc_version_runtime::version as rustcv;
 
 //> PRELUDE -> STRUM_MACROS
 pub use strum_macros::AsRefStr;
+
+//> PRELUDE -> ENUM_DISPATCH
+pub use enum_dispatch::enum_dispatch as dispatch;

@@ -1,7 +1,0 @@
-[package]
-name = "core"
-edition = "2024"
-
-[lib]
-name = "core"
-path = "lib.rs"

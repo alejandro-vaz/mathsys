@@ -4,12 +4,15 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    exit, Error, Display, Formatter, Rst, Colored, Flag, currentDir, readDir, Alias, AsRefStr
+    exit, Error, Display, Formatter, Rst, Colored, Flag, currentDir, readDir, Alias, AsRefStr, Debug
 };
 
 //> HEAD -> LOCAL
-use super::tokenizer::tokenizer::MAXLEN;
-use super::{TARGETS, FLAGLIASES};
+use super::{
+    TARGETS,
+    FLAGLIASES,
+    tokenizer::tokenizer::MAXLEN
+};
 
 
 //^
@@ -44,7 +47,7 @@ fn color(string: impl Colored, style: Style) -> String {return (match style {
 //^
 
 //> ISSUES -> NEWIS
-#[derive(Debug, AsRefStr)]
+#[derive(AsRefStr)]
 pub enum Issue {
     UnknownToken {
         line: u32,
@@ -78,7 +81,7 @@ pub enum Issue {
         Issue::MissingFile => format!(
             "Missing input file. Files available in {}:\n{}",
             color(currentDir().unwrap().to_str().unwrap(), Style::Place),
-            readDir(currentDir().unwrap()).unwrap().into_iter().filter_map(|entry| if let Ok(thing) = entry && thing.path().is_file() {Some(thing.path())} else {None}).filter_map(|file| if let Some(extension) = file.extension() && extension.to_str().unwrap().starts_with("ms") {Some("- ".to_string() + &color(file.strip_prefix(currentDir().unwrap()).unwrap().to_str().unwrap(), Style::Place))} else {None}).collect::<Vec<String>>().join("\n")
+            readDir(currentDir().unwrap()).unwrap().into_iter().filter_map(|entry| if let Ok(thing) = entry && thing.path().is_file() {Some(thing.path())} else {None}).filter_map(|file| if let Some(extension) = file.extension() && extension.to_str().unwrap() == "msm" {Some("- ".to_string() + &color(file.strip_prefix(currentDir().unwrap()).unwrap().to_str().unwrap(), Style::Place))} else {None}).collect::<Vec<String>>().join("\n")
         ),
         Issue::InputTooLong => format!(
             "Input size exceeds limit of {MAXLEN}."
@@ -111,4 +114,4 @@ pub enum Issue {
     color("\n>\n> ", Style::Issue), 
     self.content().replace("\n", &color("\n> ", Style::Issue)), 
     color("\n>\n", Style::Issue)
-))}} impl Error for Issue {}
+))}} impl Debug for Issue {fn fmt(&self, formatter: &mut Formatter<'_>) -> Rst {Display::fmt(&self, formatter)}} impl Error for Issue {}

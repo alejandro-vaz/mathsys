@@ -5,11 +5,5 @@
 #> IGNORE -> CARGO
 **/target/
 
-#> IGNORE -> PERF
-perf.*
-
-#> IGNORE -> ENVIRONMENT
-.venv/
-
 #> IGNORE -> FOLDER INFO
 **/.DS_Store
