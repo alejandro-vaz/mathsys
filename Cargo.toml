@@ -1,11 +1,16 @@
 [package]
 name = "mathsys"
-version = "7.0.0"
+version = "8.0.0"
 edition = "2024"
 authors = ["Alejandro Vaz <alejandro.vaz.myt@gmail.com>"]
 description = "The Natural Language of Math."
 license = "MIT"
 repository = "https://github.com/alejandro-vaz/mathsys"
+readme = ".github/README.md"
+
+[lib]
+name = "mathsys"
+path = "lib.rs"
 
 [[bin]]
 name = "mathsys"

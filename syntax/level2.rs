@@ -31,7 +31,7 @@ pub enum Level2 {
 //> 2ºLEVEL -> EXPRESSION
 #[derive(Debug, Clone)]
 pub struct Expression {
-    terms: Vec<(Vec<bool>, Level3)>
+    pub terms: Vec<(Vec<bool>, Level3)>
 } impl Backends for Expression {
     fn latex(&self) -> String {return self.terms.iter().map(|term| term.0.iter().map(|each| if *each {'+'} else {'-'}).collect::<String>() + &term.1.latex()).collect::<String>()}
 } impl Spawn for Expression {fn summon(items: Vec<Item>) -> NonTerminal {

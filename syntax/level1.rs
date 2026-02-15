@@ -43,8 +43,8 @@ pub enum Level1 {
 //> 1ºLEVEL -> DECLARATION
 #[derive(Debug, Clone)]
 pub struct Declaration {
-    variable: Variable,
-    value: Level2
+    pub variable: Variable,
+    pub value: Level2
 } impl Backends for Declaration {
     fn latex(&self) -> String {return format!("{}={}", self.variable.latex(), self.value.latex())}
 } impl Spawn for Declaration {fn summon(items: Vec<Item>) -> NonTerminal {
@@ -64,8 +64,8 @@ pub struct Declaration {
 //> 1ºLEVEL -> DEFINITION
 #[derive(Debug, Clone)]
 pub struct Definition {
-    variable: Variable,
-    value: Level2
+    pub variable: Variable,
+    pub value: Level2
 } impl Backends for Definition {
     fn latex(&self) -> String {return format!(r"{}\equiv {}", self.variable.latex(), self.value.latex())}
 } impl Spawn for Definition {fn summon(items: Vec<Item>) -> NonTerminal {
@@ -85,7 +85,7 @@ pub struct Definition {
 //> 1ºLEVEL -> NODE
 #[derive(Debug, Clone)]
 pub struct Node {
-    value: Level2
+    pub value: Level2
 } impl Backends for Node {
     fn latex(&self) -> String {return self.value.latex()}
 } impl Spawn for Node {fn summon(items: Vec<Item>) -> NonTerminal {
@@ -97,8 +97,8 @@ pub struct Node {
 //> 1ºLEVEL -> EQUATION
 #[derive(Debug, Clone)]
 pub struct Equation {
-    left: Level2,
-    right: Level2
+    pub left: Level2,
+    pub right: Level2
 } impl Backends for Equation {
     fn latex(&self) -> String {return format!("{}={}", self.left.latex(), self.right.latex())}
 } impl Spawn for Equation {fn summon(items: Vec<Item>) -> NonTerminal {
@@ -112,8 +112,8 @@ pub struct Equation {
 //> 1ºLEVEL -> USE
 #[derive(Debug, Clone)]
 pub struct Use {
-    module: String,
-    start: Option<Start>
+    pub module: String,
+    pub start: Option<Start>
 } impl Backends for Use {
     fn latex(&self) -> String {
         let (start, end) = match &self.start {

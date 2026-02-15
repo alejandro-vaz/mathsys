@@ -33,8 +33,8 @@ pub enum Level4 {
 //> 4ºLEVEL -> FACTOR
 #[derive(Debug, Clone)]
 pub struct Factor {
-    value: Level5,
-    exponent: Option<Level2>
+    pub value: Level5,
+    pub exponent: Option<Level2>
 } impl Backends for Factor {
     fn latex(&self) -> String {
         let exponent = if let Some(level2) = &self.exponent {&format!("^{{{}}}", level2.latex())} else {""};
@@ -51,11 +51,11 @@ pub struct Factor {
 //> 4ºLEVEL -> LIMIT
 #[derive(Debug, Clone)]
 pub struct Limit {
-    variable: Variable,
-    approach: Level2,
-    direction: Option<bool>,
-    nest: Nest,
-    exponent: Option<Level2>
+    pub variable: Variable,
+    pub approach: Level2,
+    pub direction: Option<bool>,
+    pub nest: Nest,
+    pub exponent: Option<Level2>
 } impl Backends for Limit {
     fn latex(&self) -> String {
         let direction = if let Some(value) = self.direction {if value {"+"} else {"-"}} else {""};

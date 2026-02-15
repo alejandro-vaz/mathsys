@@ -84,10 +84,6 @@ pub enum Object {
         Object::Undefined => Undefined::summon(items),
         Object::Rational => Rational::summon(items)
     }}
-    pub fn score(&self) -> usize {return match self {
-        Object::Declaration => 1,
-        other => 0
-    }}
 }
 
 

@@ -24,7 +24,7 @@ use super::{
 //> START -> CLASS
 #[derive(Debug, Clone)]
 pub struct Start {
-    stream: Vec<Level1>
+    pub stream: Vec<Level1>
 } impl Backends for Start {
     fn latex(&self) -> String {
         let (start, end) = match self.stream.len() {

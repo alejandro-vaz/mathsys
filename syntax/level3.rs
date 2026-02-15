@@ -31,8 +31,8 @@ pub enum Level3 {
 //> 3ºLEVEL -> TERM
 #[derive(Debug, Clone)]
 pub struct Term {
-    numerator: Vec<Level4>,
-    denominator: Vec<Level4>
+    pub numerator: Vec<Level4>,
+    pub denominator: Vec<Level4>
 } impl Backends for Term {
     fn latex(&self) -> String {
         let numerator = self.numerator.iter().map(|factor| factor.latex()).collect::<Vec<String>>().join(r"\cdot ");

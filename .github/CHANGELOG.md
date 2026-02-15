@@ -208,3 +208,15 @@ No changelog available.
 1. Runtime flags.
 ### Fixed
 1. Full issue coverage now.
+
+## v8 -- Semantic solver
+### Added
+1. Local module importing from filesystem.
+1. Added `README.md` in `Cargo.toml`.
+### Changed
+1. Contextual semantic solver replaced old heuristic solver.
+1. Improved filetree and directories.
+### Removed
+1. Old numerical solver.
+### Fixed
+1. Imported modules now must have `.msm` file extension.

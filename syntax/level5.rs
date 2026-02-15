@@ -47,7 +47,7 @@ pub struct Infinite {} impl Backends for Infinite {
 //> 5ºLEVEL -> VARIABLE
 #[derive(Debug, Clone)]
 pub struct Variable {
-    name: String
+    pub name: String
 } impl Backends for Variable {
     fn latex(&self) -> String {return augmentVariables(&self.name)}
 } impl Spawn for Variable {fn summon(items: Vec<Item>) -> NonTerminal {
@@ -59,7 +59,7 @@ pub struct Variable {
 //> 5ºLEVEL -> NEST
 #[derive(Debug, Clone)]
 pub struct Nest {
-    value: Option<Level2>
+    pub value: Option<Level2>
 } impl Backends for Nest {
     fn latex(&self) -> String {
         let inside = if let Some(level2) = &self.value {&level2.latex()} else {""};
@@ -74,7 +74,7 @@ pub struct Nest {
 //> 5ºLEVEL -> TENSOR
 #[derive(Debug, Clone)]
 pub struct Tensor {
-    values: Vec<Level2>
+    pub values: Vec<Level2>
 } impl Backends for Tensor {
     fn latex(&self) -> String {
         let inside = if self.values.len() == 0 {r"\; "} else {&self.values.iter().map(|value| value.latex()).collect::<Vec<String>>().join(r"\\ ")};
@@ -89,7 +89,7 @@ pub struct Tensor {
 //> 5ºLEVEL -> WHOLE
 #[derive(Debug, Clone)]
 pub struct Whole {
-    number: String
+    pub number: String
 } impl Backends for Whole {
     fn latex(&self) -> String {return self.number.clone()}
 } impl Spawn for Whole {fn summon(items: Vec<Item>) -> NonTerminal {
@@ -101,7 +101,7 @@ pub struct Whole {
 //> 5ºLEVEL -> ABSOLUTE
 #[derive(Debug, Clone)]
 pub struct Absolute {
-    value: Level2
+    pub value: Level2
 } impl Backends for Absolute {
     fn latex(&self) -> String {return format!(r"\left| {}\right| ", self.value.latex())}
 } impl Spawn for Absolute {fn summon(items: Vec<Item>) -> NonTerminal {
@@ -119,7 +119,7 @@ pub struct Undefined {} impl Backends for Undefined {
 //> 5ºLEVEL -> RATIONAL
 #[derive(Debug, Clone)]
 pub struct Rational {
-    number: String
+    pub number: String
 } impl Backends for Rational {
     fn latex(&self) -> String {return self.number.clone()}
 } impl Spawn for Rational {fn summon(items: Vec<Item>) -> NonTerminal {
