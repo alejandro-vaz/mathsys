@@ -106,7 +106,7 @@ pub static ORDER: LazyLock<IndexMap<Kind, (Regex, Responsibility)>> = LazyLock::
     (Kind::EXIT, (Regex::new(r#"^\]"#).unwrap(), Responsibility::Structural)),
     (Kind::SPACES, (Regex::new("^ +").unwrap(), Responsibility::Structural)),
     (Kind::NEWLINES, (Regex::new(r#"^\n+"#).unwrap(), Responsibility::Structural)),
-    (Kind::MODULE, (Regex::new(r#"^"[a-z]+""#).unwrap(), Responsibility::Total)),
+    (Kind::MODULE, (Regex::new(r#"^"[a-z]+\.msm""#).unwrap(), Responsibility::Total)),
     (Kind::COMMENT, (Regex::new(r"^\#[^\n]*").unwrap(), Responsibility::Null)),
     (Kind::ENDOFFILE, (Regex::new("^$").unwrap(), Responsibility::Structural))
 ].into_iter().collect()});

@@ -13,8 +13,14 @@ use super::{
     level2::Level2,
     level5::{Variable, Level5},
     super::{
+        issues::Issue,
+        Settings,
+        tokenizer::tokenizer::Tokenizer,
+        parser::parser::Parser,
+        solver::solver::Solver,
         backends::traits::{Backends, Spawn},
-        solver::nonterminal::{NonTerminal, Item}
+        solver::nonterminal::{NonTerminal, Item},
+        entry::File
     }
 };
 
@@ -118,7 +124,17 @@ pub struct Use {
     }
 } impl Spawn for Use {fn summon(items: Vec<Item>) -> NonTerminal {
     return NonTerminal::Level1(Level1::Use(Self {
-        module: if let Item::Token(token) = items.into_iter().next().unwrap() {token.value.to_string()} else {panic!()},
+        module: if let Item::Token(token) = items.into_iter().next().unwrap() {token.value.trim_matches('\"').to_string()} else {panic!()},
         start: None
     }));
+}} impl Use {pub fn load(&mut self, tokenizer: &mut Tokenizer, parser: &mut Parser, solver: &mut Solver, settings: &Settings) -> Result<(), Issue> {
+    let Ok(content) = File {
+        name: self.module.clone().into()
+    }.read() else {return Ok(())};
+    let tokens = tokenizer.run(&content, settings)?;
+    let pool = parser.run(&tokens, settings);
+    let mut start = solver.run(&pool)?;
+    start.modules(tokenizer, parser, solver, settings)?;
+    self.start = Some(start);
+    return Ok(());
 }}

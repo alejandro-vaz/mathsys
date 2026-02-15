@@ -6,6 +6,11 @@
 use super::{
     level1::Level1,
     super::{
+        issues::Issue,
+        tokenizer::tokenizer::Tokenizer,
+        parser::parser::Parser,
+        Settings,
+        solver::solver::Solver,
         backends::traits::{Spawn, Backends},
         solver::nonterminal::{Item, NonTerminal}
     }
@@ -31,4 +36,4 @@ pub struct Start {
     }
 } impl Spawn for Start {fn summon(items: Vec<Item>) -> NonTerminal {return NonTerminal::Start(Self {
     stream: items.into_iter().map(|element| if let Item::NonTerminal(NonTerminal::Level1(level1)) = element {level1} else {panic!("{element:?}")}).collect()
-})}}
+})}} impl Start {pub fn modules(&mut self, tokenizer: &mut Tokenizer, parser: &mut Parser, solver: &mut Solver, settings: &Settings) -> Result<(), Issue> {return Ok(for statement in &mut self.stream {if let Level1::Use(element) = statement {element.load(tokenizer, parser, solver, settings)?}})}}

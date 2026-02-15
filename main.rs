@@ -100,7 +100,8 @@ pub fn check(transformers: &mut Transformers) -> Result<(), Issue> {
     let content = transformers.settings.file.as_ref().ok_or(Issue::MissingFile)?.read()?;
     let tokens = transformers.tokenizer.run(&content, &transformers.settings)?;
     let pool = transformers.parser.run(&tokens, &transformers.settings);
-    let start = transformers.solver.run(&pool)?;
+    let mut start = transformers.solver.run(&pool)?;
+    start.modules(&mut transformers.tokenizer, &mut transformers.parser, &mut transformers.solver, &transformers.settings)?;
     return Ok(());
 }
 
@@ -109,7 +110,8 @@ pub fn ast(transformers: &mut Transformers) -> Result<Start, Issue> {
     let content = transformers.settings.file.as_ref().ok_or(Issue::MissingFile)?.read()?;
     let tokens = transformers.tokenizer.run(&content, &transformers.settings)?;
     let pool = transformers.parser.run(&tokens, &transformers.settings);
-    let start = transformers.solver.run(&pool)?;
+    let mut start = transformers.solver.run(&pool)?;
+    start.modules(&mut transformers.tokenizer, &mut transformers.parser, &mut transformers.solver, &transformers.settings)?;
     return Ok(start);
 }
 
@@ -118,7 +120,8 @@ pub fn latex(transformers: &mut Transformers) -> Result<String, Issue> {
     let content = transformers.settings.file.as_ref().ok_or(Issue::MissingFile)?.read()?;
     let tokens = transformers.tokenizer.run(&content, &transformers.settings)?;
     let pool = transformers.parser.run(&tokens, &transformers.settings);
-    let start = transformers.solver.run(&pool)?;
+    let mut start = transformers.solver.run(&pool)?;
+    start.modules(&mut transformers.tokenizer, &mut transformers.parser, &mut transformers.solver, &transformers.settings)?;
     return Ok(start.latex());
 }
 

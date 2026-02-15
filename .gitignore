@@ -11,5 +11,5 @@
 #> IGNORE -> SYMLINK
 mathsys
 
-#> IGNORE -> TEST FILE
-file.msm
+#> IGNORE -> TEST FILES
+*.msm
