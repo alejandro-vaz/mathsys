@@ -21,6 +21,7 @@ pub mod parser {
     pub mod parser;
 }
 pub mod solver {
+    pub mod context;
     pub mod nonterminal;
     pub mod solver;
 }
