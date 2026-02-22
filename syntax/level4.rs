@@ -10,10 +10,23 @@ use crate::prelude::{
 //> HEAD -> LOCAL
 use super::{
     level2::Level2,
-    level5::{Level5, Variable, Nest},
+    level5::{
+        Level5, 
+        Variable, 
+        Nest
+    },
     super::{
-        backends::traits::{Backends, Spawn},
-        solver::nonterminal::{NonTerminal, Item}
+        backends::{
+            Backends, 
+            Spawn
+        },
+        solver::{
+            nonterminal::{
+                NonTerminal, 
+                Item
+            },
+            context::Context
+        }
     }
 };
 
@@ -25,22 +38,22 @@ use super::{
 //> 4ºLEVEL -> NAMESPACE
 #[dispatch(Backends)]
 #[derive(Debug, Clone)]
-pub enum Level4 {
+pub(crate) enum Level4 {
     Factor,
     Limit
 }
 
 //> 4ºLEVEL -> FACTOR
 #[derive(Debug, Clone)]
-pub struct Factor {
-    value: Level5,
-    exponent: Option<Level2>
+pub(crate) struct Factor {
+    pub(crate) value: Level5,
+    pub(crate) exponent: Option<Level2>
 } impl Backends for Factor {
     fn latex(&self) -> String {
         let exponent = if let Some(level2) = &self.exponent {&format!("^{{{}}}", level2.latex())} else {""};
         return self.value.latex() + &exponent;
     }
-} impl Spawn for Factor {fn summon(items: Vec<Item>) -> NonTerminal {
+} impl Spawn for Factor {fn spawn(items: Vec<Item>, context: Option<&mut Context>) -> NonTerminal {
     let mut iterator = items.into_iter();
     return NonTerminal::Level4(Level4::Factor(Self {
         value: if let Item::NonTerminal(NonTerminal::Level5(level5)) = iterator.next().unwrap() {level5} else {panic!()},
@@ -50,19 +63,19 @@ pub struct Factor {
 
 //> 4ºLEVEL -> LIMIT
 #[derive(Debug, Clone)]
-pub struct Limit {
-    variable: Variable,
-    approach: Level2,
-    direction: Option<bool>,
-    nest: Nest,
-    exponent: Option<Level2>
+pub(crate) struct Limit {
+    pub(crate) variable: Variable,
+    pub(crate) approach: Level2,
+    pub(crate) direction: Option<bool>,
+    pub(crate) nest: Nest,
+    pub(crate) exponent: Option<Level2>
 } impl Backends for Limit {
     fn latex(&self) -> String {
         let direction = if let Some(value) = self.direction {if value {"+"} else {"-"}} else {""};
         let exponent = if let Some(level2) = &self.exponent {&format!("^{{{}}}", level2.latex())} else {""};
         return format!(r"\lim_{{\substack{{{}\to {}{direction}}}}}{}{exponent}", self.variable.latex(), self.approach.latex(), self.nest.latex());
     }
-} impl Spawn for Limit {fn summon(items: Vec<Item>) -> NonTerminal {
+} impl Spawn for Limit {fn spawn(items: Vec<Item>, context: Option<&mut Context>) -> NonTerminal {
     let mut iterator = items.into_iter();
     let Some(Item::NonTerminal(NonTerminal::Level5(Level5::Variable(variable)))) = iterator.next() else {panic!()};
     let Some(Item::NonTerminal(NonTerminal::Level2(approach))) = iterator.next() else {panic!()};

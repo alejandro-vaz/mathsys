@@ -208,3 +208,27 @@ No changelog available.
 1. Runtime flags.
 ### Fixed
 1. Full issue coverage now.
+
+## v8 -- Semantic solver
+### Added
+1. Local module importing from filesystem.
+1. Added `README.md` in `Cargo.toml`.
+### Changed
+1. Contextual semantic solver replaced old heuristic solver.
+1. Improved filetree and directories.
+### Removed
+1. Old numerical solver.
+### Fixed
+1. Imported modules now must have `.msm` file extension.
+
+## v9 -- Semantic-driven disambiguation
+### Added
+1. Functions.
+1. Ambiguity resolution for function calls and implicit multiplication based on context.
+### Changed
+1. Definitions now are done with `:=` instead of `==` and `=` always produces equations.
+### Removed
+1. Old declaration constructs.
+1. Locking mechanics.
+### Fixed
+1. CLI behaviour under stress.

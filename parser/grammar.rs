@@ -4,13 +4,16 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    Map, Regex, Set, LazyLock
+    Map, 
+    Regex, 
+    Set, 
+    LazyLock
 };
 
 //> HEAD -> LOCAL
 use super::super::{
     solver::nonterminal::Object,
-    tokenizer::tokenizer::Kind
+    tokenizer::token::Kind
 };
 
 
@@ -19,13 +22,13 @@ use super::super::{
 //^
 
 //> EBNF -> SYNTAX
-pub static GRAMMAR: LazyLock<Map<Rule, Vec<Vec<Symbol>>>> = LazyLock::new(|| Extensor::new().run("
+pub(super) static GRAMMAR: LazyLock<Map<Rule, Vec<Vec<Symbol>>>> = LazyLock::new(|| Extensor::new().run("
 //> EBNF -> START
 Start -> (NEWLINES? Level1 SPACES? (NEWLINES Level1 SPACES?)*)? NEWLINES? ENDOFFILE
 
 //> EBNF -> 1ºLEVEL
-Declaration -> Variable SPACES? EQUALITY SPACES? Level2
-Definition -> Variable SPACES? BINDING SPACES? Level2
+Definition -> Variable SPACES? DEFINITION SPACES? Level2
+Function -> Variable OPEN SPACES? (Variable (SPACES? COMMA SPACES? Variable)* SPACES?)? CLOSE SPACES? DEFINITION SPACES? Level2
 Node -> Level2
 Equation -> Level2 SPACES? EQUALITY SPACES? Level2
 Use -> USE SPACES MODULE
@@ -49,13 +52,14 @@ Whole -> NUMBER
 Absolute -> PIPE SPACES? Level2 SPACES? PIPE
 Undefined -> UNDEFINED
 Rational -> RATIONAL
+Call -> Variable OPEN SPACES? (Level2 (SPACES? COMMA SPACES? Level2)* SPACES?)? CLOSE
 
 //> EBNF -> LEVELS
-Level1 -> Declaration | Definition | Node | Equation | Use
+Level1 -> Definition | Function | Node | Equation | Use
 Level2 -> Expression
 Level3 -> Term
 Level4 -> Factor | Limit
-Level5 -> Infinite | Variable | Nest | Tensor | Whole | Absolute | Undefined | Rational
+Level5 -> Infinite | Variable | Nest | Tensor | Whole | Absolute | Undefined | Rational | Call
 "));
 
 //> EBNF -> PATTERNS
@@ -70,7 +74,7 @@ struct Extensor {
     multiple: Map<String, u8>,
     optional: Map<String, u8>,
 } impl Extensor {
-    pub fn new() -> Extensor {return Self {
+    fn new() -> Extensor {return Self {
         counter: 0,
         parentheses: Map::new(),
         more: Map::new(),
@@ -85,7 +89,7 @@ struct Extensor {
         self.optional.clear();
         return Set::new();
     }
-    pub fn run(&mut self, ebnf: &str) -> Map<Rule, Vec<Vec<Symbol>>> {
+    fn run(&mut self, ebnf: &str) -> Map<Rule, Vec<Vec<Symbol>>> {
         let mut rules = self.reset();
         for line in ebnf.lines().map(str::trim) {
             if line.is_empty() || line.starts_with("//") {continue}
@@ -160,8 +164,8 @@ struct Extensor {
 //^
 
 //> GRAMMAR -> RULE
-#[derive(Eq, Hash, PartialEq, Clone, Copy)]
-pub enum Rule {
+#[derive(Eq, Hash, PartialEq, Clone)]
+pub(super) enum Rule {
     NonTerminal(Object),
     Internal(u8)
 } impl From<&str> for Rule {fn from(value: &str) -> Self {match value {
@@ -172,8 +176,8 @@ pub enum Rule {
     "Level3" => Rule::NonTerminal(Object::Level3),
     "Level4" => Rule::NonTerminal(Object::Level4),
     "Level5" => Rule::NonTerminal(Object::Level5),
-    "Declaration" => Rule::NonTerminal(Object::Declaration),
     "Definition" => Rule::NonTerminal(Object::Definition),
+    "Function" => Rule::NonTerminal(Object::Function),
     "Node" => Rule::NonTerminal(Object::Node),
     "Equation" => Rule::NonTerminal(Object::Equation),
     "Use" => Rule::NonTerminal(Object::Use),
@@ -189,6 +193,7 @@ pub enum Rule {
     "Absolute" => Rule::NonTerminal(Object::Absolute),
     "Undefined" => Rule::NonTerminal(Object::Undefined),
     "Rational" => Rule::NonTerminal(Object::Rational),
+    "Call" => Rule::NonTerminal(Object::Call),
     other => panic!("{other}")
 }}} impl Into<Symbol> for Rule {fn into(self) -> Symbol {return match self {
     Rule::NonTerminal(object) => Symbol::NonTerminal(object),
@@ -197,7 +202,7 @@ pub enum Rule {
 
 //> GRAMMAR -> SYMBOL
 #[derive(Clone, PartialEq, Eq, Hash)]
-pub enum Symbol {
+pub(super) enum Symbol {
     NonTerminal(Object),
     Internal(u8),
     Kind(Kind)
@@ -209,7 +214,7 @@ pub enum Symbol {
     "COMMENT" => Symbol::Kind(Kind::COMMENT),
     "RATIONAL" => Symbol::Kind(Kind::RATIONAL),
     "SIGN" => Symbol::Kind(Kind::SIGN),
-    "BINDING" => Symbol::Kind(Kind::BINDING),
+    "DEFINITION" => Symbol::Kind(Kind::DEFINITION),
     "CLOSE" => Symbol::Kind(Kind::CLOSE),
     "COMMA" => Symbol::Kind(Kind::COMMA),
     "ENTER" => Symbol::Kind(Kind::ENTER),

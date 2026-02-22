@@ -4,15 +4,25 @@
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    exit, Error, Display, Formatter, Rst, Colored, currentDir, readDir, AsRefStr, Debug
+    Error, 
+    Display, 
+    Formatter, 
+    Rst, 
+    Colored, 
+    currentDir, 
+    readDir, 
+    AsRefStr, 
+    Debug
 };
 
 //> HEAD -> LOCAL
 use super::{
-    TARGETS,
-    FLAGLIASES,
-    tokenizer::tokenizer::MAXLEN,
-    entry::{Flag, Alias}
+    tokenizer::MAXLEN,
+    entry::{
+        Alias,
+        Flag,
+        Target
+    }
 };
 
 
@@ -32,7 +42,7 @@ enum Style {
 }
 
 //> DEFAULTS -> COLOR
-fn color(string: impl Colored, style: Style) -> String {return (match style {
+fn color(string: impl Colored, style: Style) -> String {return match style {
     Style::Code => string.truecolor(0xAA, 0xAA, 0xAA),
     Style::Place => string.cyan(),
     Style::Object => string.purple().bold(),
@@ -40,25 +50,25 @@ fn color(string: impl Colored, style: Style) -> String {return (match style {
     Style::Flag => string.blue(),
     Style::Alias => string.yellow(),
     Style::Issue => string.red()
-}).to_string()}
+}.to_string()}
 
 
 //^
 //^ ISSUES
 //^
 
-//> ISSUES -> NEWIS
-#[derive(AsRefStr)]
+//> ISSUES -> ALL
+#[derive(AsRefStr, Debug)]
 pub enum Issue {
     UnknownToken {
         line: u32,
         column: u32,
         code: String
     },
-    UnknownTarget(String),
+    UnknownArgument(String),
     MissingFile,
     InputTooLong,
-    UnknownFlag(Flag),
+    UnknownFlag(String),
     UnknownAliasCharacter {
         alias: Alias,
         at: usize
@@ -67,7 +77,7 @@ pub enum Issue {
     SyntaxError,
     FileNotFound(String)
 } impl Issue {
-    pub fn consume(self) -> ! {println!("{self}"); exit(&self as *const Issue as i32)}
+    pub fn consume(self) -> u8 {println!("{self}"); &self as *const Issue as u8}
     fn content(&self) -> String {match self {
         Issue::UnknownToken {line, column, code} => format!(
             "Unknown token at line {},\n\n    {}\n    {}",
@@ -75,10 +85,10 @@ pub enum Issue {
             color(code as &str, Style::Code),
             " ".repeat(*column as usize - 1) + &color("^", Style::Place)
         ),
-        Issue::UnknownTarget(target) => format!(
-            "Unknown target {}.\n\nAvailable targets:\n{}",
-            color(target as &str, Style::Target),
-            TARGETS.map(|target| "- ".to_string() + &color(target.0, Style::Target) + ", " + target.1).join("\n")
+        Issue::UnknownArgument(argument) => format!(
+            "Unknown argument {}.\n\nAvailable targets:\n{}",
+            color(argument as &str, Style::Code),
+            TARGETS.iter().map(|target| "- ".to_string() + &color(target.0.as_ref(), Style::Target) + ": " + target.1).collect::<Vec<String>>().join("\n"),
         ),
         Issue::MissingFile => format!(
             "Missing input file. Files available in {}:\n{}",
@@ -90,19 +100,19 @@ pub enum Issue {
         ),
         Issue::UnknownFlag(flag) => format!(
             "Unknown flag provided: {}\n\nValid flags and aliases:\n{}",
-            color(&("--".to_string() + &flag.value) as &str, Style::Flag),
-            FLAGLIASES.map(|tuple| "- ".to_string() + &color(&('-'.to_string() + &tuple.0.to_string()) as &str, Style::Alias) + ", " + &color(&("--".to_string() + tuple.1) as &str, Style::Flag) + ": " + tuple.2).join("\n")
+            color(&("--".to_string() + flag.as_ref()) as &str, Style::Flag),
+            FLAGLIASES.map(|tuple| "- ".to_string() + &color(&('-'.to_string() + &tuple.0.to_string()) as &str, Style::Alias) + ", " + &color(&("--".to_string() + &tuple.1.as_ref()) as &str, Style::Flag) + ": " + tuple.2).join("\n")
         ),
         Issue::UnknownAliasCharacter {alias, at} => format!(
             "Unknown alias character provided: {}\n{}\n\nValid flags and aliases:\n{}",
-            color(&('-'.to_string() + &alias.letters.iter().collect::<String>()) as &str, Style::Alias),
+            color(&('-'.to_string() + &alias.0.iter().collect::<String>()) as &str, Style::Alias),
             " ".repeat(35 + at) + &color("^", Style::Place),
-            FLAGLIASES.map(|tuple| "- ".to_string() + &color(&('-'.to_string() + &tuple.0.to_string()) as &str, Style::Alias) + ", " + &color(&("--".to_string() + tuple.1) as &str, Style::Flag) + ": " + tuple.2).join("\n")
+            FLAGLIASES.map(|tuple| "- ".to_string() + &color(&('-'.to_string() + &tuple.0.to_string()) as &str, Style::Alias) + ", " + &color(&("--".to_string() + &tuple.1.as_ref()) as &str, Style::Flag) + ": " + tuple.2).join("\n")
         ),
         Issue::GetHelp => format!(
             "Available targets:\n{}\n\nAvailable flags and aliases:\n{}",
-            TARGETS.map(|target| "- ".to_string() + &color(target.0, Style::Target) + ": " + target.1).join("\n"),
-            FLAGLIASES.map(|tuple| "- ".to_string() + &color(&('-'.to_string() + &tuple.0.to_string()) as &str, Style::Alias) + ", " + &color(&("--".to_string() + tuple.1) as &str, Style::Flag) + ": " + tuple.2).join("\n")
+            TARGETS.iter().map(|target| "- ".to_string() + &color(target.0.as_ref(), Style::Target) + ": " + target.1).collect::<Vec<String>>().join("\n"),
+            FLAGLIASES.map(|tuple| "- ".to_string() + &color(&('-'.to_string() + &tuple.0.to_string()) as &str, Style::Alias) + ", " + &color(&("--".to_string() + &tuple.1.as_ref()) as &str, Style::Flag) + ": " + tuple.2).join("\n")
         ),
         Issue::SyntaxError => format!(
             "Syntax error."
@@ -122,4 +132,20 @@ pub enum Issue {
     color("\n>\n> ", Style::Issue), 
     self.content().replace("\n", &color("\n> ", Style::Issue)), 
     color("\n>\n", Style::Issue)
-))}} impl Debug for Issue {fn fmt(&self, formatter: &mut Formatter) -> Rst {Display::fmt(&self, formatter)}} impl Error for Issue {}
+))}} impl Error for Issue {}
+
+//> ISSUE -> TARGETS
+static TARGETS: [(Target, &'static str); 6] = [
+    (Target::Help, "show this informative menu"),
+    (Target::Version, "check current Mathsys version"),
+    (Target::Tokens, "tokenize the input file"),
+    (Target::Check, "validate the semantics"),
+    (Target::Ast, "build the abstract syntax tree"),
+    (Target::Latex, "show the latex program equivalency")
+];
+
+//> ISSUE -> FLAGS AND ALIASES
+static FLAGLIASES: [(char, Flag, &'static str); 2] = [
+    ('q', Flag::Quiet, "silence the output"),
+    ('v', Flag::Verbose, "increase program verbosity")
+];

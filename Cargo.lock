@@ -99,7 +99,7 @@ checksum = "bcc35a38544a891a5f7c865aca548a982ccb3b8650a5b06d0fd33a10283c56fc"
 
 [[package]]
 name = "mathsys"
-version = "7.0.0"
+version = "9.0.0"
 dependencies = [
  "ahash",
  "colored",
@@ -108,6 +108,7 @@ dependencies = [
  "regex",
  "rustc_version_runtime",
  "smallvec",
+ "strum",
  "strum_macros",
 ]
 
@@ -206,6 +207,12 @@ name = "smallvec"
 version = "1.15.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "67b1b7a3b5fe4f1376887184045fcf45c69e92af734b7aaddc05fb777b6fbd03"
+
+[[package]]
+name = "strum"
+version = "0.27.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "af23d6f6c1a224baef9d3f61e287d2761385a5b88fdab4eb4c6f11aeb54c4bcf"
 
 [[package]]
 name = "strum_macros"
