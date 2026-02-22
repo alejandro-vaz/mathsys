@@ -220,3 +220,15 @@ No changelog available.
 1. Old numerical solver.
 ### Fixed
 1. Imported modules now must have `.msm` file extension.
+
+## v9 -- Semantic-driven disambiguation
+### Added
+1. Functions.
+1. Ambiguity resolution for function calls and implicit multiplication based on context.
+### Changed
+1. Definitions now are done with `:=` instead of `==` and `=` always produces equations.
+### Removed
+1. Old declaration constructs.
+1. Locking mechanics.
+### Fixed
+1. CLI behaviour under stress.

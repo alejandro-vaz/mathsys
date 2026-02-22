@@ -47,7 +47,7 @@ use self::{
 //^
 
 //> PIPELINE -> VERSION
-static VERSION: usize = 8;
+static VERSION: usize = 9;
 
 //> PIPELINE -> BASE TRANSFORMERS
 pub static TRANSFORMERS: Transformers = Transformers::new();
