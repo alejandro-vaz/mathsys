@@ -36,11 +36,19 @@
           "backgroundColor": "transparent",
           "bold": false,
           "italic": true
-        }
+        },
+        {
+          "tag": "!",
+          "color": "#00FF00",
+          "strikethrough": false,
+          "underline": false,
+          "backgroundColor": "#FF00FF",
+          "bold": true,
+          "italic": false
+        },
     ],
     "rust-analyzer.inlayHints.genericParameterHints.const.enable": false,
     "rust-analyzer.inlayHints.parameterHints.enable": false,
     "rust-analyzer.inlayHints.typeHints.enable": false,
-    "rust-analyzer.inlayHints.renderColons": false,
-    "python.analysis.ignore": [".venv/**"]
+    "rust-analyzer.inlayHints.renderColons": false
 }

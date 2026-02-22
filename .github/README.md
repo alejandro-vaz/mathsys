@@ -45,7 +45,7 @@ Mathsys can be tried out at the [online playground](https://abscissa.eu/playgrou
 
 ### Local installation
 
-Install the latest version via `pip`:
+Install the latest version via `cargo`:
 
 ```sh
 cargo install mathsys

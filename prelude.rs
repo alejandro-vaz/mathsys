@@ -18,9 +18,12 @@ pub use std::{
         write as writeFile,
         read_dir as readDir
     },
-    time::Instant as Time,
-    process::exit,
+    time::{
+        Instant as Time,
+        Duration
+    },
     error::Error,
+    process::ExitCode,
     fmt::{
         Formatter,
         Display,
@@ -37,34 +40,40 @@ pub use std::{
 };
 
 //> PRELUDE -> COLORED
-pub use colored::Colorize as Colored;
+pub(super) use colored::Colorize as Colored;
 
 //> PRELUDE -> REGEX
-pub use regex::bytes::{
+pub(super) use regex::bytes::{
     Regex,
     RegexSet,
     Captures
 };
 
 //> PRELUDE -> INDEXMAP
-pub use indexmap::IndexMap;
+pub(super) use indexmap::IndexMap;
 
 //> PRELUDE -> AHASH
-pub use ahash::{
+pub(super) use ahash::{
     AHashMap as FastMap,
     AHashSet as FastSet
 };
 
 //> PRELUDE -> SMALLVEC
-pub use smallvec::{
+pub(super) use smallvec::{
     SmallVec
 };
 
 //> PRELUDE -> RUSTC_VERSION_RUNTIME
-pub use rustc_version_runtime::version as rustcv;
+pub use rustc_version_runtime::{
+    version as rustcv,
+    Version
+};
 
 //> PRELUDE -> STRUM_MACROS
-pub use strum_macros::AsRefStr;
+pub(super) use strum_macros::{
+    AsRefStr,
+    EnumString
+};
 
 //> PRELUDE -> ENUM_DISPATCH
-pub use enum_dispatch::enum_dispatch as dispatch;
+pub(super) use enum_dispatch::enum_dispatch as dispatch;

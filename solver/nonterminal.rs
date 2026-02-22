@@ -2,17 +2,53 @@
 //^ HEAD
 //^
 
+//> HEAD -> PRELUDE
+use crate::prelude::{
+    dispatch
+};
+
 //> HEAD -> LOCAL
-use super::super::{
-    backends::traits::Spawn,
-    tokenizer::tokenizer::BindedToken,
-    syntax::{
-        start::Start,
-        level1::{Level1, Declaration, Definition, Node, Equation, Use},
-        level2::{Level2, Expression},
-        level3::{Level3, Term},
-        level4::{Level4, Factor, Limit},
-        level5::{Level5, Absolute, Infinite, Nest, Rational, Tensor, Undefined, Variable, Whole}
+use super::{
+    context::Context,
+    super::{
+        backends::Spawn,
+        tokenizer::token::BindedToken,
+        syntax::{
+            Start,
+            level1::{
+                Level1,
+                Definition,
+                Function,
+                Node, 
+                Equation, 
+                Use
+            },
+            level2::{
+                Level2,
+                Expression
+            },
+            level3::{
+                Level3,
+                Term
+            },
+            level4::{
+                Level4,
+                Factor,
+                Limit
+            },
+            level5::{
+                Level5,
+                Absolute, 
+                Infinite, 
+                Nest, 
+                Rational, 
+                Tensor, 
+                Undefined, 
+                Variable, 
+                Whole,
+                Call
+            }
+        }
     }
 };
 
@@ -22,8 +58,9 @@ use super::super::{
 //^
 
 //> NONTERMINAL -> TRAIT
+#[dispatch(Backends)]
 #[derive(Debug, Clone)]
-pub enum NonTerminal {
+pub(crate) enum NonTerminal {
     Start(Start),
     Level1(Level1),
     Level2(Level2),
@@ -33,16 +70,16 @@ pub enum NonTerminal {
 }
 
 //> NONTERMINAL -> OBJECT
-#[derive(Eq, Hash, PartialEq, Debug, Clone, Copy)]
-pub enum Object {
+#[derive(Eq, Hash, PartialEq, Clone)]
+pub(crate) enum Object {
     Start,
     Level1,
     Level2,
     Level3,
     Level4,
     Level5,
-    Declaration,
     Definition,
+    Function,
     Node,
     Equation,
     Use,
@@ -57,32 +94,34 @@ pub enum Object {
     Whole,
     Absolute,
     Undefined,
-    Rational
+    Rational,
+    Call
 } impl Object {
-    pub fn summon<'parsing>(&self, items: Vec<Item>) -> NonTerminal {return match self {
-        Object::Start => Start::summon(items),
-        Object::Level1 => if let Item::NonTerminal(NonTerminal::Level1(element)) = &items[0] {items.into_iter().next().unwrap().getnt()} else {panic!("{items:?}")},
-        Object::Level2 => if let Item::NonTerminal(NonTerminal::Level2(element)) = &items[0] {items.into_iter().next().unwrap().getnt()} else {panic!("{items:?}")},
-        Object::Level3 => if let Item::NonTerminal(NonTerminal::Level3(element)) = &items[0] {items.into_iter().next().unwrap().getnt()} else {panic!("{items:?}")},
-        Object::Level4 => if let Item::NonTerminal(NonTerminal::Level4(element)) = &items[0] {items.into_iter().next().unwrap().getnt()} else {panic!("{items:?}")},
-        Object::Level5 => if let Item::NonTerminal(NonTerminal::Level5(element)) = &items[0] {items.into_iter().next().unwrap().getnt()} else {panic!("{items:?}")},
-        Object::Declaration => Declaration::summon(items),
-        Object::Definition => Definition::summon(items),
-        Object::Node => Node::summon(items),
-        Object::Equation => Equation::summon(items),
-        Object::Use => Use::summon(items),
-        Object::Expression => Expression::summon(items),
-        Object::Term => Term::summon(items),
-        Object::Factor => Factor::summon(items),
-        Object::Limit => Limit::summon(items),
-        Object::Infinite => Infinite::summon(items),
-        Object::Variable => Variable::summon(items),
-        Object::Nest => Nest::summon(items),
-        Object::Tensor => Tensor::summon(items),
-        Object::Whole => Whole::summon(items),
-        Object::Absolute => Absolute::summon(items),
-        Object::Undefined => Undefined::summon(items),
-        Object::Rational => Rational::summon(items)
+    pub(super) fn summon<'parsing>(self, items: Vec<Item>, context: Option<&mut Context>) -> NonTerminal {return match self {
+        Object::Start => Start::spawn(items, context),
+        Object::Level1 => if let Item::NonTerminal(nonterminal @ NonTerminal::Level1(_)) = items.into_iter().next().unwrap() {nonterminal} else {panic!()},
+        Object::Level2 => if let Item::NonTerminal(nonterminal @ NonTerminal::Level2(_)) = items.into_iter().next().unwrap() {nonterminal} else {panic!()},
+        Object::Level3 => if let Item::NonTerminal(nonterminal @ NonTerminal::Level3(_)) = items.into_iter().next().unwrap() {nonterminal} else {panic!()},
+        Object::Level4 => if let Item::NonTerminal(nonterminal @ NonTerminal::Level4(_)) = items.into_iter().next().unwrap() {nonterminal} else {panic!()},
+        Object::Level5 => if let Item::NonTerminal(nonterminal @ NonTerminal::Level5(_)) = items.into_iter().next().unwrap() {nonterminal} else {panic!()},
+        Object::Definition => Definition::spawn(items, context),
+        Object::Function => Function::spawn(items, context),
+        Object::Node => Node::spawn(items, context),
+        Object::Equation => Equation::spawn(items, context),
+        Object::Use => Use::spawn(items, context),
+        Object::Expression => Expression::spawn(items, context),
+        Object::Term => Term::spawn(items, context),
+        Object::Factor => Factor::spawn(items, context),
+        Object::Limit => Limit::spawn(items, context),
+        Object::Infinite => Infinite::spawn(items, context),
+        Object::Variable => Variable::spawn(items, context),
+        Object::Nest => Nest::spawn(items, context),
+        Object::Tensor => Tensor::spawn(items, context),
+        Object::Whole => Whole::spawn(items, context),
+        Object::Absolute => Absolute::spawn(items, context),
+        Object::Undefined => Undefined::spawn(items, context),
+        Object::Rational => Rational::spawn(items, context),
+        Object::Call => Call::spawn(items, context)
     }}
 }
 
@@ -93,17 +132,14 @@ pub enum Object {
 
 //> TEMPORAL -> ITEM
 #[derive(Clone, Debug)]
-pub enum Item<'resolving> {
+pub(crate) enum Item<'resolving> {
     NonTerminal(NonTerminal),
     Token(BindedToken<'resolving>)
-} impl<'resolving> Item<'resolving> {fn getnt(self) -> NonTerminal {match self {
-    Item::NonTerminal(item) => return item,
-    other => panic!("{other:?}")
-}}}
+}
 
 //> TEMPORAL -> PARTITION
 #[derive(Clone)]
-pub enum Partition<'resolving> {
+pub(super) enum Partition<'resolving> {
     NonTerminal(NonTerminal),
     Internal(Vec<Item<'resolving>>),
     Token(BindedToken<'resolving>)

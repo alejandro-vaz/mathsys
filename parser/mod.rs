@@ -2,18 +2,32 @@
 //^ HEAD
 //^
 
+//> HEAD -> MODULES
+pub(super) mod grammar;
+
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    FastMap, FastSet, Deque, SmallVec
+    FastMap, 
+    FastSet, 
+    Deque, 
+    SmallVec
 };
 
 //> HEAD -> LOCAL
-use super::{
-    grammar::{GRAMMAR, Rule, Symbol},
+use self::{
+    grammar::{
+        GRAMMAR, 
+        Rule, 
+        Symbol
+    },
     super::{
         Settings,
         solver::nonterminal::Object,
-        tokenizer::tokenizer::{BindedToken, ORDER, Responsibility}
+        tokenizer::token::{
+            BindedToken, 
+            ORDER, 
+            Responsibility
+        }
     }
 };
 
@@ -37,7 +51,7 @@ struct State {
     }
     #[inline(always)]
     pub fn next(&self) -> State {return State {
-        rule: self.rule,
+        rule: self.rule.clone(),
         variant: self.variant,
         slot: self.slot + 1,
         starting: self.starting
@@ -46,15 +60,15 @@ struct State {
 
 //> RESOURCES -> BACKPOINTER
 #[derive(Clone, PartialEq, Eq, Hash)]
-pub struct Backpointer<'parsing> {
-    pub symbol: Part<'parsing>,
-    pub start: u32,
-    pub end: u32
+pub(super) struct Backpointer<'parsing> {
+    pub(super) symbol: Part<'parsing>,
+    start: u32,
+    end: u32
 }
 
 //> RESOURCES -> PART
 #[derive(Clone, PartialEq, Eq, Hash)]
-pub enum Part<'parsing> {
+pub(super) enum Part<'parsing> {
     NonTerminal(Object),
     Internal(u8),
     Token(BindedToken<'parsing>)
@@ -65,18 +79,18 @@ pub enum Part<'parsing> {
 //^
 
 //> PARSER -> MINPOINTERS
-pub static MINPOINTERS: usize = 2;
+pub(super) static MINPOINTERS: usize = 2;
 
 //> PARSER -> STRUCT
-pub struct Parser {} impl Parser {
-    pub fn new() -> Self {return Parser {}}
+pub(super) struct Parser {} impl Parser {
+    pub(super) const fn new() -> Self {return Parser {}}
     #[inline(always)]
     fn wait(&self, index: u32, state: &State, waiting: &mut Vec<FastMap<Symbol, FastSet<State>>>) -> () {if let Some(symbol) = state.at() {waiting[index as usize].entry(symbol).or_default().insert(state.clone());}}
     #[inline(always)]
     fn recall<'exists, 'parsing>(&self, index: u32, state: &State, chart: &'exists mut Vec<FastMap<State, FastSet<SmallVec<[Backpointer<'parsing>; MINPOINTERS]>>>>) -> &'exists mut FastSet<SmallVec<[Backpointer<'parsing>; MINPOINTERS]>> {return chart[index as usize].entry(state.clone()).or_default()}
     #[inline(always)]
     fn review<'exists, 'parsing>(&self, index: u32, state: &State, chart: &'exists mut Vec<FastMap<State, FastSet<SmallVec<[Backpointer<'parsing>; MINPOINTERS]>>>>) -> &'exists FastSet<SmallVec<[Backpointer<'parsing>; MINPOINTERS]>> {return chart[index as usize].entry(state.clone()).or_default()}
-    pub fn run<'parsing>(&mut self, tokens: &Vec<BindedToken<'parsing>>, settings: &Settings) -> FastMap<Backpointer<'parsing>, FastSet<SmallVec<[Backpointer<'parsing>; MINPOINTERS]>>> {
+    pub(super) fn run<'parsing>(&self, tokens: &Vec<BindedToken<'parsing>>, settings: &Settings) -> FastMap<Backpointer<'parsing>, FastSet<SmallVec<[Backpointer<'parsing>; MINPOINTERS]>>> {
         let mut filtered = tokens.clone();
         filtered.retain(|token| if let Responsibility::Null = ORDER.get(&token.kind).unwrap().1 {false} else {true});
         let mut chart = Vec::new();
@@ -112,14 +126,14 @@ pub struct Parser {} impl Parser {
         return pool;
     }
     #[inline(always)]
-    fn complete<'parsing>(&mut self, index: u32, state: State, agenda: &mut Deque<State>, completed: &mut FastSet<State>, pool: &mut FastMap<Backpointer<'parsing>, FastSet<SmallVec<[Backpointer<'parsing>; MINPOINTERS]>>>, waiting: &mut Vec<FastMap<Symbol, FastSet<State>>>, chart: &mut Vec<FastMap<State, FastSet<SmallVec<[Backpointer<'parsing>; MINPOINTERS]>>>>) -> () {
-        for awaiting in waiting[state.starting as usize].get(&state.rule.into()).cloned().unwrap_or_default() {
+    fn complete<'parsing>(&self, index: u32, state: State, agenda: &mut Deque<State>, completed: &mut FastSet<State>, pool: &mut FastMap<Backpointer<'parsing>, FastSet<SmallVec<[Backpointer<'parsing>; MINPOINTERS]>>>, waiting: &mut Vec<FastMap<Symbol, FastSet<State>>>, chart: &mut Vec<FastMap<State, FastSet<SmallVec<[Backpointer<'parsing>; MINPOINTERS]>>>>) -> () {
+        for awaiting in waiting[state.starting as usize].get(&state.rule.clone().into()).cloned().unwrap_or_default() {
             let advanced = awaiting.next();
             let stored = self.review(index, &advanced, chart).len();
             let pointer = Backpointer {
-                symbol: match state.rule {
-                    Rule::Internal(code) => Part::Internal(code),
-                    Rule::NonTerminal(object) => Part::NonTerminal(object)
+                symbol: match &state.rule {
+                    Rule::Internal(code) => Part::Internal(*code),
+                    Rule::NonTerminal(object) => Part::NonTerminal(object.clone())
                 },
                 start: state.starting,
                 end: index
@@ -137,7 +151,7 @@ pub struct Parser {} impl Parser {
         completed.insert(state);
     }
     #[inline(always)]
-    fn scan<'parsing>(&mut self, index: u32, state: State, agenda: &mut Deque<State>, token: BindedToken<'parsing>, waiting: &mut Vec<FastMap<Symbol, FastSet<State>>>, chart: &mut Vec<FastMap<State, FastSet<SmallVec<[Backpointer<'parsing>; MINPOINTERS]>>>>) -> () {
+    fn scan<'parsing>(&self, index: u32, state: State, agenda: &mut Deque<State>, token: BindedToken<'parsing>, waiting: &mut Vec<FastMap<Symbol, FastSet<State>>>, chart: &mut Vec<FastMap<State, FastSet<SmallVec<[Backpointer<'parsing>; MINPOINTERS]>>>>) -> () {
         let addable = self.recall(index, &state, chart).clone().into_iter().map(|mut element| {element.push(Backpointer {
             symbol: Part::Token(token.clone()),
             start: index, 
@@ -148,7 +162,7 @@ pub struct Parser {} impl Parser {
         self.wait(index + 1, &following, waiting);
     }
     #[inline(always)]
-    fn predict(&mut self, index: u32, state: State, agenda: &mut Deque<State>, waiting: &mut Vec<FastMap<Symbol, FastSet<State>>>, chart: &mut Vec<FastMap<State, FastSet<SmallVec<[Backpointer; MINPOINTERS]>>>>) -> () {
+    fn predict(&self, index: u32, state: State, agenda: &mut Deque<State>, waiting: &mut Vec<FastMap<Symbol, FastSet<State>>>, chart: &mut Vec<FastMap<State, FastSet<SmallVec<[Backpointer; MINPOINTERS]>>>>) -> () {
         let rule = match state.at().unwrap() {
             Symbol::Internal(code) => Rule::Internal(code),
             Symbol::NonTerminal(object) => Rule::NonTerminal(object), 
@@ -156,7 +170,7 @@ pub struct Parser {} impl Parser {
         };
         for variant in 0..GRAMMAR[&rule].len() {
             let possibility = State {
-                rule: rule,
+                rule: rule.clone(),
                 variant: variant as u8,
                 slot: 0,
                 starting: index
