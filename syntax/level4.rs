@@ -16,6 +16,8 @@ use super::{
         Nest
     },
     super::{
+        Settings,
+        Issue,
         backends::{
             Backends, 
             Spawn
@@ -36,7 +38,7 @@ use super::{
 //^
 
 //> 4ºLEVEL -> NAMESPACE
-#[dispatch(Backends)]
+#[dispatch(Backends, Contextualize)]
 #[derive(Debug, Clone)]
 pub(crate) enum Level4 {
     Factor,
@@ -53,12 +55,12 @@ pub(crate) struct Factor {
         let exponent = if let Some(level2) = &self.exponent {&format!("^{{{}}}", level2.latex())} else {""};
         return self.value.latex() + &exponent;
     }
-} impl Spawn for Factor {fn spawn(items: Vec<Item>, context: Option<&mut Context>) -> NonTerminal {
+} impl Spawn for Factor {fn spawn(items: Vec<Item>, settings: &Settings, context: Option<&mut Context>) -> Result<NonTerminal, Issue> {
     let mut iterator = items.into_iter();
-    return NonTerminal::Level4(Level4::Factor(Self {
+    return Ok(NonTerminal::Level4(Level4::Factor(Self {
         value: if let Item::NonTerminal(NonTerminal::Level5(level5)) = iterator.next().unwrap() {level5} else {panic!()},
         exponent: if let Some(Item::NonTerminal(NonTerminal::Level2(level2))) = iterator.next() {Some(level2)} else {None}
-    }));
+    })));
 }}
 
 //> 4ºLEVEL -> LIMIT
@@ -75,7 +77,7 @@ pub(crate) struct Limit {
         let exponent = if let Some(level2) = &self.exponent {&format!("^{{{}}}", level2.latex())} else {""};
         return format!(r"\lim_{{\substack{{{}\to {}{direction}}}}}{}{exponent}", self.variable.latex(), self.approach.latex(), self.nest.latex());
     }
-} impl Spawn for Limit {fn spawn(items: Vec<Item>, context: Option<&mut Context>) -> NonTerminal {
+} impl Spawn for Limit {fn spawn(items: Vec<Item>, settings: &Settings, context: Option<&mut Context>) -> Result<NonTerminal, Issue> {
     let mut iterator = items.into_iter();
     let Some(Item::NonTerminal(NonTerminal::Level5(Level5::Variable(variable)))) = iterator.next() else {panic!()};
     let Some(Item::NonTerminal(NonTerminal::Level2(approach))) = iterator.next() else {panic!()};
@@ -83,11 +85,11 @@ pub(crate) struct Limit {
     let direction = if let Some(Item::Token(token)) = next {next = iterator.next(); Some(token.value == "+")} else {None};
     let Some(Item::NonTerminal(NonTerminal::Level5(Level5::Nest(nest)))) = next else {panic!()};
     let exponent = if let Some(Item::NonTerminal(NonTerminal::Level2(level2))) = iterator.next() {Some(level2)} else {None};
-    return NonTerminal::Level4(Level4::Limit(Self {
+    return Ok(NonTerminal::Level4(Level4::Limit(Self {
         variable: variable,
         approach: approach,
         direction: direction,
         nest: nest,
         exponent: exponent
-    }));
+    })));
 }}

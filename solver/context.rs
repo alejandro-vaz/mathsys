@@ -19,7 +19,7 @@ use super::super::syntax::level5::Variable;
 pub(crate) struct Context {
     functions: Set<String>
 } impl Context {
-    pub(super) fn new() -> Self {return Context {
+    pub(crate) fn new() -> Self {return Context {
         functions: Set::new()
     }}
     pub(crate) fn registerFn(&mut self, variable: &Variable) -> () {self.functions.insert(variable.name.clone());}

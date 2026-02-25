@@ -1,0 +1,2 @@
+use "extra.msm"
+f(0)

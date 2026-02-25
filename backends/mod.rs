@@ -19,6 +19,8 @@ use self::super::{
         },
         context::Context
     },
+    issues::Issue,
+    Settings,
     syntax::{
         Start,
         level1::{
@@ -64,7 +66,7 @@ use self::super::{
 
 //> TRAITS -> SPAWN
 pub(super) trait Spawn: Backends {
-    fn spawn(items: Vec<Item>, context: Option<&mut Context>) -> NonTerminal;
+    fn spawn(items: Vec<Item>, settings: &Settings, context: Option<&mut Context>) -> Result<NonTerminal, Issue>;
 }
 
 //> BACKENDS -> TRAIT

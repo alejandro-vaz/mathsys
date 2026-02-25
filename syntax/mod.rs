@@ -14,7 +14,6 @@ use self::{
     level1::Level1,
     super::{
         issues::Issue,
-        Transformers,
         Settings,
         solver::context::Context,
         backends::{
@@ -46,8 +45,8 @@ pub struct Start {
         };
         return format!("{start}{}{end}", self.stream.iter().map(|element| element.latex()).collect::<Vec<String>>().join(r"\\ "));
     }
-} impl Spawn for Start {fn spawn(items: Vec<Item>, context: Option<&mut Context>) -> NonTerminal {
-    return NonTerminal::Start(Self {
+} impl Spawn for Start {fn spawn(items: Vec<Item>, settings: &Settings, context: Option<&mut Context>) -> Result<NonTerminal, Issue> {
+    return Ok(NonTerminal::Start(Self {
         stream: items.into_iter().map(|element| if let Item::NonTerminal(NonTerminal::Level1(level1)) = element {level1} else {panic!("{element:?}")}).collect()
-    })
-}} impl Start {pub(super) fn modules(&mut self, transformers: &Transformers, settings: &Settings) -> Result<(), Issue> {return Ok(for statement in &mut self.stream {if let Level1::Use(element) = statement {element.load(transformers, settings)?}})}}
+    }));
+}}

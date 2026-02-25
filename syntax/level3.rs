@@ -11,6 +11,8 @@ use crate::prelude::{
 use super::{
     level4::Level4,
     super::{
+        Settings,
+        Issue,
         backends::{
             Backends, 
             Spawn
@@ -31,7 +33,7 @@ use super::{
 //^
 
 //> 3ºLEVEL -> NAMESPACE
-#[dispatch(Backends)]
+#[dispatch(Backends, Contextualize)]
 #[derive(Debug, Clone)]
 pub(crate) enum Level3 {
     Term
@@ -48,7 +50,7 @@ pub(crate) struct Term {
         let denominator = self.denominator.iter().map(|factor| factor.latex()).collect::<Vec<String>>().join(r"\cdot ");
         return if denominator.is_empty() {numerator} else {format!(r"\frac{{{}}}{{{}}}", numerator, denominator)};
     }
-} impl Spawn for Term {fn spawn(items: Vec<Item>, context: Option<&mut Context>) -> NonTerminal {
+} impl Spawn for Term {fn spawn(items: Vec<Item>, settings: &Settings, context: Option<&mut Context>) -> Result<NonTerminal, Issue> {
     let mut numerator = Vec::new();
     let mut denominator = Vec::new();
     let mut location = true;
@@ -57,8 +59,8 @@ pub(crate) struct Term {
         Item::NonTerminal(NonTerminal::Level4(level4)) => (if location {&mut numerator} else {&mut denominator}).push(level4),
         other => panic!()
     }}
-    return NonTerminal::Level3(Level3::Term(Self {
+    return Ok(NonTerminal::Level3(Level3::Term(Self {
         numerator: numerator,
         denominator: denominator
-    }));
+    })));
 }}

@@ -34,7 +34,10 @@ use self::{
         MAXLEN
     },
     parser::Parser,
-    solver::Solver,
+    solver::{
+        Solver,
+        context::Context
+    },
     backends::Backends,
     issues::Issue,
     settings::Settings,
@@ -103,8 +106,7 @@ pub struct Transformers {
     fn tokens(&self, settings: &Settings) -> Result<Vec<ShallowToken>, Issue> {Ok(self.tokenizer.run(&self.content(settings)?, settings)?.into_iter().map(|token| token.fixate()).collect())}
     fn start(&self, settings: &Settings) -> Result<Start, Issue> {
         let content = self.content(settings)?;
-        let mut start = self.solver.run(&self.parser.run(&self.tokenizer.run(&content, settings)?, settings))?;
-        start.modules(self, settings)?;
+        let start = self.solver.run(&self.parser.run(&self.tokenizer.run(&content, settings)?, settings), &mut Context::new(), settings)?;
         return Ok(start);
     }
 }
