@@ -66,7 +66,7 @@ use self::super::{
 
 //> TRAITS -> SPAWN
 pub(super) trait Spawn: Backends {
-    fn spawn(items: Vec<Item>, settings: &Settings, context: Option<&mut Context>) -> Result<NonTerminal, Issue>;
+    fn spawn(items: Vec<Item>, settings: &Settings, context: &mut Context) -> Result<NonTerminal, Issue>;
 }
 
 //> BACKENDS -> TRAIT

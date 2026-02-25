@@ -45,7 +45,7 @@ pub struct Start {
         };
         return format!("{start}{}{end}", self.stream.iter().map(|element| element.latex()).collect::<Vec<String>>().join(r"\\ "));
     }
-} impl Spawn for Start {fn spawn(items: Vec<Item>, settings: &Settings, context: Option<&mut Context>) -> Result<NonTerminal, Issue> {
+} impl Spawn for Start {fn spawn(items: Vec<Item>, settings: &Settings, context: &mut Context) -> Result<NonTerminal, Issue> {
     return Ok(NonTerminal::Start(Self {
         stream: items.into_iter().map(|element| if let Item::NonTerminal(NonTerminal::Level1(level1)) = element {level1} else {panic!("{element:?}")}).collect()
     }));

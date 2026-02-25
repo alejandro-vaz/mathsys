@@ -5,7 +5,6 @@
 //> HEAD -> FLAGS
 #![allow(unused_variables)]
 #![allow(nonstandard_style)]
-#![feature(if_let_guard)]
 
 //> HEAD -> LOCAL
 use mathsys::{

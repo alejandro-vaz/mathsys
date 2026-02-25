@@ -7,7 +7,6 @@
 #![allow(nonstandard_style)]
 #![feature(try_trait_v2)]
 #![feature(default_field_values)]
-#![feature(if_let_guard)]
 
 //> HEAD -> MODULES
 pub mod prelude;

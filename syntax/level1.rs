@@ -55,7 +55,7 @@ pub(crate) struct Definition {
     pub(crate) value: Level2
 } impl Backends for Definition {
     fn latex(&self) -> String {return format!("{}:={}", self.variable.latex(), self.value.latex())}
-} impl Spawn for Definition {fn spawn(items: Vec<Item>, settings: &Settings, context: Option<&mut Context>) -> Result<NonTerminal, Issue> {
+} impl Spawn for Definition {fn spawn(items: Vec<Item>, settings: &Settings, context: &mut Context) -> Result<NonTerminal, Issue> {
     let mut variable = None;
     let mut value = None;
     for item in items {match item {
@@ -77,14 +77,12 @@ pub(crate) struct Function {
     pub(crate) value: Level2
 } impl Backends for Function {
     fn latex(&self) -> String {return format!("{}({}):={}", self.variable.latex(), self.arguments.iter().map(|argument| argument.latex()).collect::<Vec<String>>().join(","), self.value.latex())}
-} impl Spawn for Function {fn spawn(items: Vec<Item>, settings: &Settings, context: Option<&mut Context>) -> Result<NonTerminal, Issue> {
+} impl Spawn for Function {fn spawn(items: Vec<Item>, settings: &Settings, context: &mut Context) -> Result<NonTerminal, Issue> {
     let mut iterator = items.into_iter();
     let Some(Item::NonTerminal(NonTerminal::Level5(Level5::Variable(variable)))) = iterator.next() else {panic!()};
     let Some(Item::NonTerminal(NonTerminal::Level2(value))) = iterator.next_back() else {panic!()};
     let arguments = iterator.map(|each| if let Item::NonTerminal(NonTerminal::Level5(Level5::Variable(argument))) = each {argument} else {panic!()}).collect::<Vec<Variable>>();
-    if let Some(context) = context {
-        context.registerFn(&variable);
-    }
+    context.registerFn(&variable);
     return Ok(NonTerminal::Level1(Level1::Function(Self {
         variable: variable,
         arguments: arguments,
@@ -98,7 +96,7 @@ pub(crate) struct Node {
     pub(crate) value: Level2
 } impl Backends for Node {
     fn latex(&self) -> String {return self.value.latex()}
-} impl Spawn for Node {fn spawn(items: Vec<Item>, settings: &Settings, context: Option<&mut Context>) -> Result<NonTerminal, Issue> {
+} impl Spawn for Node {fn spawn(items: Vec<Item>, settings: &Settings, context: &mut Context) -> Result<NonTerminal, Issue> {
     return Ok(NonTerminal::Level1(Level1::Node(Self {
         value: if let Item::NonTerminal(NonTerminal::Level2(level2)) = items.into_iter().next().unwrap() {level2} else {panic!()}
     })));
@@ -111,7 +109,7 @@ pub(crate) struct Equation {
     pub(crate) right: Level2
 } impl Backends for Equation {
     fn latex(&self) -> String {return format!("{}={}", self.left.latex(), self.right.latex())}
-} impl Spawn for Equation {fn spawn(items: Vec<Item>, settings: &Settings, context: Option<&mut Context>) -> Result<NonTerminal, Issue> {
+} impl Spawn for Equation {fn spawn(items: Vec<Item>, settings: &Settings, context: &mut Context) -> Result<NonTerminal, Issue> {
     let mut iterator = items.into_iter();
     return Ok(NonTerminal::Level1(Level1::Equation(Self {
         left: if let Item::NonTerminal(NonTerminal::Level2(level2)) = iterator.next().unwrap() {level2} else {panic!()},
@@ -126,16 +124,12 @@ pub(crate) struct Use {
     pub(crate) start: Start
 } impl Backends for Use {
     fn latex(&self) -> String {return format!(r"\text{{use {}}}", self.module)}
-} impl Spawn for Use {fn spawn(items: Vec<Item>, settings: &Settings, context: Option<&mut Context>) -> Result<NonTerminal, Issue> {
+} impl Spawn for Use {fn spawn(items: Vec<Item>, settings: &Settings, context: &mut Context) -> Result<NonTerminal, Issue> {
     let module = if let Item::Token(token) = items.into_iter().next().unwrap() {token.value.trim_matches('\"').to_string()} else {panic!()};
     let content = File(module.clone().into()).read()?;
     let tokens = TRANSFORMERS.tokenizer.run(&content, settings)?;
     let pool = TRANSFORMERS.parser.run(&tokens, settings);
-    let start = if let Some(thing) = context {
-        TRANSFORMERS.solver.run(&pool, thing, settings)?
-    } else {
-        TRANSFORMERS.solver.run(&pool, &mut Context::new(), settings)?
-    };
+    let start = TRANSFORMERS.solver.run(&pool, context, settings)?;
     return Ok(NonTerminal::Level1(Level1::Use(Self {
         module: module,
         start: start

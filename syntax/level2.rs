@@ -46,7 +46,7 @@ pub(crate) struct Expression {
     pub(crate) terms: Vec<(Vec<bool>, Level3)>
 } impl Backends for Expression {
     fn latex(&self) -> String {return self.terms.iter().map(|term| term.0.iter().map(|each| if *each {'+'} else {'-'}).collect::<String>() + &term.1.latex()).collect::<String>()}
-} impl Spawn for Expression {fn spawn(items: Vec<Item>, settings: &Settings, context: Option<&mut Context>) -> Result<NonTerminal, Issue> {
+} impl Spawn for Expression {fn spawn(items: Vec<Item>, settings: &Settings, context: &mut Context) -> Result<NonTerminal, Issue> {
     let mut terms = Vec::new();
     let mut current = Vec::new();
     for item in items {match item {

@@ -16,6 +16,7 @@ use super::super::syntax::level5::Variable;
 //^
 
 //> CONTEXT -> STRUCT
+#[derive(Clone)]
 pub(crate) struct Context {
     functions: Set<String>
 } impl Context {

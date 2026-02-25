@@ -50,7 +50,7 @@ pub(crate) struct Term {
         let denominator = self.denominator.iter().map(|factor| factor.latex()).collect::<Vec<String>>().join(r"\cdot ");
         return if denominator.is_empty() {numerator} else {format!(r"\frac{{{}}}{{{}}}", numerator, denominator)};
     }
-} impl Spawn for Term {fn spawn(items: Vec<Item>, settings: &Settings, context: Option<&mut Context>) -> Result<NonTerminal, Issue> {
+} impl Spawn for Term {fn spawn(items: Vec<Item>, settings: &Settings, context: &mut Context) -> Result<NonTerminal, Issue> {
     let mut numerator = Vec::new();
     let mut denominator = Vec::new();
     let mut location = true;

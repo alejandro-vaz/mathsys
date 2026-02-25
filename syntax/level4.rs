@@ -55,7 +55,7 @@ pub(crate) struct Factor {
         let exponent = if let Some(level2) = &self.exponent {&format!("^{{{}}}", level2.latex())} else {""};
         return self.value.latex() + &exponent;
     }
-} impl Spawn for Factor {fn spawn(items: Vec<Item>, settings: &Settings, context: Option<&mut Context>) -> Result<NonTerminal, Issue> {
+} impl Spawn for Factor {fn spawn(items: Vec<Item>, settings: &Settings, context: &mut Context) -> Result<NonTerminal, Issue> {
     let mut iterator = items.into_iter();
     return Ok(NonTerminal::Level4(Level4::Factor(Self {
         value: if let Item::NonTerminal(NonTerminal::Level5(level5)) = iterator.next().unwrap() {level5} else {panic!()},
@@ -77,7 +77,7 @@ pub(crate) struct Limit {
         let exponent = if let Some(level2) = &self.exponent {&format!("^{{{}}}", level2.latex())} else {""};
         return format!(r"\lim_{{\substack{{{}\to {}{direction}}}}}{}{exponent}", self.variable.latex(), self.approach.latex(), self.nest.latex());
     }
-} impl Spawn for Limit {fn spawn(items: Vec<Item>, settings: &Settings, context: Option<&mut Context>) -> Result<NonTerminal, Issue> {
+} impl Spawn for Limit {fn spawn(items: Vec<Item>, settings: &Settings, context: &mut Context) -> Result<NonTerminal, Issue> {
     let mut iterator = items.into_iter();
     let Some(Item::NonTerminal(NonTerminal::Level5(Level5::Variable(variable)))) = iterator.next() else {panic!()};
     let Some(Item::NonTerminal(NonTerminal::Level2(approach))) = iterator.next() else {panic!()};
