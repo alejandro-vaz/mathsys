@@ -2,6 +2,11 @@
 //^ HEAD
 //^
 
+//> HEAD -> PRELUDE
+use crate::prelude::{
+    Arena
+};
+
 //> HEAD -> LOCAL
 use super::grammar::{
     Rule,
@@ -24,23 +29,18 @@ pub(super) struct State {
     pub(super) starting: u32
 } impl State {
     #[inline(always)]
-    pub(super) fn new(rule: Rule, variant: u8, slot: u8, starting: u32) -> Self {return Self {
+    pub(super) fn new(arena: &Arena<State>, rule: Rule, variant: u8, slot: u8, starting: u32) -> &State {arena.alloc(Self {
         rule: rule,
         variant: variant,
         slot: slot,
         starting: starting
-    }}
+    })}
     #[inline(always)]
     pub(super) fn at(&self) -> Option<Symbol> {
         GRAMMAR[&self.rule].get(self.variant as usize)?.get(self.slot as usize).cloned()
     }
     #[inline(always)]
-    pub(super) fn next(&self) -> State {return State {
-        rule: self.rule.clone(),
-        variant: self.variant,
-        slot: self.slot + 1,
-        starting: self.starting
-    }}
+    pub(super) fn next<'all>(&self, arena: &'all Arena<State>) -> &'all State {return State::new(arena, self.rule, self.variant, self.slot + 1, self.starting)}
 }
 
 //> STATE -> BACKPOINTER

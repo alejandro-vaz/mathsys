@@ -77,3 +77,8 @@ pub(super) use strum_macros::{
 
 //> PRELUDE -> ENUM_DISPATCH
 pub(super) use enum_dispatch::enum_dispatch as dispatch;
+
+//> PRELUDE -> TYPED-ARENA
+pub(super) use typed_arena::{
+    Arena
+};
