@@ -61,7 +61,7 @@ pub(super) struct Solver {} impl Solver {
         settings: &Settings
     ) -> Result<Start, Issue> {
         let time = Time::now();
-        let Partition::NonTerminal(NonTerminal::Start(start)) = self.build(pool, pool.iter().map(|item| item.0).find(|backpointer| if let Part::NonTerminal(Object::Start) = backpointer.symbol {true} else {false}).ok_or(Issue::SyntaxError)?, context, true, settings)? else {return Err(Issue::SyntaxError)};
+        let Partition::NonTerminal(NonTerminal::Start(start)) = self.build(pool, pool.iter().map(|item| item.0).find(|backpointer| if let Part::NonTerminal(Object::Start) = backpointer.symbol {true} else {false}).ok_or(Issue::SyntaxError)?, context, true, settings, &mut FastMap::new())? else {return Err(Issue::SyntaxError)};
         println!("{:?}", time.elapsed());
         println!("{}", pool.len());
         return Ok(start);
@@ -72,31 +72,36 @@ pub(super) struct Solver {} impl Solver {
         node: &'active Backpointer<'resolving>, 
         context: &mut Context, 
         write: bool, 
-        settings: &Settings
+        settings: &Settings,
+        memory: &mut FastMap<&'active Backpointer<'resolving>, Partition<'resolving>>
     ) -> Result<Partition<'resolving>, Issue> {
+        if let Some(cached) = memory.get(node) && !write {return Ok(cached.clone())}
         return Ok(if let Part::Token(token) = &node.symbol {Partition::Token(token.clone())} else {
             let mut children = Vec::new();
-            for item in self.solve(&mut pool.get(node).unwrap().iter().collect::<Vec<&SmallVec<[Backpointer<'resolving>; MINPOINTERS]>>>(), pool, context, settings)? {match self.build(pool, &item, context, true, settings)? {
+            for item in self.solve(&mut pool.get(node).unwrap().iter().collect::<Vec<&SmallVec<[Backpointer<'resolving>; MINPOINTERS]>>>(), pool, context, settings, memory)? {match self.build(pool, &item, context, true, settings, memory)? {
                 Partition::Internal(items) => children.extend(items),
                 Partition::NonTerminal(item) => children.push(Item::NonTerminal(item)),
                 Partition::Token(token) => if let Responsibility::Total = ORDER.get(&token.kind).unwrap().1 {children.push(Item::Token(token))}
             }}
-            match &node.symbol {
+            let partition = match &node.symbol {
                 Part::NonTerminal(object) => {
                     let assigned = if write {context} else {&mut context.clone()};
                     Partition::NonTerminal(object.summon(children, settings, assigned)?)
                 },
                 Part::Internal(code) => Partition::Internal(children),
                 other => unreachable!()
-            }
+            };
+            if !write {memory.insert(node, partition.clone());};
+            partition
         });
     }
     fn solve<'resolving, 'obtained>(
         &self, 
         candidates: &mut Vec<&'obtained SmallVec<[Backpointer<'resolving>; MINPOINTERS]>>, 
-        pool: &FastMap<Backpointer<'resolving>, FastSet<SmallVec<[Backpointer<'resolving>; MINPOINTERS]>>>, 
+        pool: &'obtained FastMap<Backpointer<'resolving>, FastSet<SmallVec<[Backpointer<'resolving>; MINPOINTERS]>>>, 
         context: &mut Context, 
-        settings: &Settings
+        settings: &Settings,
+        memory: &mut FastMap<&'obtained Backpointer<'resolving>, Partition<'resolving>>
     ) -> Result<&'obtained SmallVec<[Backpointer<'resolving>; MINPOINTERS]>, Issue> {for index in 0.. {
         match candidates.len() {
             0 => panic!(),
@@ -104,7 +109,7 @@ pub(super) struct Solver {} impl Solver {
             other => ()
         };
         candidates.retain(|derivation| derivation.get(index).is_some());
-        let built = candidates.iter().map(|derivation| (&derivation[index], self.build(pool, &derivation[index], context, false, settings))).collect::<Vec<(&Backpointer, Result<Partition, Issue>)>>();
+        let built = candidates.iter().map(|derivation| (&derivation[index], self.build(pool, &derivation[index], context, false, settings, memory))).collect::<Vec<(&Backpointer, Result<Partition, Issue>)>>();
         let mut winner = &built[0];
         for contender in built.iter().skip(1) {
             let Ok(Partition::NonTerminal(first)) = &winner.1 else {panic!()};
