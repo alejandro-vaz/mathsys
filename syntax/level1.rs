@@ -128,7 +128,7 @@ pub(crate) struct Use {
     let module = if let Item::Token(token) = items.into_iter().next().unwrap() {token.value.trim_matches('\"').to_string()} else {panic!()};
     let content = File(module.clone().into()).read()?;
     let tokens = TRANSFORMERS.tokenizer.run(&content, settings)?;
-    let pool = TRANSFORMERS.parser.run(&tokens, settings);
+    let pool = TRANSFORMERS.parser.run(tokens, settings);
     let start = TRANSFORMERS.solver.run(&pool, context, settings)?;
     return Ok(NonTerminal::Level1(Level1::Use(Self {
         module: module,

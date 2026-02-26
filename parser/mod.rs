@@ -71,23 +71,22 @@ pub(super) struct Parser {} impl Parser {
     ) -> &'exists FastSet<SmallVec<[Backpointer<'parsing>; MINPOINTERS]>> {return chart[index as usize].entry(state.clone()).or_default()}
     pub(super) fn run<'parsing>(
         &self, 
-        tokens: &Vec<BindedToken<'parsing>>, 
+        mut tokens: Vec<BindedToken<'parsing>>, 
         settings: &Settings
     ) -> FastMap<Backpointer<'parsing>, FastSet<SmallVec<[Backpointer<'parsing>; MINPOINTERS]>>> {
-        let mut filtered = tokens.clone();
-        filtered.retain(|token| if let Responsibility::Null = ORDER.get(&token.kind).unwrap().1 {false} else {true});
-        let mut chart = Vec::new();
-        let mut waiting = Vec::new();
-        chart.extend((0..(filtered.len() + 1)).map(|iteration| FastMap::new()));
-        waiting.extend((0..(filtered.len() + 1)).map(|iteration| FastMap::new()));
+        tokens.retain(|token| if let Responsibility::Null = ORDER.get(&token.kind).unwrap().1 {false} else {true});
+        let mut chart = Vec::with_capacity(tokens.len() + 1);
+        let mut waiting = Vec::with_capacity(tokens.len() + 1);
+        chart.resize_with(tokens.len() + 1, FastMap::new);
+        waiting.resize_with(tokens.len() + 1, FastMap::new);
         let root = State::new(Rule::Internal(0), 0, 0, 0);
         self.recall(0, &root, &mut chart).insert(SmallVec::new());
         self.wait(0, &root, &mut waiting);
         let mut pool = FastMap::new();
         let mut agenda = Deque::new();
         let mut completed = FastSet::new();
-        for index in 0..(filtered.len() + 1) {
-            let token = filtered.get(index as usize);
+        for index in 0..(tokens.len() + 1) {
+            let token = tokens.get(index as usize);
             agenda.extend(chart[index as usize].keys().cloned());
             while !agenda.is_empty() {
                 let state = agenda.pop_front().unwrap();
