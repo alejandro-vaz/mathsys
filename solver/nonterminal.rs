@@ -99,7 +99,7 @@ pub(crate) enum Object {
     Rational,
     Call
 } impl Object {
-    pub(super) fn summon<'parsing>(self, items: Vec<Item>, settings: &Settings, context: &mut Context) -> Result<NonTerminal, Issue> {return match self {
+    pub(super) fn summon<'parsing>(&self, items: Vec<Item>, settings: &Settings, context: &mut Context) -> Result<NonTerminal, Issue> {return match self {
         Object::Start => Start::spawn(items, settings, context),
         Object::Level1 => if let Item::NonTerminal(nonterminal @ NonTerminal::Level1(_)) = items.into_iter().next().unwrap() {Ok(nonterminal)} else {panic!()},
         Object::Level2 => if let Item::NonTerminal(nonterminal @ NonTerminal::Level2(_)) = items.into_iter().next().unwrap() {Ok(nonterminal)} else {panic!()},

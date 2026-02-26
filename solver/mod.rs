@@ -81,7 +81,7 @@ pub(super) struct Solver {} impl Solver {
                 Partition::NonTerminal(item) => children.push(Item::NonTerminal(item)),
                 Partition::Token(token) => if let Responsibility::Total = ORDER.get(&token.kind).unwrap().1 {children.push(Item::Token(token))}
             }}
-            match node.symbol.clone() {
+            match &node.symbol {
                 Part::NonTerminal(object) => {
                     let assigned = if write {context} else {&mut context.clone()};
                     Partition::NonTerminal(object.summon(children, settings, assigned)?)
