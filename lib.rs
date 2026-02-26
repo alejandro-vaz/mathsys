@@ -70,8 +70,8 @@ pub struct Transformers {
         let mut results = Vec::new();
         for target in &settings.targets {
             results.push(Run {
-                time: time.elapsed(),
-                data: self.compute(target, settings)
+                data: self.compute(target, settings),
+                time: time.elapsed()
             });
             time = Time::now();
         }

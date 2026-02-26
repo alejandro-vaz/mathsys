@@ -10,7 +10,8 @@ pub(super) mod nonterminal;
 use crate::prelude::{
     FastMap, 
     FastSet, 
-    SmallVec
+    SmallVec,
+    Time
 };
 
 //> HEAD -> LOCAL
@@ -54,7 +55,10 @@ use self::{
 pub(super) struct Solver {} impl Solver {
     pub(super) const fn new() -> Self {return Solver {}}
     pub(super) fn run<'resolving>(&self, pool: &FastMap<Backpointer<'resolving>, FastSet<SmallVec<[Backpointer<'resolving>; MINPOINTERS]>>>, context: &mut Context, settings: &Settings) -> Result<Start, Issue> {
+        let time = Time::now();
         let Partition::NonTerminal(NonTerminal::Start(start)) = self.build(pool, pool.iter().map(|item| item.0).find(|backpointer| if let Part::NonTerminal(Object::Start) = backpointer.symbol {true} else {false}).ok_or(Issue::SyntaxError)?, context, true, settings)? else {return Err(Issue::SyntaxError)};
+        println!("{:?}", time.elapsed());
+        println!("{}", pool.len());
         return Ok(start);
     }
     fn build<'resolving, 'active>(&self, pool: &'active FastMap<Backpointer<'resolving>, FastSet<SmallVec<[Backpointer<'resolving>; MINPOINTERS]>>>, node: &'active Backpointer<'resolving>, context: &mut Context, write: bool, settings: &Settings) -> Result<Partition<'resolving>, Issue> {
@@ -82,12 +86,7 @@ pub(super) struct Solver {} impl Solver {
             other => ()
         };
         candidates.retain(|derivation| derivation.get(index).is_some());
-        let mut symbols = Vec::new();
-        for derivation in candidates.iter() {
-            let pointer = &derivation[index];
-            if !symbols.iter().any(|thing| *thing == pointer) {symbols.push(pointer)}
-        }
-        let built = symbols.into_iter().map(|symbol| (symbol, self.build(pool, symbol, context, false, settings))).collect::<Vec<(&Backpointer, Result<Partition, Issue>)>>();
+        let built = candidates.iter().map(|derivation| &derivation[index]).map(|symbol| (symbol, self.build(pool, symbol, context, false, settings))).collect::<Vec<(&Backpointer, Result<Partition, Issue>)>>();
         let mut winner = &built[0];
         for contender in built.iter().skip(1) {
             let Ok(Partition::NonTerminal(first)) = &winner.1 else {panic!()};
