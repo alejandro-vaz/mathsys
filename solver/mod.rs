@@ -8,8 +8,8 @@ pub(super) mod nonterminal;
 
 //> HEAD -> PRELUDE
 use crate::prelude::{
-    FastMap, 
-    FastSet, 
+    Map, 
+    Set, 
     SmallVec,
     Time
 };
@@ -56,24 +56,24 @@ pub(super) struct Solver {} impl Solver {
     pub(super) const fn new() -> Self {return Solver {}}
     pub(super) fn run<'resolving>(
         &self, 
-        pool: &FastMap<Backpointer<'resolving>, FastSet<SmallVec<[Backpointer<'resolving>; MINPOINTERS]>>>, 
+        pool: &Map<Backpointer<'resolving>, Set<SmallVec<[Backpointer<'resolving>; MINPOINTERS]>>>, 
         context: &mut Context, 
         settings: &Settings
     ) -> Result<Start, Issue> {
         let time = Time::now();
-        let Partition::NonTerminal(NonTerminal::Start(start)) = self.build(pool, pool.iter().map(|item| item.0).find(|backpointer| if let Part::NonTerminal(Object::Start) = backpointer.symbol {true} else {false}).ok_or(Issue::SyntaxError)?, context, true, settings, &mut FastMap::new())? else {return Err(Issue::SyntaxError)};
+        let Partition::NonTerminal(NonTerminal::Start(start)) = self.build(pool, pool.iter().map(|item| item.0).find(|backpointer| if let Part::NonTerminal(Object::Start) = backpointer.symbol {true} else {false}).ok_or(Issue::SyntaxError)?, context, true, settings, &mut Map::new())? else {return Err(Issue::SyntaxError)};
         println!("{:?}", time.elapsed());
         println!("{}", pool.len());
         return Ok(start);
     }
     fn build<'resolving, 'active>(
         &self, 
-        pool: &'active FastMap<Backpointer<'resolving>, FastSet<SmallVec<[Backpointer<'resolving>; MINPOINTERS]>>>, 
+        pool: &'active Map<Backpointer<'resolving>, Set<SmallVec<[Backpointer<'resolving>; MINPOINTERS]>>>, 
         node: &'active Backpointer<'resolving>, 
         context: &mut Context, 
         write: bool, 
         settings: &Settings,
-        memory: &mut FastMap<&'active Backpointer<'resolving>, Partition<'resolving>>
+        memory: &mut Map<&'active Backpointer<'resolving>, Partition<'resolving>>
     ) -> Result<Partition<'resolving>, Issue> {
         if let Some(cached) = memory.get(node) && !write {return Ok(cached.clone())}
         return Ok(if let Part::Token(token) = &node.symbol {Partition::Token(token.clone())} else {
@@ -98,10 +98,10 @@ pub(super) struct Solver {} impl Solver {
     fn solve<'resolving, 'obtained>(
         &self, 
         candidates: &mut Vec<&'obtained SmallVec<[Backpointer<'resolving>; MINPOINTERS]>>, 
-        pool: &'obtained FastMap<Backpointer<'resolving>, FastSet<SmallVec<[Backpointer<'resolving>; MINPOINTERS]>>>, 
+        pool: &'obtained Map<Backpointer<'resolving>, Set<SmallVec<[Backpointer<'resolving>; MINPOINTERS]>>>, 
         context: &mut Context, 
         settings: &Settings,
-        memory: &mut FastMap<&'obtained Backpointer<'resolving>, Partition<'resolving>>
+        memory: &mut Map<&'obtained Backpointer<'resolving>, Partition<'resolving>>
     ) -> Result<&'obtained SmallVec<[Backpointer<'resolving>; MINPOINTERS]>, Issue> {for index in 0.. {
         match candidates.len() {
             0 => panic!(),

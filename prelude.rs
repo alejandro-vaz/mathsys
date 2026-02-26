@@ -30,11 +30,7 @@ pub use std::{
         Result as Rst,
         Debug
     },
-    collections::{
-        HashMap as Map,
-        HashSet as Set,
-        VecDeque as Deque
-    },
+    collections::VecDeque as Deque,
     sync::LazyLock,
     mem::take
 };
@@ -54,8 +50,8 @@ pub(super) use indexmap::IndexMap;
 
 //> PRELUDE -> AHASH
 pub(super) use ahash::{
-    AHashMap as FastMap,
-    AHashSet as FastSet
+    AHashMap as Map,
+    AHashSet as Set
 };
 
 //> PRELUDE -> SMALLVEC
