@@ -8,6 +8,7 @@ pub(super) mod level2;
 pub(super) mod level3;
 pub(super) mod level4;
 pub(super) mod level5;
+pub(super) mod object;
 
 //> HEAD -> LOCAL
 use self::{

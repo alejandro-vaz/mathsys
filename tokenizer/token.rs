@@ -6,8 +6,10 @@
 use crate::prelude::{
     LazyLock, 
     IndexMap, 
-    Regex
+    Regex,
+    EnumString
 };
+
 
 //^ 
 //^ TOKEN
@@ -21,7 +23,7 @@ pub(crate) enum Responsibility {
 }
 
 //> TOKEN -> KIND
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, EnumString)]
 pub(crate) enum Kind {
     IDENTIFIER,
     MODULE,

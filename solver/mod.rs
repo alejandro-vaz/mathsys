@@ -18,7 +18,6 @@ use crate::prelude::{
 use self::{
     nonterminal::{
         Partition, 
-        Object, 
         NonTerminal, 
         Item
     },
@@ -31,9 +30,9 @@ use self::{
             Responsibility
         },
         parser::{
-            Backpointer, 
-            MINPOINTERS, 
-            Part
+            MINPOINTERS,
+            state::Backpointer,
+            grammar::Part
         },
         syntax::{
             Start,
@@ -41,7 +40,8 @@ use self::{
                 Level4,
                 Factor
             },
-            level5::Level5
+            level5::Level5,
+            object::Object
         }
     }
 };

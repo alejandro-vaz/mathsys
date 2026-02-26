@@ -5,15 +5,19 @@
 //> HEAD -> PRELUDE
 use crate::prelude::{
     Map, 
-    Regex, 
-    Set, 
     LazyLock
 };
 
 //> HEAD -> LOCAL
-use super::super::{
-    solver::nonterminal::Object,
-    tokenizer::token::Kind
+use super::{
+    super::{
+        syntax::object::Object,
+        tokenizer::token::{
+            Kind,
+            BindedToken
+        }
+    },
+    extensor::Extensor
 };
 
 
@@ -22,7 +26,7 @@ use super::super::{
 //^
 
 //> EBNF -> SYNTAX
-pub(super) static GRAMMAR: LazyLock<Map<Rule, Vec<Vec<Symbol>>>> = LazyLock::new(|| Extensor::new().run("
+pub(super) static GRAMMAR: LazyLock<Map<Rule, Vec<Vec<Symbol>>>> = LazyLock::new(|| Extensor::run("
 //> EBNF -> START
 Start -> (NEWLINES? Level1 SPACES? (NEWLINES Level1 SPACES?)*)? NEWLINES? ENDOFFILE
 
@@ -62,175 +66,40 @@ Level4 -> Factor | Limit
 Level5 -> Infinite | Variable | Nest | Tensor | Whole | Absolute | Undefined | Rational | Call
 "));
 
-//> EBNF -> PATTERNS
-static COLLAPSEREGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\(([^()]+)\)").unwrap());
-static POSTFIXREGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?P<atom>\$[0-9]+|[A-Z][a-z]*[0-9]*|_?[A-Z]+)(?P<operator>[*+?])").unwrap());
-
-//> EBNF -> EXTENSOR
-struct Extensor {
-    counter: u8,
-    parentheses: Map<String, u8>,
-    more: Map<String, u8>,
-    multiple: Map<String, u8>,
-    optional: Map<String, u8>,
-} impl Extensor {
-    fn new() -> Extensor {return Self {
-        counter: 0,
-        parentheses: Map::new(),
-        more: Map::new(),
-        multiple: Map::new(),
-        optional: Map::new(),
-    }}
-    fn reset(&mut self) -> Set<String> {
-        self.counter = 0;
-        self.parentheses.clear();
-        self.more.clear();
-        self.multiple.clear();
-        self.optional.clear();
-        return Set::new();
-    }
-    fn run(&mut self, ebnf: &str) -> Map<Rule, Vec<Vec<Symbol>>> {
-        let mut rules = self.reset();
-        for line in ebnf.lines().map(str::trim) {
-            if line.is_empty() || line.starts_with("//") {continue}
-            let (rule, productions) = line.split_once("->").unwrap();
-            let body = self.expand(productions, &mut rules);
-            rules.insert(format!("{rule} -> {body}"));
-        };
-        rules.insert("$0 -> Start".to_string());
-        let mut ordered = rules.into_iter().collect::<Vec<String>>();
-        ordered.sort_by(|first, second| {
-            let [frule, srule] = [first, second].map(|each| each.splitn(2, "->").next().unwrap().trim());
-            let [fkey, skey] = [frule, srule].map(|each| if each.starts_with('$') {(1, each[1..].parse::<usize>().unwrap())} else {(0, 0)});
-            fkey.cmp(&skey).then(frule.cmp(srule))
-        });
-        return self.serialize(ordered.join("\n"));
-    }
-    fn expand(&mut self, expression: &str, rules: &mut Set<String>) -> String {
-        let mut result = expression.to_string();
-        while result.contains("(") {result = self.collapse(&result, rules)};
-        result = self.postfix(&result, rules);
-        return result.to_string();
-    }
-    fn collapse(&mut self, expression: &str, rules: &mut Set<String>) -> String {
-        let Some(hit) = COLLAPSEREGEX.find(expression.as_bytes()) else {return expression.to_string()};
-        let inner = &expression[hit.start() + 1 .. hit.end() - 1].to_string();
-        let symbol = *self.parentheses.entry(inner.to_string()).or_insert_with(|| {self.counter += 1; self.counter});
-        let expanded = self.expand(inner, rules);
-        rules.insert(format!("${symbol} -> {expanded}"));
-        return format!("{}${symbol}{}", &expression[..hit.start()], &expression[hit.end()..]);
-    }
-    fn postfix(&mut self, expression: &str, rules: &mut Set<String>) -> String {
-        let mut result = expression.to_string();
-        while let Some(hit) = POSTFIXREGEX.captures(&result.as_bytes()) {
-            let atom = String::from_utf8(hit.name("atom").unwrap().as_bytes().to_vec()).unwrap();
-            let operator = String::from_utf8(hit.name("operator").unwrap().as_bytes().to_vec()).unwrap();
-            let symbol = match &operator as &str {
-                "+" => self.more.entry(atom.clone()).or_insert_with(|| {self.counter += 1; self.counter}),
-                "*" => self.multiple.entry(atom.clone()).or_insert_with(|| {self.counter += 1; self.counter}),
-                "?" => self.optional.entry(atom.clone()).or_insert_with(|| {self.counter += 1; self.counter}),
-                other => unreachable!()
-            };
-            rules.insert(match &operator as &str {
-                "+" => format!("${symbol} -> {atom} ${symbol} | {atom}"),
-                "*" => format!("${symbol} -> {atom} ${symbol} |"),
-                "?" => format!("${symbol} -> {atom} |"),
-                other => unreachable!()
-            });
-            let groupzero = hit.get(0).unwrap();
-            result = format!("{}${symbol}{}", &result[..groupzero.start()], &result[groupzero.end()..])
-        };
-        return result;
-    }
-    fn serialize(&self, bnf: String) -> Map<Rule, Vec<Vec<Symbol>>> {
-        let mut map = Map::new();
-        for line in bnf.lines() {
-            let [rule, productions] = line.splitn(2, "->").map(str::trim).collect::<Vec<&str>>()[0..2] else {panic!("{line}")};
-            for variant in productions.split("|").map(str::trim) {
-                map.entry(rule.into()).or_insert_with(Vec::new).push(if variant.is_empty() {
-                    Vec::new()
-                } else {
-                    variant.split(" ").map(Symbol::from).collect()
-                });
-            }
-        }
-        return map;
-    }
-}
-
 
 //^
 //^ GRAMMAR
 //^
 
 //> GRAMMAR -> RULE
-#[derive(Eq, Hash, PartialEq, Clone)]
+#[derive(Eq, Hash, PartialEq, Clone, Copy)]
 pub(super) enum Rule {
     NonTerminal(Object),
     Internal(u8)
-} impl From<&str> for Rule {fn from(value: &str) -> Self {match value {
-    internal if internal.starts_with("$") => Rule::Internal(internal[1..].parse().unwrap()),
-    "Start" => Rule::NonTerminal(Object::Start),
-    "Level1" => Rule::NonTerminal(Object::Level1),
-    "Level2" => Rule::NonTerminal(Object::Level2),
-    "Level3" => Rule::NonTerminal(Object::Level3),
-    "Level4" => Rule::NonTerminal(Object::Level4),
-    "Level5" => Rule::NonTerminal(Object::Level5),
-    "Definition" => Rule::NonTerminal(Object::Definition),
-    "Function" => Rule::NonTerminal(Object::Function),
-    "Node" => Rule::NonTerminal(Object::Node),
-    "Equation" => Rule::NonTerminal(Object::Equation),
-    "Use" => Rule::NonTerminal(Object::Use),
-    "Expression" => Rule::NonTerminal(Object::Expression),
-    "Term" => Rule::NonTerminal(Object::Term),
-    "Factor" => Rule::NonTerminal(Object::Factor),
-    "Limit" => Rule::NonTerminal(Object::Limit),
-    "Infinite" => Rule::NonTerminal(Object::Infinite),
-    "Variable" => Rule::NonTerminal(Object::Variable),
-    "Nest" => Rule::NonTerminal(Object::Nest),
-    "Tensor" => Rule::NonTerminal(Object::Tensor),
-    "Whole" => Rule::NonTerminal(Object::Whole),
-    "Absolute" => Rule::NonTerminal(Object::Absolute),
-    "Undefined" => Rule::NonTerminal(Object::Undefined),
-    "Rational" => Rule::NonTerminal(Object::Rational),
-    "Call" => Rule::NonTerminal(Object::Call),
-    other => panic!("{other}")
+} impl From<&str> for Rule {fn from(value: &str) -> Self {return if let Some(internal) = value.strip_prefix("$") {
+    Rule::Internal(internal.parse().unwrap())
+} else {
+    Rule::NonTerminal(value.parse().unwrap())
 }}} impl Into<Symbol> for Rule {fn into(self) -> Symbol {return match self {
     Rule::NonTerminal(object) => Symbol::NonTerminal(object),
     Rule::Internal(code) => Symbol::Internal(code)
+}}} impl<'always> Into<Part<'always>> for Rule {fn into(self) -> Part<'always> {return match self {
+    Rule::Internal(code) => Part::Internal(code),
+    Rule::NonTerminal(object) => Part::NonTerminal(object)
 }}}
 
 //> GRAMMAR -> SYMBOL
-#[derive(Clone, PartialEq, Eq, Hash)]
+#[derive(Clone, PartialEq, Eq, Hash, Copy)]
 pub(super) enum Symbol {
     NonTerminal(Object),
     Internal(u8),
     Kind(Kind)
-} impl From<&str> for Symbol {fn from(value: &str) -> Self {match value {
-    "IDENTIFIER" => Symbol::Kind(Kind::IDENTIFIER),
-    "MODULE" => Symbol::Kind(Kind::MODULE),
-    "NUMBER" => Symbol::Kind(Kind::NUMBER),
-    "OPERATOR" => Symbol::Kind(Kind::OPERATOR),
-    "COMMENT" => Symbol::Kind(Kind::COMMENT),
-    "RATIONAL" => Symbol::Kind(Kind::RATIONAL),
-    "SIGN" => Symbol::Kind(Kind::SIGN),
-    "DEFINITION" => Symbol::Kind(Kind::DEFINITION),
-    "CLOSE" => Symbol::Kind(Kind::CLOSE),
-    "COMMA" => Symbol::Kind(Kind::COMMA),
-    "ENTER" => Symbol::Kind(Kind::ENTER),
-    "EQUALITY" => Symbol::Kind(Kind::EQUALITY),
-    "EXIT" => Symbol::Kind(Kind::EXIT),
-    "EXPONENTIATION" => Symbol::Kind(Kind::EXPONENTIATION),
-    "INFINITE" => Symbol::Kind(Kind::INFINITE),
-    "LIMIT" => Symbol::Kind(Kind::LIMIT),
-    "NEWLINES" => Symbol::Kind(Kind::NEWLINES),
-    "OF" => Symbol::Kind(Kind::OF),
-    "OPEN" => Symbol::Kind(Kind::OPEN),
-    "PIPE" => Symbol::Kind(Kind::PIPE),
-    "SPACES" => Symbol::Kind(Kind::SPACES),
-    "TO" => Symbol::Kind(Kind::TO),
-    "UNDEFINED" => Symbol::Kind(Kind::UNDEFINED),
-    "USE" => Symbol::Kind(Kind::USE),
-    "ENDOFFILE" => Symbol::Kind(Kind::ENDOFFILE),
-    other => Rule::from(value).into()
-}}}
+} impl From<&str> for Symbol {fn from(value: &str) -> Self {return if let Ok(kind) = value.parse::<Kind>() {Self::Kind(kind)} else {Rule::from(value).into()}}}
+
+//> GRAMMAR -> PART
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub(crate) enum Part<'parsing> {
+    NonTerminal(Object),
+    Internal(u8),
+    Token(BindedToken<'parsing>)
+}
