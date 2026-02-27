@@ -46,9 +46,6 @@ use self::{
 //> PARSER -> MINPOINTERS
 pub(super) static MINPOINTERS: usize = 2;
 
-//> PARSER -> COMPLETIONS
-static COMPLETIONS: usize = 1;
-
 //> PARSER -> STRUCT
 pub(super) struct Parser {} impl Parser {
     pub(super) const fn new() -> Self {return Parser {}}
@@ -93,7 +90,7 @@ pub(super) struct Parser {} impl Parser {
         index: usize, 
         state: &'arena State, 
         agenda: &mut Deque<&'arena State>, 
-        completed: &mut SmallVec<[&'arena State; COMPLETIONS]>, 
+        completed: &mut SmallVec<[&'arena State; MINPOINTERS]>, 
         pool: &mut Map<&'land Backpointer<'parsing>, Set<(usize, &'arena State)>>,
         waiting: &mut Vec<Map<&Symbol, Set<&'arena State>>>, 
         chart: &mut Vec<Map<&'arena State, Set<SmallVec<[&'land Backpointer<'parsing>; MINPOINTERS]>>>>,
@@ -122,6 +119,7 @@ pub(super) struct Parser {} impl Parser {
             }
         };
         completed.push(state);
+        println!("{}", completed.len())
     }
     #[inline(always)]
     fn scan<'parsing, 'arena, 'land>(
