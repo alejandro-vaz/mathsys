@@ -11,7 +11,6 @@ use crate::prelude::{
 use super::grammar::{
     Rule,
     Symbol,
-    GRAMMAR,
     Part
 };
 

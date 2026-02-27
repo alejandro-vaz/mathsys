@@ -46,6 +46,9 @@ use self::{
 //> PARSER -> MINPOINTERS
 pub(super) static MINPOINTERS: usize = 2;
 
+//> PARSER -> COMPLETIONS
+static COMPLETIONS: usize = 1;
+
 //> PARSER -> STRUCT
 pub(super) struct Parser {} impl Parser {
     pub(super) const fn new() -> Self {return Parser {}}
@@ -66,10 +69,10 @@ pub(super) struct Parser {} impl Parser {
         waiting[0].entry(root.at().unwrap()).or_default().insert(root);
         let mut pool = Map::new();
         let mut agenda = Deque::<&State>::new();
-        let mut completed = Set::new();
+        let mut completed = SmallVec::new();
         for index in 0..(tokens.len() + 1) {
-            let token = tokens.get(index as usize);
-            agenda.extend(chart[index as usize].keys());
+            let token = tokens.get(index);
+            agenda.extend(chart[index].keys());
             while !agenda.is_empty() {
                 let state = agenda.pop_front().unwrap();
                 if state.at().is_none() {
@@ -82,7 +85,7 @@ pub(super) struct Parser {} impl Parser {
             }
             completed.clear();
         };
-        return pool.into_iter().map(|(backpointer, set)| (backpointer.clone(), set.into_iter().flat_map(|(index, state)| chart[index as usize].get(state).into_iter().flat_map(|set| set.iter()).map(|small| small.iter().map(|pointer| (*pointer).clone()).collect::<SmallVec<[Backpointer<'parsing>; MINPOINTERS]>>()).collect::<Vec<_>>()).collect())).collect();
+        return pool.into_iter().map(|(backpointer, set)| (backpointer.clone(), set.into_iter().flat_map(|(index, state)| chart[index].get(state).into_iter().flat_map(|set| set.iter()).map(|small| small.iter().map(|pointer| (*pointer).clone()).collect::<SmallVec<[Backpointer<'parsing>; MINPOINTERS]>>()).collect::<Vec<_>>()).collect())).collect();
     }
     #[inline(always)]
     fn complete<'parsing, 'arena, 'land>(
@@ -90,32 +93,35 @@ pub(super) struct Parser {} impl Parser {
         index: usize, 
         state: &'arena State, 
         agenda: &mut Deque<&'arena State>, 
-        completed: &mut Set<&'arena State>, 
+        completed: &mut SmallVec<[&'arena State; COMPLETIONS]>, 
         pool: &mut Map<&'land Backpointer<'parsing>, Set<(usize, &'arena State)>>,
         waiting: &mut Vec<Map<&Symbol, Set<&'arena State>>>, 
         chart: &mut Vec<Map<&'arena State, Set<SmallVec<[&'land Backpointer<'parsing>; MINPOINTERS]>>>>,
         arena: &'arena Arena<State>,
         land: &'land Arena<Backpointer<'parsing>>
     ) -> () {
-        if let Some(waitlist) = waiting[state.starting as usize].get(&state.rule.into() as &Symbol).cloned() {for awaiting in waitlist {
-            let advanced = awaiting.next(arena);
-            let pointer = Backpointer::new(land, state.rule.into(), state.starting, index);
-            pool.entry(pointer).or_default().insert((index, state));
-            let backpointers = if let Some(previous) = chart[state.starting as usize].get(awaiting) {previous.iter().map(|backpointer| {
-                let mut new = backpointer.clone();
-                new.push(pointer);
-                new 
-            }).collect()} else {Vec::new()};
-            if let Some(symbol) = advanced.at() {waiting[index as usize].entry(symbol).or_default().insert(advanced);}
-            let additional = chart[index as usize].entry(advanced).or_default();
-            if additional.is_empty() {
-                additional.extend(backpointers);
-                agenda.push_back(advanced);
-                agenda.extend(completed.iter());
-                completed.clear();
+        let symbol = Into::<Symbol>::into(state.rule);
+        let part = Into::<Part>::into(state.rule);
+        if let Some(waitlist) = waiting[state.starting].get(&symbol).cloned() {
+            for awaiting in waitlist {
+                let advanced = awaiting.next(arena);
+                let pointer = Backpointer::new(land, part.clone(), state.starting, index);
+                pool.entry(pointer).or_default().insert((index, state));
+                let backpointers = if let Some(previous) = chart[state.starting].get(awaiting) {previous.iter().map(|backpointer| {
+                    let mut new = backpointer.clone();
+                    new.push(pointer);
+                    new 
+                }).collect()} else {Vec::new()};
+                let additional = chart[index].entry(advanced).or_default();
+                if additional.is_empty() {
+                    additional.extend(backpointers);
+                    agenda.push_back(advanced);
+                    agenda.extend(completed.drain(..));
+                }
+                if let Some(symbol) = advanced.at() {waiting[index].entry(symbol).or_default().insert(advanced);}
             }
-        }}
-        completed.insert(state);
+        };
+        completed.push(state);
     }
     #[inline(always)]
     fn scan<'parsing, 'arena, 'land>(
@@ -128,10 +134,10 @@ pub(super) struct Parser {} impl Parser {
         arena: &'arena Arena<State>,
         land: &'land Arena<Backpointer<'parsing>>
     ) -> () {
-        let addable = chart[index as usize].entry(state).or_default().clone().into_iter().map(|mut element| {element.push(Backpointer::new(land, Part::Token(token.clone()), index, index + 1)); element}).collect::<Vec<SmallVec<[&Backpointer; MINPOINTERS]>>>();
+        let addable = chart[index].entry(state).or_default().clone().into_iter().map(|mut element| {element.push(Backpointer::new(land, Part::Token(token.clone()), index, index + 1)); element}).collect::<Vec<SmallVec<[&Backpointer; MINPOINTERS]>>>();
         let following = state.next(arena);
-        chart[index as usize + 1].entry(following).or_default().extend(addable);
-        if let Some(symbol) = following.at() {waiting[index as usize + 1].entry(symbol).or_default().insert(following);}
+        chart[index + 1].entry(following).or_default().extend(addable);
+        if let Some(symbol) = following.at() {waiting[index + 1].entry(symbol).or_default().insert(following);}
     }
     #[inline(always)]
     fn predict<'arena, 'land>(
@@ -150,8 +156,8 @@ pub(super) struct Parser {} impl Parser {
         };
         for variant in &GRAMMAR[&rule] {
             let possibility = State::new(arena, rule, variant, 0, index);
-            if let Some(symbol) = possibility.at() {waiting[index as usize].entry(symbol).or_default().insert(possibility);}
-            let produced = chart[index as usize].entry(possibility).or_default();
+            if let Some(symbol) = possibility.at() {waiting[index].entry(symbol).or_default().insert(possibility);}
+            let produced = chart[index].entry(possibility).or_default();
             if produced.is_empty() {
                 produced.insert(SmallVec::new());
                 agenda.push_back(possibility);
