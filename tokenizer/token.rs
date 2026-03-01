@@ -74,7 +74,7 @@ pub(crate) static ORDER: LazyLock<IndexMap<Kind, (Regex, Responsibility)>> = Laz
     (Kind::ENTER, (Regex::new(r#"^\["#).unwrap(), Responsibility::Structural)),
     (Kind::COMMA, (Regex::new(r#"^,"#).unwrap(), Responsibility::Structural)),
     (Kind::EXIT, (Regex::new(r#"^\]"#).unwrap(), Responsibility::Structural)),
-    (Kind::SPACES, (Regex::new("^ +").unwrap(), Responsibility::Structural)),
+    (Kind::SPACES, (Regex::new("^ +").unwrap(), Responsibility::Null)),
     (Kind::NEWLINES, (Regex::new(r#"^\n+"#).unwrap(), Responsibility::Structural)),
     (Kind::MODULE, (Regex::new(r#"^"[a-z]+\.msm""#).unwrap(), Responsibility::Total)),
     (Kind::COMMENT, (Regex::new(r"^\#[^\n]*").unwrap(), Responsibility::Null)),

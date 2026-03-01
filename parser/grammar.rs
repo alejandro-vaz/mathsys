@@ -28,35 +28,35 @@ use super::{
 //> EBNF -> SYNTAX
 pub(super) static GRAMMAR: LazyLock<Map<Rule, Vec<Vec<Symbol>>>> = LazyLock::new(|| Extensor::run("
 //> EBNF -> START
-Start -> (NEWLINES? Level1 SPACES? (NEWLINES Level1 SPACES?)*)? NEWLINES? ENDOFFILE
+Start -> (NEWLINES? Level1 (NEWLINES Level1 SPACES?)*)? NEWLINES? ENDOFFILE
 
 //> EBNF -> 1ºLEVEL
-Definition -> Variable SPACES? DEFINITION SPACES? Level2
-Function -> Variable OPEN SPACES? (Variable (SPACES? COMMA SPACES? Variable)* SPACES?)? CLOSE SPACES? DEFINITION SPACES? Level2
+Definition -> Variable DEFINITION Level2
+Function -> Variable OPEN (Variable (COMMA Variable)* SPACES?)? CLOSE DEFINITION Level2
 Node -> Level2
-Equation -> Level2 SPACES? EQUALITY SPACES? Level2
-Use -> USE SPACES MODULE
+Equation -> Level2 EQUALITY Level2
+Use -> USE MODULE
 
 //> EBNF -> 2ºLEVEL
-Expression -> (SIGN SPACES?)* Level3 ((SPACES? SIGN)+ SPACES? Level3)*
+Expression -> (SIGN SPACES?)* Level3 ((SIGN)+ Level3)*
 
 //> EBNF -> 3ºLEVEL
-Term -> Level4 ((SPACES? OPERATOR)? SPACES? Level4)*
+Term -> Level4 ((OPERATOR)? Level4)*
 
 //> EBNF -> 4ºLEVEL
-Factor -> Level5 (EXPONENTIATION SPACES? Level2 SPACES? EXPONENTIATION)?
-Limit -> LIMIT SPACES Variable SPACES? TO SPACES? Level2 SIGN? SPACES OF SPACES Nest (EXPONENTIATION SPACES? Level2 SPACES? EXPONENTIATION)?
+Factor -> Level5 (EXPONENTIATION Level2 EXPONENTIATION)?
+Limit -> LIMIT Variable TO Level2 SIGN? OF Nest (EXPONENTIATION Level2 EXPONENTIATION)?
 
 //> EBNF -> 5ºLEVEL
 Infinite -> INFINITE
 Variable -> IDENTIFIER
-Nest -> OPEN SPACES? Level2? SPACES? CLOSE
-Tensor -> ENTER SPACES? (Level2 (SPACES? COMMA SPACES? Level2)* SPACES?)? EXIT
+Nest -> OPEN Level2? CLOSE
+Tensor -> ENTER (Level2 (COMMA Level2)* SPACES?)? EXIT
 Whole -> NUMBER
-Absolute -> PIPE SPACES? Level2 SPACES? PIPE
+Absolute -> PIPE Level2 PIPE
 Undefined -> UNDEFINED
 Rational -> RATIONAL
-Call -> Variable OPEN SPACES? (Level2 (SPACES? COMMA SPACES? Level2)* SPACES?)? CLOSE
+Call -> Variable OPEN (Level2 (COMMA Level2)* SPACES?)? CLOSE
 
 //> EBNF -> LEVELS
 Level1 -> Definition | Function | Node | Equation | Use

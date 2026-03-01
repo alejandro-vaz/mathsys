@@ -225,6 +225,8 @@ pub(super) struct Parser {} impl Parser {
         if additional.is_empty() {
             additional.extend(backpointers);
             self.enqueue(advanced, agenda, enqueued, seen);
+        } else if let Rule::NonTerminal(_) = advanced.rule {
+            additional.extend(backpointers);
         }
         if let Some(symbol) = advanced.at() {
             if waiting[index].entry(symbol).or_default().insert(advanced) {

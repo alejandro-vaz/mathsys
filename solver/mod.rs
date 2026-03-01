@@ -78,7 +78,7 @@ pub(super) struct Solver {} impl Solver {
         if let Some(cached) = memory.get(node) && !write {return Ok(cached.clone())}
         return Ok(if let Part::Token(token) = &node.symbol {Partition::Token(token.clone())} else {
             let mut children = Vec::new();
-            for item in self.solve(&mut pool.get(node).unwrap().iter().collect::<Vec<&SmallVec<[Backpointer<'resolving>; MINPOINTERS]>>>(), pool, context, settings, memory)? {match self.build(pool, &item, context, true, settings, memory)? {
+            for item in self.solve(&mut pool.get(node).unwrap().iter().collect::<Vec<&SmallVec<[Backpointer<'resolving>; MINPOINTERS]>>>(), pool, context, settings, memory)? {match self.build(pool, &item, context, write, settings, memory)? {
                 Partition::Internal(items) => children.extend(items),
                 Partition::NonTerminal(item) => children.push(Item::NonTerminal(item)),
                 Partition::Token(token) => if let Responsibility::Total = ORDER.get(&token.kind).unwrap().1 {children.push(Item::Token(token))}
