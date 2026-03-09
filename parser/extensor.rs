@@ -60,8 +60,7 @@ pub(super) struct Extensor {
     fn expand(&mut self, expression: &str, rules: &mut Set<String>) -> String {
         let mut result = expression.to_string();
         while result.contains("(") {result = self.collapse(&result, rules)};
-        result = self.postfix(&result, rules);
-        return result.to_string();
+        return self.postfix(&result, rules);
     }
     fn collapse(&mut self, expression: &str, rules: &mut Set<String>) -> String {
         let Some(hit) = COLLAPSEREGEX.find(expression.as_bytes()) else {return expression.to_string()};
@@ -96,7 +95,7 @@ pub(super) struct Extensor {
     fn serialize(&self, bnf: String) -> Map<Rule, Vec<Vec<Symbol>>> {
         let mut map = Map::new();
         for line in bnf.lines() {
-            let [rule, productions] = line.splitn(2, "->").map(str::trim).collect::<Vec<&str>>()[0..2] else {panic!("{line}")};
+            let (rule, productions) = line.split_once("->").map(|data| (data.0.trim(), data.1.trim())).unwrap();
             for variant in productions.split("|").map(str::trim) {
                 map.entry(rule.into()).or_insert_with(Vec::new).push(if variant.is_empty() {
                     Vec::new()

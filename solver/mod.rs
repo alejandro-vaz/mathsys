@@ -61,7 +61,9 @@ pub(super) struct Solver {} impl Solver {
         settings: &Settings
     ) -> Result<Start, Issue> {
         let time = Time::now();
+        let delta = pool.iter().map(|thing| thing.1.len()).sum::<usize>() as f64 / pool.len() as f64;
         let Partition::NonTerminal(NonTerminal::Start(start)) = self.build(pool, pool.iter().map(|item| item.0).find(|backpointer| if let Part::NonTerminal(Object::Start) = backpointer.symbol {true} else {false}).ok_or(Issue::SyntaxError)?, context, true, settings, &mut Map::new())? else {return Err(Issue::SyntaxError)};
+        println!("delta {delta}");
         println!("{:?}", time.elapsed());
         println!("{}", pool.len());
         return Ok(start);
@@ -78,7 +80,7 @@ pub(super) struct Solver {} impl Solver {
         if let Some(cached) = memory.get(node) && !write {return Ok(cached.clone())}
         return Ok(if let Part::Token(token) = &node.symbol {Partition::Token(token.clone())} else {
             let mut children = Vec::new();
-            for item in self.solve(&mut pool.get(node).unwrap().iter().collect::<Vec<&SmallVec<[Backpointer<'resolving>; MINPOINTERS]>>>(), pool, context, settings, memory)? {match self.build(pool, &item, context, write, settings, memory)? {
+            for item in self.solve(&mut pool.get(node).unwrap().iter().collect::<Vec<&SmallVec<[Backpointer<'resolving>; MINPOINTERS]>>>(), pool, context, settings, memory)? {match self.build(pool, &item, context, true, settings, memory)? {
                 Partition::Internal(items) => children.extend(items),
                 Partition::NonTerminal(item) => children.push(Item::NonTerminal(item)),
                 Partition::Token(token) => if let Responsibility::Total = ORDER.get(&token.kind).unwrap().1 {children.push(Item::Token(token))}
@@ -102,12 +104,7 @@ pub(super) struct Solver {} impl Solver {
         context: &mut Context, 
         settings: &Settings,
         memory: &mut Map<&'obtained Backpointer<'resolving>, Partition<'resolving>>
-    ) -> Result<&'obtained SmallVec<[Backpointer<'resolving>; MINPOINTERS]>, Issue> {for index in 0.. {
-        match candidates.len() {
-            0 => panic!(),
-            1 => return Ok(candidates.pop().unwrap()),
-            other => ()
-        };
+    ) -> Result<&'obtained SmallVec<[Backpointer<'resolving>; MINPOINTERS]>, Issue> {let mut index = 0; while candidates.len() > 1 {
         candidates.retain(|derivation| derivation.get(index).is_some());
         let built = candidates.iter().map(|derivation| (&derivation[index], self.build(pool, &derivation[index], context, false, settings, memory))).collect::<Vec<(&Backpointer, Result<Partition, Issue>)>>();
         let mut winner = &built[0];
@@ -117,7 +114,8 @@ pub(super) struct Solver {} impl Solver {
             if if let Some(decision) = self.choose(first, second, context) {decision} else if let Some(decision) = self.choose(second, first, context) {!decision} else {panic!()} {winner = contender};
         };
         candidates.retain(|derivation| &derivation[index] == winner.0);
-    }; unreachable!()}
+        index += 1;
+    }; return Ok(candidates.pop().unwrap())}
     fn choose(&self, first: &NonTerminal, second: &NonTerminal, context: &Context) -> Option<bool> {return match (first, second) {
         (NonTerminal::Level4(Level4::Factor(Factor {
             value: Level5::Variable(variable),

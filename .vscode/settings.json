@@ -1,7 +1,4 @@
 {
-    "python.analysis.typeCheckingMode": "basic",
-    "python.analysis.exclude": ["./mathsys/v*", "./node_modules/", "./mathsys/release/"],
-    "python.analysis.diagnosticMode": "workspace",
     "explorer.excludeGitIgnore": true,
     "files.exclude": {
       "**/.DS_Store": false,

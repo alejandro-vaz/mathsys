@@ -62,6 +62,8 @@ pub(super) struct Parser {} impl Parser {
         chart.resize_with(tokens.len() + 1, Map::new);
         waiting.resize_with(tokens.len() + 1, Map::new);
         let root = State::new(&arena, Rule::Internal(0), &GRAMMAR.get(&Rule::Internal(0)).unwrap()[0], 0, 0);
+        let r = GRAMMAR.iter().map(|rule| rule.1.iter().map(|var| var.len()).max()).max();
+        println!("r is {r:?}");
         chart[0].entry(root).or_default().insert(SmallVec::new());
         waiting[0].entry(root.at().unwrap()).or_default().insert(root);
         let mut pool = Map::new();

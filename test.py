@@ -3,19 +3,15 @@ import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 
 # Data
-n = np.array([70,142,292,616,1360,3232,8512,25216,83200,297472])
+n = np.array([4318,11838,36478,124158,453118,1725438])
 
 times = np.array([
-    [0.032,0.098,0.026,0.021,0.019],
-    [0.068,0.052,0.044,0.037,0.035],
-    [0.124,0.081,0.071,0.063,0.055],
-    [0.232,0.136,0.104,0.103,0.089],
-    [0.277,0.201,0.167,0.153,0.144],
-    [0.423,0.453,0.353,0.384,0.302],
-    [0.83,0.858,0.887,0.85,0.852],
-    [2.125,2.112,2.104,2.128,2.066],
-    [4.618,4.798,4.69,4.589,4.548],
-    [10.457,10.474,10.345,10.402,10.496]
+    [0.711,0.593,0.551,0.503,0.542],
+    [1.169,1.126,1.058,1.092,1.139],
+    [3.112,2.899,3.265,3.113,3.416],
+    [8.195,7.797,7.592,7.731,7.428],
+    [17.855,17.419,16.333,16.821,16.853],
+    [38.487,45.941,48.374,42.204,51.727]
 ])
 
 avg_times = times.mean(axis=1)
@@ -32,7 +28,6 @@ def power_model(n, alpha, k):
 
 # Fit
 params_linear, _ = curve_fit(linear_model, n, avg_times)
-params_nlogn, _ = curve_fit(nlogn_model, n, avg_times)
 params_power, _ = curve_fit(power_model, n, avg_times)
 
 # Smooth curve
@@ -43,13 +38,11 @@ plt.figure(figsize=(8,6))
 plt.scatter(n, avg_times, color='black', label='Average Data')
 
 plt.plot(n_smooth, linear_model(n_smooth, *params_linear),
-         label='Fit: a·n + b')
+         label=f'Fit: {params_linear[0]:.3}·n + {params_linear[1]:.3}')
 
-plt.plot(n_smooth, nlogn_model(n_smooth, *params_nlogn),
-         label='Fit: c·n·log₂(n) + d')
 
 plt.plot(n_smooth, power_model(n_smooth, *params_power),
-         label=f'Fit: α·n^{params_power[1]:.3f}')
+         label=f'Fit: {params_power[0]:.3}·n^{params_power[1]:.3f}')
 
 plt.xscale('log')
 plt.yscale('log')
@@ -63,5 +56,4 @@ plt.show()
 
 # Print parameters
 print("Linear fit (a, b):", params_linear)
-print("n log n fit (c, d):", params_nlogn)
 print("Power fit (alpha, k):", params_power)

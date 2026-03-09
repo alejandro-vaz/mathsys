@@ -38,7 +38,7 @@ static REGEXSET: LazyLock<RegexSet> = LazyLock::new(|| RegexSet::new(ORDER.iter(
 //^
 
 //> TOKENIZER -> MAXLEN
-pub static MAXLEN: usize = 0xFFF;
+pub static MAXLEN: usize = 0xFFFF;
 
 //> TOKENIZER -> POSITION
 struct Position {

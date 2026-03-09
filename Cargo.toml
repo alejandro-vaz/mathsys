@@ -20,8 +20,8 @@ path = "main.rs"
 opt-level = 3
 lto = "fat"
 codegen-units = 1
-strip = false
-debug = true
+strip = true
+debug = false
 
 [dependencies]
 colored = "3.1.1"
