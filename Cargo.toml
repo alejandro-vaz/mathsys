@@ -1,7 +1,8 @@
 [package]
 name = "mathsys"
-version = "9.0.0"
+version = "0.0.0"
 edition = "2024"
+rust-version = "1.98"
 authors = ["Alejandro Vaz <alejandro.vaz.myt@gmail.com>"]
 description = "The Natural Language of Math."
 license = "MIT"
@@ -10,7 +11,7 @@ readme = ".github/README.md"
 
 [lib]
 name = "mathsys"
-path = "lib.rs"
+path = "lib/lib.rs"
 
 [[bin]]
 name = "mathsys"
@@ -24,12 +25,12 @@ strip = true
 debug = false
 
 [dependencies]
-colored = "3.1.1"
-regex = "1.12.3"
-indexmap = "2.13.0"
-ahash = "0.8.12"
-smallvec = "1.15.1"
-rustc_version_runtime = "0.3.0"
-strum = "0.27.2"
-strum_macros = "0.27.2"
-enum_dispatch = "0.3.13"
+regex = "=1.12.4"
+rustc_version_runtime = "=0.3.0"
+strum = "=0.28.0"
+strum_macros = "=0.28.0"
+enum_dispatch = "=0.3.13"
+typed-arena = "=2.0.2"
+libutils = "=9.0.2"
+enum-as-inner = "=0.7.0"
+elsa = "=1.11.2"

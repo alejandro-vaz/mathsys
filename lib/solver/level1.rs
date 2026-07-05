@@ -1,0 +1,174 @@
+//^
+//^ HEAD
+//^
+
+//> HEAD -> SUPER
+use super::{
+    level2::Level2,
+    level5::Variable,
+    types::{
+        Spawn,
+        Item,
+        NonTerminal
+    },
+    context::Context,
+    start::Start
+};
+
+//> HEAD -> ENUM_DISPATCH
+use enum_dispatch::enum_dispatch;
+
+//> HEAD -> CRATE
+use crate::{
+    latex::LaTeX,
+    tokenizer::tokenize,
+    filter::filter,
+    Interpreter,
+    parser::parse,
+    extensor::extend,
+    solver::solve,
+    Resolver,
+    failure::Failure
+};
+
+//> HEAD -> LIBUTILS
+use libutils::report::{
+    Report,
+    Same
+};
+
+//> ENUM_AS_INNER
+use enum_as_inner::EnumAsInner;
+
+
+//^
+//^ 1ºLEVEL
+//^
+
+//> 1ºLEVEL -> ENUM
+#[enum_dispatch(LaTeX)]
+#[derive(Clone, EnumAsInner)]
+pub enum Level1<'valid> {
+    Definition(Definition<'valid>),
+    Function(Function<'valid>),
+    Node(Node<'valid>),
+    Equation(Equation<'valid>),
+    Use(Use<'valid>)
+}
+
+//> 1ºLEVEL -> DEFINITION
+#[derive(Clone)]
+pub struct Definition<'valid> {
+    pub variable: Variable<'valid>,
+    pub value: Level2<'valid>
+} impl<'valid> Spawn<'valid> for Definition<'valid> {
+    fn spawn(
+        mut children: Vec<Item<'valid>>, 
+        _context: &mut Context<'valid>, 
+        _report: Report<Same>, 
+        _interpreter: &'valid Interpreter<'valid, impl Resolver<'valid>>,
+        _filename: &'valid str
+    ) -> Option<NonTerminal<'valid>> {return Some(NonTerminal::Level1(Level1::Definition(Self {
+        variable: children.remove(0).into_non_terminal().ok().unwrap().into_level5().ok().unwrap().into_variable().ok().unwrap(),
+        value: children.pop().unwrap().into_non_terminal().ok().unwrap().into_level2().ok().unwrap()
+    })))}
+}
+
+//> 1ºLEVEL -> FUNCTION
+#[derive(Clone)]
+pub struct Function<'valid> {
+    pub variable: Variable<'valid>,
+    pub arguments: Vec<Variable<'valid>>,
+    pub expression: Level2<'valid>
+} impl<'valid> Spawn<'valid> for Function<'valid> {
+    fn spawn(
+        mut children: Vec<Item<'valid>>, 
+        context: &mut Context<'valid>, 
+        _report: Report<Same>, 
+        _interpreter: &'valid Interpreter<'valid, impl Resolver<'valid>>,
+        _filename: &'valid str
+    ) -> Option<NonTerminal<'valid>> {
+        let variable = children.remove(0).into_non_terminal().ok().unwrap().into_level5().ok().unwrap().into_variable().ok().unwrap();
+        context.functions.insert(variable.name);
+        let level2 = children.pop().unwrap().into_non_terminal().ok().unwrap().into_level2().ok().unwrap();
+        return Some(NonTerminal::Level1(Level1::Function(Self {
+            variable: variable,
+            arguments: children.into_iter().map(|item| item.into_non_terminal().ok().unwrap().into_level5().ok().unwrap().into_variable().ok().unwrap()).collect(),
+            expression: level2
+        })))
+    }
+}
+
+//> 1ºLEVEL -> NODE
+#[derive(Clone)]
+pub struct Node<'valid> {
+    pub value: Level2<'valid>
+} impl<'valid> Spawn<'valid> for Node<'valid> {
+    fn spawn(
+        mut children: Vec<Item<'valid>>, 
+        _context: &mut Context<'valid>, 
+        _report: Report<Same>, 
+        _interpreter: &'valid Interpreter<'valid, impl Resolver<'valid>>,
+        _filename: &'valid str
+    ) -> Option<NonTerminal<'valid>> {return Some(NonTerminal::Level1(Level1::Node(Self {
+        value: children.pop().unwrap().into_non_terminal().ok().unwrap().into_level2().ok().unwrap()
+    })))}
+}
+
+//> 1ºLEVEL -> EQUATION
+#[derive(Clone)]
+pub struct Equation<'valid> {
+    pub left: Level2<'valid>,
+    pub right: Level2<'valid>
+} impl<'valid> Spawn<'valid> for Equation<'valid> {
+    fn spawn(
+        mut children: Vec<Item<'valid>>, 
+        _context: &mut Context<'valid>, 
+        _report: Report<Same>, 
+        _interpreter: &'valid Interpreter<'valid, impl Resolver<'valid>>,
+        _filename: &'valid str
+    ) -> Option<NonTerminal<'valid>> {return Some(NonTerminal::Level1(Level1::Equation(Self {
+        right: children.pop().unwrap().into_non_terminal().ok().unwrap().into_level2().ok().unwrap(),
+        left: children.pop().unwrap().into_non_terminal().ok().unwrap().into_level2().ok().unwrap()
+    })))}
+}
+
+//> 1ºLEVEL -> USE
+#[derive(Clone)]
+pub struct Use<'valid> {
+    pub module: &'valid str,
+    pub start: Start<'valid>
+} impl<'valid> Spawn<'valid> for Use<'valid> {
+    fn spawn(
+        mut children: Vec<Item<'valid>>, 
+        context: &mut Context<'valid>, 
+        mut report: Report<Same>, 
+        interpreter: &'valid Interpreter<'valid, impl Resolver<'valid>>,
+        filename: &'valid str
+    ) -> Option<NonTerminal<'valid>> {
+        let module = children.pop().unwrap().into_token().ok().unwrap().value;
+        context.dependencies.entry(filename).or_default().insert(module);
+        return if context.dependencies.entry(module).or_default().contains(filename) {
+            report.issue(Failure::CircularImport(filename, module)).none()
+        } else {Some(NonTerminal::Level1(Level1::Use(Self {
+            module: module,
+            start: solve(
+                parse(
+                    filter(
+                        tokenize(
+                            interpreter.resolver.resolve(module, report.to())?,
+                            report.to()
+                        )?,
+                        report.to()
+                    )?,
+                    extend(report.to())?,
+                    report.to()
+                )?,
+                Some(context),
+                module,
+                interpreter,
+                report.to()
+            )?
+        })))};
+    }
+}

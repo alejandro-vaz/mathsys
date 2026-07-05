@@ -2,43 +2,72 @@
 //^ HEAD
 //^
 
-//> HEAD -> FLAGS
-#![allow(unused_variables)]
-#![allow(nonstandard_style)]
-#![feature(if_let_guard)]
+//> HEAD -> FEATURES
+#![feature(try_blocks)]
+#![feature(phantom_variance_markers)]
 
-//> HEAD -> LOCAL
+//> HEAD -> MATHSYS
 use mathsys::{
-    prelude::ExitCode,
-    TRANSFORMERS,
-    settings::{
-        Settings,
-        noise::Noise
-    },
-    Data
+    Interpreter,
+    Failure,
+    Resolver
 };
 
-//> TARGETS -> WRAPPER
-pub fn main() -> ExitCode {
-    let settings = match Settings::cli() {
-        Ok(settings) => settings,
-        Err(issue) => return ExitCode::from(issue.consume())
-    };
-    for result in TRANSFORMERS.run(&settings) {
-        match result.data {
-            Err(issue) => return ExitCode::from(issue.consume()),
-            Ok(Data::Version {mathsys, architecture, os, rust}) => if settings.noise.verbose() {println!("Running Mathsys v{mathsys} on {architecture}.{os}~{rust}.")} else {println!("Running Mathsys v{mathsys}.")},
-            Ok(Data::Tokens {length, tokens, maximum, percentage}) => match settings.noise {
-                Noise::Debug => println!("{length} / {maximum} ({percentage}%)\n{tokens:#?}"),
-                Noise::Verbose => println!("{length} / {maximum} ({percentage}%)"),
-                Noise::Normal | Noise::Quiet => println!("{length} / {maximum}"),
-                Noise::Zero => println!("{length}")
-            },
-            Ok(Data::Check) => if !settings.noise.quiet() {println!("No issues found.")},
-            Ok(Data::Ast {start}) => println!("{start:#?}"),
-            Ok(Data::Latex {representation}) => println!("{representation}")
-        }
-        if settings.noise.debug() {println!("Executed in {:#?}.", result.time)};
-    };
-    return ExitCode::SUCCESS;
+//> HEAD -> LIBUTILS
+use libutils::{
+    report::{
+        Report,
+        Name
+    },
+    terminal::TERMINAL,
+    console::{
+        Argument,
+        Console,
+        Synchronization,
+        Descriptor
+    }
+};
+
+//> HEAD -> ELSA
+use elsa::FrozenMap;
+
+//> HEAD -> CORE
+use core::marker::PhantomCovariantLifetime;
+
+
+//^
+//^ MAIN
+//^
+
+//> MAIN -> HANDLER
+struct Handler<'valid> {
+    cache: FrozenMap<&'valid str, String>
+} impl<'valid> Resolver<'valid> for Handler<'valid> {
+    fn resolve(&'valid self, filename: &'valid str, report: Report<Name<'_, "Resolver">>) -> Option<&'valid str> {
+        return Some(match self.cache.get(filename) {
+            Some(cached) => cached,
+            None => self.cache.insert(
+                filename, 
+                report.apply(report.apply(TERMINAL.open(filename)).value?.read()).value?
+            )
+        });
+    }
 }
+
+//> MAIN -> FUNCTION
+fn main() -> () {try {
+    let mut report = Report::default();
+    let interpreter = Interpreter {
+        resolver: Handler {
+            cache: FrozenMap::new()
+        },
+        lifetime: PhantomCovariantLifetime::new()
+    };
+    let file = match TERMINAL.arguments() {
+        [Argument::Path(_), Argument::Path(file)] => file,
+        [_, _] => report.issue(Failure::IncorrectArgumentDistribution).none()?,
+        arguments => report.issue(Failure::IncorrectArgumentAmount(arguments.len())).none()?
+    };
+    let latex = interpreter.latex(file, report.to())?;
+    TERMINAL.print(&latex).sync();
+};}

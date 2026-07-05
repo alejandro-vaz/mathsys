@@ -1,13 +1,1 @@
-#^
-#^  IGNORE
-#^
-
-#> IGNORE -> CARGO
-**/target/
-
-#> IGNORE -> FOLDER INFO
-**/.DS_Store
-.DS_Store
-
-#> IGNORE -> SYMLINK
-mathsys
+/target
