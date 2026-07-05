@@ -7,7 +7,6 @@ authors = ["Alejandro Vaz <alejandro.vaz.myt@gmail.com>"]
 description = "The Natural Language of Math."
 license = "MIT"
 repository = "https://github.com/alejandro-vaz/mathsys"
-readme = ".github/README.md"
 
 [lib]
 name = "mathsys"
