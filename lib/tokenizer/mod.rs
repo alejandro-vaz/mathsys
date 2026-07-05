@@ -31,7 +31,7 @@ pub fn tokenize<'input>(content: &'input str, report: Report<Name<"Tokenizer">>)
     let mut tokens = Vec::new();
     let mut cursor = 0usize;
     loop {
-        let Some((kind, amount)) = scan(bytes, cursor) else {return report.issue(Failure::UnknownToken).none()};
+        let Some((kind, amount)) = scan(bytes, cursor) else {report.issue(Failure::UnknownToken)?};
         tokens.push(Token::new(cursor, amount, kind, &content));
         if let Kind::ENDOFFILE = kind {return Some(tokens)}
         cursor += amount;

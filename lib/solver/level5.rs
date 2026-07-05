@@ -39,7 +39,7 @@ use enum_as_inner::EnumAsInner;
 
 //> 5ºLEVEL -> ENUM
 #[enum_dispatch(LaTeX)]
-#[derive(Clone, EnumAsInner)]
+#[derive(Clone, EnumAsInner, Debug)]
 pub enum Level5<'valid> {
     Infinite,
     Variable(Variable<'valid>),
@@ -53,7 +53,7 @@ pub enum Level5<'valid> {
 }
 
 //> 5ºLEVEL -> INFINITE
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Infinite; impl<'valid> Spawn<'valid> for Infinite {
     fn spawn(
         _children: Vec<Item<'valid>>, 
@@ -65,7 +65,7 @@ pub struct Infinite; impl<'valid> Spawn<'valid> for Infinite {
 }
 
 //> 5ºLEVEL -> VARIABLE
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Variable<'valid> {
     pub name: &'valid str
 } impl<'valid> Spawn<'valid> for Variable<'valid> {
@@ -76,12 +76,12 @@ pub struct Variable<'valid> {
         _interpreter: &'valid Interpreter<'valid, impl Resolver<'valid>>,
         _filename: &'valid str
     ) -> Option<NonTerminal<'valid>> {return Some(NonTerminal::Level5(Level5::Variable(Self {
-        name: children.remove(0).into_token().ok().unwrap().value
+        name: children.remove(0).into_token().unwrap().value
     })))}
 }
 
 //> 5ºLEVEL -> NEST
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Nest<'valid> {
     pub value: Option<Level2<'valid>>
 } impl<'valid> Spawn<'valid> for Nest<'valid> {
@@ -92,12 +92,12 @@ pub struct Nest<'valid> {
         _interpreter: &'valid Interpreter<'valid, impl Resolver<'valid>>,
         _filename: &'valid str
     ) -> Option<NonTerminal<'valid>> {return Some(NonTerminal::Level5(Level5::Nest(Self {
-        value: children.pop().map(|item| item.into_non_terminal().ok().unwrap().into_level2().ok().unwrap())
+        value: children.pop().map(|item| item.into_non_terminal().unwrap().into_level2().unwrap())
     })))}
 }
 
 //> 5ºLEVEL -> VECTOR
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Vector<'valid> {
     pub values: Vec<Level2<'valid>>
 } impl<'valid> Spawn<'valid> for Vector<'valid> {
@@ -108,12 +108,12 @@ pub struct Vector<'valid> {
         _interpreter: &'valid Interpreter<'valid, impl Resolver<'valid>>,
         _filename: &'valid str
     ) -> Option<NonTerminal<'valid>> {return Some(NonTerminal::Level5(Level5::Vector(Self {
-        values: children.into_iter().map(|item| item.into_non_terminal().ok().unwrap().into_level2().ok().unwrap()).collect()
+        values: children.into_iter().map(|item| item.into_non_terminal().unwrap().into_level2().unwrap()).collect()
     })))}
 }
 
 //> 5ºLEVEL -> WHOLE
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Whole<'valid> {
     pub number: &'valid str
 } impl<'valid> Spawn<'valid> for Whole<'valid> {
@@ -124,12 +124,12 @@ pub struct Whole<'valid> {
         _interpreter: &'valid Interpreter<'valid, impl Resolver<'valid>>,
         _filename: &'valid str
     ) -> Option<NonTerminal<'valid>> {return Some(NonTerminal::Level5(Level5::Whole(Self {
-        number: children.remove(0).into_token().ok().unwrap().value
+        number: children.remove(0).into_token().unwrap().value
     })))}
 }
 
 //> 5ºLEVEL -> ABSOLUTE
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Absolute<'valid> {
     pub value: Level2<'valid>
 } impl<'valid> Spawn<'valid> for Absolute<'valid> {
@@ -140,12 +140,12 @@ pub struct Absolute<'valid> {
         _interpreter: &'valid Interpreter<'valid, impl Resolver<'valid>>,
         _filename: &'valid str
     ) -> Option<NonTerminal<'valid>> {return Some(NonTerminal::Level5(Level5::Absolute(Self {
-        value: children.remove(0).into_non_terminal().ok().unwrap().into_level2().ok().unwrap()
+        value: children.remove(0).into_non_terminal().unwrap().into_level2().unwrap()
     })))}
 }
 
 //> 5ºLEVEL -> UNDEFINED
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Undefined; impl<'valid> Spawn<'valid> for Undefined {
     fn spawn(
         _children: Vec<Item<'valid>>, 
@@ -157,7 +157,7 @@ pub struct Undefined; impl<'valid> Spawn<'valid> for Undefined {
 }
 
 //> 5ºLEVEL -> RATIONAL
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Rational<'valid> {
     pub number: &'valid str
 } impl<'valid> Spawn<'valid> for Rational<'valid> {
@@ -168,12 +168,12 @@ pub struct Rational<'valid> {
         _interpreter: &'valid Interpreter<'valid, impl Resolver<'valid>>,
         _filename: &'valid str
     ) -> Option<NonTerminal<'valid>> {return Some(NonTerminal::Level5(Level5::Rational(Self {
-        number: children.remove(0).into_token().ok().unwrap().value
+        number: children.remove(0).into_token().unwrap().value
     })))}
 }
 
 //> 5ºLEVEL -> CALL
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Call<'valid> {
     pub to: Variable<'valid>,
     pub with: Vec<Level2<'valid>>
@@ -185,7 +185,7 @@ pub struct Call<'valid> {
         _interpreter: &'valid Interpreter<'valid, impl Resolver<'valid>>,
         _filename: &'valid str
     ) -> Option<NonTerminal<'valid>> {return Some(NonTerminal::Level5(Level5::Call(Self {
-        to: children.remove(0).into_non_terminal().ok().unwrap().into_level5().ok().unwrap().into_variable().ok().unwrap(),
-        with: children.into_iter().map(|item| item.into_non_terminal().ok().unwrap().into_level2().ok().unwrap()).collect()
+        to: children.remove(0).into_non_terminal().unwrap().into_level5().unwrap().into_variable().unwrap(),
+        with: children.into_iter().map(|item| item.into_non_terminal().unwrap().into_level2().unwrap()).collect()
     })))}
 }

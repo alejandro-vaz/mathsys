@@ -47,7 +47,7 @@ use enum_as_inner::EnumAsInner;
 
 //> 1ºLEVEL -> ENUM
 #[enum_dispatch(LaTeX)]
-#[derive(Clone, EnumAsInner)]
+#[derive(Clone, EnumAsInner, Debug)]
 pub enum Level1<'valid> {
     Definition(Definition<'valid>),
     Function(Function<'valid>),
@@ -57,7 +57,7 @@ pub enum Level1<'valid> {
 }
 
 //> 1ºLEVEL -> DEFINITION
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Definition<'valid> {
     pub variable: Variable<'valid>,
     pub value: Level2<'valid>
@@ -69,13 +69,13 @@ pub struct Definition<'valid> {
         _interpreter: &'valid Interpreter<'valid, impl Resolver<'valid>>,
         _filename: &'valid str
     ) -> Option<NonTerminal<'valid>> {return Some(NonTerminal::Level1(Level1::Definition(Self {
-        variable: children.remove(0).into_non_terminal().ok().unwrap().into_level5().ok().unwrap().into_variable().ok().unwrap(),
-        value: children.pop().unwrap().into_non_terminal().ok().unwrap().into_level2().ok().unwrap()
+        variable: children.remove(0).into_non_terminal().unwrap().into_level5().unwrap().into_variable().unwrap(),
+        value: children.pop().unwrap().into_non_terminal().unwrap().into_level2().unwrap()
     })))}
 }
 
 //> 1ºLEVEL -> FUNCTION
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Function<'valid> {
     pub variable: Variable<'valid>,
     pub arguments: Vec<Variable<'valid>>,
@@ -88,19 +88,19 @@ pub struct Function<'valid> {
         _interpreter: &'valid Interpreter<'valid, impl Resolver<'valid>>,
         _filename: &'valid str
     ) -> Option<NonTerminal<'valid>> {
-        let variable = children.remove(0).into_non_terminal().ok().unwrap().into_level5().ok().unwrap().into_variable().ok().unwrap();
+        let variable = children.remove(0).into_non_terminal().unwrap().into_level5().unwrap().into_variable().unwrap();
         context.functions.insert(variable.name);
-        let level2 = children.pop().unwrap().into_non_terminal().ok().unwrap().into_level2().ok().unwrap();
+        let level2 = children.pop().unwrap().into_non_terminal().unwrap().into_level2().unwrap();
         return Some(NonTerminal::Level1(Level1::Function(Self {
             variable: variable,
-            arguments: children.into_iter().map(|item| item.into_non_terminal().ok().unwrap().into_level5().ok().unwrap().into_variable().ok().unwrap()).collect(),
+            arguments: children.into_iter().map(|item| item.into_non_terminal().unwrap().into_level5().unwrap().into_variable().unwrap()).collect(),
             expression: level2
         })))
     }
 }
 
 //> 1ºLEVEL -> NODE
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Node<'valid> {
     pub value: Level2<'valid>
 } impl<'valid> Spawn<'valid> for Node<'valid> {
@@ -111,12 +111,12 @@ pub struct Node<'valid> {
         _interpreter: &'valid Interpreter<'valid, impl Resolver<'valid>>,
         _filename: &'valid str
     ) -> Option<NonTerminal<'valid>> {return Some(NonTerminal::Level1(Level1::Node(Self {
-        value: children.pop().unwrap().into_non_terminal().ok().unwrap().into_level2().ok().unwrap()
+        value: children.pop().unwrap().into_non_terminal().unwrap().into_level2().unwrap()
     })))}
 }
 
 //> 1ºLEVEL -> EQUATION
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Equation<'valid> {
     pub left: Level2<'valid>,
     pub right: Level2<'valid>
@@ -128,13 +128,13 @@ pub struct Equation<'valid> {
         _interpreter: &'valid Interpreter<'valid, impl Resolver<'valid>>,
         _filename: &'valid str
     ) -> Option<NonTerminal<'valid>> {return Some(NonTerminal::Level1(Level1::Equation(Self {
-        right: children.pop().unwrap().into_non_terminal().ok().unwrap().into_level2().ok().unwrap(),
-        left: children.pop().unwrap().into_non_terminal().ok().unwrap().into_level2().ok().unwrap()
+        right: children.pop().unwrap().into_non_terminal().unwrap().into_level2().unwrap(),
+        left: children.pop().unwrap().into_non_terminal().unwrap().into_level2().unwrap()
     })))}
 }
 
 //> 1ºLEVEL -> USE
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Use<'valid> {
     pub module: &'valid str,
     pub start: Start<'valid>
@@ -146,10 +146,10 @@ pub struct Use<'valid> {
         interpreter: &'valid Interpreter<'valid, impl Resolver<'valid>>,
         filename: &'valid str
     ) -> Option<NonTerminal<'valid>> {
-        let module = children.pop().unwrap().into_token().ok().unwrap().value;
+        let module = children.pop().unwrap().into_token().unwrap().value;
         context.dependencies.entry(filename).or_default().insert(module);
         return if context.dependencies.entry(module).or_default().contains(filename) {
-            report.issue(Failure::CircularImport(filename, module)).none()
+            report.issue(Failure::CircularImport(filename, module))?
         } else {Some(NonTerminal::Level1(Level1::Use(Self {
             module: module,
             start: solve(

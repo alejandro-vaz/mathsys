@@ -14,7 +14,7 @@ use strum_macros::{
 //^
 
 //> TOKEN -> KIND
-#[derive(Clone, Copy, EnumCount, EnumString, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, EnumCount, EnumString, PartialEq, Eq, Hash, Debug)]
 #[repr(u8)]
 pub enum Kind {
     IDENTIFIER,
@@ -45,7 +45,7 @@ pub enum Kind {
 }
 
 //> TOKEN -> STRUCT
-#[derive(PartialEq, Eq, Hash, Clone)]
+#[derive(PartialEq, Eq, Hash, Clone, Debug)]
 pub struct Token<'input> {
     pub value: &'input str,
     pub kind: Kind

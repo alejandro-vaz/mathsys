@@ -40,13 +40,13 @@ use enum_as_inner::EnumAsInner;
 
 //> 3ºLEVEL -> ENUM
 #[enum_dispatch(LaTeX)]
-#[derive(Clone, EnumAsInner)]
+#[derive(Clone, EnumAsInner, Debug)]
 pub enum Level3<'valid> {
     Term(Term<'valid>)
 }
 
 //> 3ºLEVEL -> TERM
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Term<'valid> {
     pub numerator: Vec<Level4<'valid>>,
     pub denominator: Vec<Level4<'valid>>

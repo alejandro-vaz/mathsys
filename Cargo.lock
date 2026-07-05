@@ -52,9 +52,9 @@ checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
 
 [[package]]
 name = "libutils"
-version = "9.0.2"
+version = "9.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9c45d9d722e8edeb1ad29b8a4a147332f94f4450952212c579b791a087e5c031"
+checksum = "0bbe1e614c41a9034621e049d92104a41cf672b102e83efbc0cb27f07602904a"
 dependencies = [
  "libutils-array",
  "libutils-cage",
@@ -84,9 +84,9 @@ checksum = "37e574f63360d601bf4035c92d9831cb1a8d7760172374101f39d44f08b53e01"
 
 [[package]]
 name = "libutils-console"
-version = "0.1.1"
+version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "38e6bfeb582729506e20fcb0c92fedf01c9d6441b9dcc8776fa17a7418bfdd33"
+checksum = "d75559b5c689db3ca3907ca1a68f042c3a0f42ffd3969a2d5912ee7314649541"
 dependencies = [
  "libutils-issue",
  "libutils-threat",
@@ -112,9 +112,9 @@ checksum = "bf3d711720e83d2757fe3cbc7d8df2324ef1d38621007b280089bcccaf847cda"
 
 [[package]]
 name = "libutils-report"
-version = "0.1.1"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5734ecad269285995ad60afafcf9dd435a10da5689b8ac1a0ad7b378b06c23e4"
+checksum = "a4ff5d641b763ab66c3eb01f494f56ceead6c5881e38f7c635237417ab9b0e8a"
 dependencies = [
  "libutils-console",
  "libutils-issue",
@@ -124,9 +124,9 @@ dependencies = [
 
 [[package]]
 name = "libutils-terminal"
-version = "0.0.2"
+version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fd3dd1a192282d822538b5381950360f3748590639bcab5262196d669740413d"
+checksum = "8e6b7137802ba28471134c5348a66155a061adef4f6a0b6797cda82e44bd0ecb"
 dependencies = [
  "libutils-cage",
  "libutils-console",
@@ -146,7 +146,7 @@ dependencies = [
 
 [[package]]
 name = "mathsys"
-version = "0.0.0"
+version = "0.0.1"
 dependencies = [
  "elsa",
  "enum-as-inner",

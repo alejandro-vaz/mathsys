@@ -1,6 +1,6 @@
 [package]
 name = "mathsys"
-version = "0.0.0"
+version = "0.0.1"
 edition = "2024"
 rust-version = "1.98"
 authors = ["Alejandro Vaz <alejandro.vaz.myt@gmail.com>"]
@@ -30,6 +30,6 @@ strum = "=0.28.0"
 strum_macros = "=0.28.0"
 enum_dispatch = "=0.3.13"
 typed-arena = "=2.0.2"
-libutils = "=9.0.2"
+libutils = "=9.0.3"
 enum-as-inner = "=0.7.0"
 elsa = "=1.11.2"

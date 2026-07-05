@@ -44,14 +44,14 @@ use enum_as_inner::EnumAsInner;
 
 //> 4ºLEVEL -> ENUM
 #[enum_dispatch(LaTeX)]
-#[derive(Clone, EnumAsInner)]
+#[derive(Clone, EnumAsInner, Debug)]
 pub enum Level4<'valid> {
     Factor(Factor<'valid>),
     Limit(Limit<'valid>)
 }
 
 //> 4ºLEVEL -> FACTOR
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Factor<'valid> {
     pub value: Level5<'valid>,
     pub exponent: Option<Level2<'valid>>
@@ -63,13 +63,13 @@ pub struct Factor<'valid> {
         _interpreter: &'valid Interpreter<'valid, impl Resolver<'valid>>,
         _filename: &'valid str
     ) -> Option<NonTerminal<'valid>> {return Some(NonTerminal::Level4(Level4::Factor(Self {
-        value: children.remove(0).into_non_terminal().ok().unwrap().into_level5().ok().unwrap(),
-        exponent: children.pop().map(|item| item.into_non_terminal().ok().unwrap().into_level2().ok().unwrap())
+        value: children.remove(0).into_non_terminal().unwrap().into_level5().unwrap(),
+        exponent: children.pop().map(|item| item.into_non_terminal().unwrap().into_level2().unwrap())
     })))}
 }
 
 //> 4ºLEVEL -> LIMIT
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Limit<'valid> {
     pub variable: Variable<'valid>,
     pub approach: Level2<'valid>,
@@ -85,8 +85,8 @@ pub struct Limit<'valid> {
         _filename: &'valid str
     ) -> Option<NonTerminal<'valid>> {
         let mut iterator = children.into_iter();
-        let variable = iterator.next().unwrap().into_non_terminal().ok().unwrap().into_level5().ok().unwrap().into_variable().ok().unwrap();
-        let approach = iterator.next().unwrap().into_non_terminal().ok().unwrap().into_level2().ok().unwrap();
+        let variable = iterator.next().unwrap().into_non_terminal().unwrap().into_level5().unwrap().into_variable().ok().unwrap();
+        let approach = iterator.next().unwrap().into_non_terminal().unwrap().into_level2().unwrap();
         let mut next = iterator.next();
         let direction = if let Some(Item::Token(token)) = next {next = iterator.next(); Some(token.value == "+")} else {None};
         let Some(Item::NonTerminal(NonTerminal::Level5(Level5::Nest(nest)))) = next else {panic!()};

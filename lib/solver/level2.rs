@@ -43,13 +43,13 @@ use enum_as_inner::EnumAsInner;
 
 //> 2ºLEVEL -> ENUM
 #[enum_dispatch(LaTeX)]
-#[derive(Clone, EnumAsInner)]
+#[derive(Clone, EnumAsInner, Debug)]
 pub enum Level2<'valid> {
     Expression(Expression<'valid>)
 }
 
 //> 2ºLEVEL -> EXPRESSION
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Expression<'valid> {
     pub terms: Vec<(Vec<bool>, Level3<'valid>)>
 } impl<'valid> Spawn<'valid> for Expression<'valid> {

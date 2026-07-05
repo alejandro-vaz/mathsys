@@ -40,7 +40,7 @@ use enum_as_inner::EnumAsInner;
 
 //> NONTERMINAL -> ENUM
 #[enum_dispatch]
-#[derive(Clone, EnumAsInner)]
+#[derive(Clone, EnumAsInner, Debug)]
 pub enum NonTerminal<'valid> {
     Start(Start<'valid>),
     Level1(Level1<'valid>),
@@ -52,7 +52,7 @@ pub enum NonTerminal<'valid> {
 
 //> NONTERMINAL -> ITEM
 #[enum_dispatch]
-#[derive(Clone, EnumAsInner)]
+#[derive(Clone, EnumAsInner, Debug)]
 pub enum Item<'valid> {
     NonTerminal(NonTerminal<'valid>),
     Token(Token<'valid>)

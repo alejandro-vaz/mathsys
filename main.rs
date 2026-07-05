@@ -48,7 +48,7 @@ struct Handler<'valid> {
             Some(cached) => cached,
             None => self.cache.insert(
                 filename, 
-                report.apply(report.apply(TERMINAL.open(filename)).value?.read()).value?
+                report.eat(report.eat(TERMINAL.open(filename))?.read())?
             )
         });
     }
@@ -65,8 +65,8 @@ fn main() -> () {try {
     };
     let file = match TERMINAL.arguments() {
         [Argument::Path(_), Argument::Path(file)] => file,
-        [_, _] => report.issue(Failure::IncorrectArgumentDistribution).none()?,
-        arguments => report.issue(Failure::IncorrectArgumentAmount(arguments.len())).none()?
+        [_, _] => report.issue(Failure::IncorrectArgumentDistribution)?,
+        arguments => report.issue(Failure::IncorrectArgumentAmount(arguments.len()))?
     };
     let latex = interpreter.latex(file, report.to())?;
     TERMINAL.print(&latex).sync();

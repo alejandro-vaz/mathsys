@@ -31,7 +31,7 @@ use crate::{
 //^
 
 //> START -> CLASS
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Start<'valid> {
     pub stream: Vec<Level1<'valid>>
 } impl<'valid> Spawn<'valid> for Start<'valid> {
@@ -42,6 +42,6 @@ pub struct Start<'valid> {
         _interpreter: &'valid Interpreter<'valid, impl Resolver<'valid>>,
         _filename: &'valid str
     ) -> Option<NonTerminal<'valid>> {return Some(NonTerminal::Start(Self {
-        stream: children.into_iter().map(|item| item.into_non_terminal().ok().unwrap().into_level1().ok().unwrap()).collect()
+        stream: children.into_iter().map(|item| item.into_non_terminal().unwrap().into_level1().unwrap()).collect()
     }))}
 }
