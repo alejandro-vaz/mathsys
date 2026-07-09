@@ -1,6 +1,6 @@
 [package]
 name = "mathsys"
-version = "0.0.1"
+version = "0.0.2"
 edition = "2024"
 rust-version = "1.98"
 authors = ["Alejandro Vaz <alejandro.vaz.myt@gmail.com>"]
@@ -24,12 +24,12 @@ strip = true
 debug = false
 
 [dependencies]
-regex = "=1.12.4"
-rustc_version_runtime = "=0.3.0"
-strum = "=0.28.0"
-strum_macros = "=0.28.0"
-enum_dispatch = "=0.3.13"
-typed-arena = "=2.0.2"
-libutils = "=9.0.3"
-enum-as-inner = "=0.7.0"
-elsa = "=1.11.2"
+regex = "1.12"
+rustc_version_runtime = "0.3"
+strum = "0.28"
+strum_macros = "0.28"
+enum_dispatch = "0.3"
+typed-arena = "2.0"
+libutils = "2.0"
+enum-as-inner = "0.7"
+elsa = "1.11"

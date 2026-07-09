@@ -19,11 +19,11 @@ use libutils::{
         Report,
         Name
     },
-    terminal::TERMINAL,
+    terminal::Terminal,
     console::{
         Argument,
         Console,
-        Synchronization,
+        Update,
         Descriptor
     }
 };
@@ -48,7 +48,7 @@ struct Handler<'valid> {
             Some(cached) => cached,
             None => self.cache.insert(
                 filename, 
-                report.eat(report.eat(TERMINAL.open(filename))?.read())?
+                report.eat(report.eat(Terminal.open(filename))?.read())?
             )
         });
     }
@@ -63,11 +63,11 @@ fn main() -> () {try {
         },
         lifetime: PhantomCovariantLifetime::new()
     };
-    let file = match TERMINAL.arguments() {
+    let file = match Terminal.arguments() {
         [Argument::Path(_), Argument::Path(file)] => file,
         [_, _] => report.issue(Failure::IncorrectArgumentDistribution)?,
         arguments => report.issue(Failure::IncorrectArgumentAmount(arguments.len()))?
     };
     let latex = interpreter.latex(file, report.to())?;
-    TERMINAL.print(&latex).sync();
+    Terminal.print(&latex).sync();
 };}

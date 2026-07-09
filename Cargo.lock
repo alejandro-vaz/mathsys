@@ -52,101 +52,94 @@ checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
 
 [[package]]
 name = "libutils"
-version = "9.0.3"
+version = "2.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0bbe1e614c41a9034621e049d92104a41cf672b102e83efbc0cb27f07602904a"
+checksum = "d97db5541a80aaba4d61a7ac3d050543b48b758ca5a60486d6f3fa1b7ee0c8f3"
 dependencies = [
  "libutils-array",
- "libutils-cage",
+ "libutils-cage 0.0.5",
  "libutils-console",
+ "libutils-constrangeiter",
  "libutils-diff",
  "libutils-issue",
- "libutils-pointer",
  "libutils-report",
  "libutils-terminal",
- "libutils-threat",
 ]
 
 [[package]]
 name = "libutils-array"
-version = "0.0.2"
+version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cb3fd0f4869830b902caf1ced8484ed0a1a14e27b9754d4fe034ee0bfbd418ff"
+checksum = "86fd5acf433c0f9f0eb8f55d97aca3b9b795c6fbf3cdcc53f6ed68a81fc1f0cf"
 dependencies = [
- "libutils-issue",
+ "libutils-constrangeiter",
 ]
 
 [[package]]
 name = "libutils-cage"
-version = "0.0.2"
+version = "0.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "37e574f63360d601bf4035c92d9831cb1a8d7760172374101f39d44f08b53e01"
+checksum = "6bebfacefb99100f48289d77128a92d2a28b6447fa7ba32fad89e58b446eaa7f"
+
+[[package]]
+name = "libutils-cage"
+version = "0.0.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b54d35a44ddaca17ccbe4cf4dfba6f09d65f7e194e986a9237c7ca708b5e134b"
 
 [[package]]
 name = "libutils-console"
-version = "1.0.0"
+version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d75559b5c689db3ca3907ca1a68f042c3a0f42ffd3969a2d5912ee7314649541"
+checksum = "7102abcf0ddd920a1b6f1e268c11b388f49ba2e3b9d1b757ad518c1de902743b"
 dependencies = [
  "libutils-issue",
- "libutils-threat",
 ]
 
 [[package]]
-name = "libutils-diff"
-version = "0.0.1"
+name = "libutils-constrangeiter"
+version = "0.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c657d7d2cbb244a1fa7814fc0d5558b010f5a85037a184ba3fca813e89557f51"
+checksum = "73aa85c5727c80f1e8d1e3d4750b56b5bd0dfd47e004cedefa37aaaf30a76e99"
+
+[[package]]
+name = "libutils-diff"
+version = "0.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4fb5503f92c1406c3f9256b718fb2f92c048af09f83827ef00c7624d11954771"
 
 [[package]]
 name = "libutils-issue"
-version = "0.0.1"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b119b570fbd54540575e3681665b6999c21c1cb03769c77f97a22a8ad1e9787a"
-
-[[package]]
-name = "libutils-pointer"
-version = "0.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bf3d711720e83d2757fe3cbc7d8df2324ef1d38621007b280089bcccaf847cda"
+checksum = "3fbbeaa70be7aa2a79423a08d1700cf80d43b1226edc325b8cff8371fe02ec81"
 
 [[package]]
 name = "libutils-report"
-version = "0.2.0"
+version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a4ff5d641b763ab66c3eb01f494f56ceead6c5881e38f7c635237417ab9b0e8a"
+checksum = "b0440ba65d824ffd0733ecaf15d8865776f6cb227b97645182ef3b4fbdf4abab"
 dependencies = [
  "libutils-console",
  "libutils-issue",
  "libutils-terminal",
- "libutils-threat",
 ]
 
 [[package]]
 name = "libutils-terminal"
-version = "0.1.0"
+version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8e6b7137802ba28471134c5348a66155a061adef4f6a0b6797cda82e44bd0ecb"
+checksum = "f11b02f8e4cabe2cb9865877c31e6051158c0779df8103a5d98a384911c98288"
 dependencies = [
- "libutils-cage",
+ "libutils-cage 0.0.4",
  "libutils-console",
  "libutils-diff",
- "libutils-issue",
- "libutils-threat",
-]
-
-[[package]]
-name = "libutils-threat"
-version = "0.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3f9efbfb213222acd43604898bdfa97dbd14c28bc03a8e390b5b8707be14bb01"
-dependencies = [
  "libutils-issue",
 ]
 
 [[package]]
 name = "mathsys"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "elsa",
  "enum-as-inner",
