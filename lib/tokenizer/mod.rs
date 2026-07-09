@@ -33,9 +33,10 @@ pub fn tokenize<'input>(content: &'input str, report: Report<Name<"Tokenizer">>)
     loop {
         let Some((kind, amount)) = scan(bytes, cursor) else {report.issue(Failure::UnknownToken)?};
         tokens.push(Token::new(cursor, amount, kind, &content));
-        if let Kind::ENDOFFILE = kind {return Some(tokens)}
+        if let Kind::ENDOFFILE = kind {break}
         cursor += amount;
     }
+    return Some(tokens);
 }
 
 //> TOKENIZER -> SCAN

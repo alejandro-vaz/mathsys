@@ -7,19 +7,19 @@ It offers a much more natural syntax that follows how math is written in textfil
 ## Usage
 
 1. Install Rust
-    ```bash
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-    ```
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
 
 2. Install Mathsys
-    ````bash
-    cargo install mathsys
-    ```
+```bash
+cargo install mathsys
+```
 
 3. Run Mathsys with a file
-    ```bash
-    cargo run mathsys -- myfile.msm
-    ```
+```bash
+cargo run mathsys -- myfile.msm
+```
 
 ## How it works
 
@@ -27,16 +27,25 @@ The compiling pipeline has multiple phases and is non-linear. Here's a simple ov
 
 ```mermaid
 ---
-title: Mathsys Compiler Pipeline
+title: Mathsys Interpreter Pipeline
 ---
 stateDiagram-v2
     %% states
-    Tokenizer
-    Filter
-    Extensor
-    Parser
-    Solver
-    @LaTeX
+    state Tokenizer {
+        Tokenize
+        Scan
+        Tokenize --> Scan: Next
+        Scan --> Tokenize: Token
+    }
+    state Filter {
+        Filter2: Filter
+    }
+    state Extensor {
+        Extend
+    }
+    state Parser
+    state Solver
+    state @LaTeX
 
     %% edges
     [*] --> Tokenizer: Input

@@ -139,7 +139,7 @@ dependencies = [
 
 [[package]]
 name = "mathsys"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "elsa",
  "enum-as-inner",

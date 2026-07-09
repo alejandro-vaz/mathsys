@@ -1,6 +1,6 @@
 [package]
 name = "mathsys"
-version = "0.0.2"
+version = "0.0.3"
 edition = "2024"
 rust-version = "1.98"
 authors = ["Alejandro Vaz <alejandro.vaz.myt@gmail.com>"]
