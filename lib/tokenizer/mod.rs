@@ -6,9 +6,9 @@
 pub mod token;
 
 //> HEAD -> LIBUTILS
-use libutils::report::{
-    Name, 
-    Report
+use libutils::{
+    active_reporting::Report,
+    systemstd::System
 };
 
 //> HEAD -> TOKEN
@@ -26,79 +26,82 @@ use crate::failure::Failure;
 //^
 
 //> TOKENIZER -> FUNCTION
-pub fn tokenize<'input>(content: &'input str, report: Report<Name<"Tokenizer">>) -> Option<Vec<Token<'input>>> {
+pub fn tokenize<'input>(content: &'input str, report: Report<"Tokenizer">) -> Vec<Token<'input>> {
     let bytes = content.as_bytes();
     let mut tokens = Vec::new();
     let mut cursor = 0usize;
     loop {
-        let Some((kind, amount)) = scan(bytes, cursor) else {report.issue(Failure::UnknownToken)?};
-        tokens.push(Token::new(cursor, amount, kind, &content));
+        let (kind, amount) = System::expect(scan(bytes, cursor), &*report);
+        tokens.push(Token {
+            kind: kind,
+            value: &content[cursor .. cursor + amount]
+        });
         if let Kind::ENDOFFILE = kind {break}
         cursor += amount;
     }
-    return Some(tokens);
+    return tokens;
 }
 
 //> TOKENIZER -> SCAN
-fn scan(bytes: &[u8], cursor: usize) -> Option<(Kind, usize)> {
-    let length = bytes.len();
-    if cursor >= length {return Some((Kind::ENDOFFILE, 0))}
-    let first = unsafe {bytes.get_unchecked(cursor)};
-    return match first {
-        b' ' => {
+fn scan(bytes: &[u8], cursor: usize) -> Result<(Kind, usize), Failure<'_>> {
+    return match bytes.get(cursor) {
+        Some(b' ') => {
             let mut amount = 1;
-            while let Some(b' ') = bytes.get(amount + cursor) {amount += 1}
-            Some((Kind::SPACES, amount))
+            while let Some(b' ') = bytes.get(cursor + amount) {amount += 1}
+            Ok((Kind::SPACES, amount))
         },
-        b'\n' => {
+        Some(b'\n') => {
             let mut amount = 1;
-            while let Some(b'\n') = bytes.get(amount + cursor) {amount += 1}
-            Some((Kind::NEWLINES, amount))
+            while let Some(b'\n') = bytes.get(cursor + amount) {amount += 1}
+            Ok((Kind::NEWLINES, amount))
         },
-        b'#' => {
+        Some(b'#') => {
             let mut amount = 1;
-            while let Some(byte if *byte != b'\n') = bytes.get(amount + cursor) {amount += 1}
-            Some((Kind::COMMENT, amount))
+            while let Some(byte) = bytes.get(cursor + amount) && *byte != b'\n' {amount += 1}
+            Ok((Kind::COMMENT, amount))
         },
-        b'"' => {
+        Some(b'"') => {
             let mut amount = 1;
-            while let Some(byte if *byte != b'"') = bytes.get(amount + cursor) {amount += 1}
-            Some((Kind::MODULE, amount))
+            while let Some(byte) = bytes.get(cursor + amount) && *byte != b'"' {amount += 1}
+            amount += 1;
+            Ok((Kind::MODULE, amount))
         },
-        b'?' => Some((Kind::UNDEFINED, 1)),
-        b'^' => Some((Kind::EXPONENTIATION, 1)),
-        b'|' => Some((Kind::PIPE, 1)),
-        b',' => Some((Kind::COMMA, 1)),
-        b'(' => Some((Kind::OPEN, 1)),
-        b')' => Some((Kind::CLOSE, 1)),
-        b'[' => Some((Kind::ENTER, 1)),
-        b']' => Some((Kind::EXIT, 1)),
-        b'*' | b'/' => Some((Kind::OPERATOR, 1)),
-        b'+' => Some((Kind::SIGN, 1)),
-        b'-' => if let Some(b'>') = bytes.get(cursor + 1) {Some((Kind::TO, 2))} else {Some((Kind::SIGN, 1))}
-        b':' if let Some(b'=') = bytes.get(cursor + 1) => Some((Kind::DEFINITION, 2)),
-        b'=' => Some((Kind::EQUALITY, 1)),
-        b'0'..=b'9' => {
+        Some(b'?') => Ok((Kind::UNDEFINED, 1)),
+        Some(b'^') => Ok((Kind::EXPONENTIATION, 1)),
+        Some(b'|') => Ok((Kind::PIPE, 1)),
+        Some(b',') => Ok((Kind::COMMA, 1)),
+        Some(b'(') => Ok((Kind::OPEN, 1)),
+        Some(b')') => Ok((Kind::CLOSE, 1)),
+        Some(b'[') => Ok((Kind::ENTER, 1)),
+        Some(b']') => Ok((Kind::EXIT, 1)),
+        Some(b'*' | b'/') => Ok((Kind::OPERATOR, 1)),
+        Some(b'+') => Ok((Kind::SIGN, 1)),
+        Some(b'-') => if let Some(b'>') = bytes.get(cursor + 1) {Ok((Kind::TO, 2))} else {Ok((Kind::SIGN, 1))}
+        Some(b':') if let Some(b'=') = bytes.get(cursor + 1) => Ok((Kind::DEFINITION, 2)),
+        Some(b'=') => Ok((Kind::EQUALITY, 1)),
+        Some(b'0'..=b'9') => {
             let mut amount = 1;
             let mut decimal = false;
-            loop {
-                let Some(byte) = bytes.get(cursor + amount) else {break Some((if decimal {Kind::RATIONAL} else {Kind::NUMBER}, amount))};
-                match byte {
-                    b'_' | b'0'..=b'9' => amount += 1,
-                    b'.' => if decimal {break Some((Kind::RATIONAL, amount))} else {decimal = true; amount += 1},
-                    _ => break Some((if decimal {Kind::RATIONAL} else {Kind::NUMBER}, amount)) 
+            while let Some(byte @ (b'_' | b'0'..=b'9' | b'.')) = bytes.get(cursor + amount) {
+                if *byte == b'.' {
+                    if decimal {break} else {decimal = true}
                 }
+                amount += 1;
             }
+            Ok((if decimal {Kind::RATIONAL} else {Kind::NUMBER}, amount))
         },
-        b'u' if let Some(b's') = bytes.get(cursor + 1) && let Some(b'e') = bytes.get(cursor + 2) => Some((Kind::USE, 3)),
-        b'l' if let Some(b'i') = bytes.get(cursor + 1) && let Some(b'm') = bytes.get(cursor + 2) => Some((Kind::LIMIT, 3)),
-        b'i' if let Some(b'n') = bytes.get(cursor + 1) && let Some(b'f') = bytes.get(cursor + 2) => Some((Kind::INFINITE, 3)),
-        b'o' if let Some(b'f') = bytes.get(cursor + 1) => Some((Kind::OF, 2)),
-        b'A'..=b'z' | b'%' | b'$' => {
+        Some(b'u') if let Some(b's') = bytes.get(cursor + 1) && let Some(b'e') = bytes.get(cursor + 2) => Ok((Kind::USE, 3)),
+        Some(b'l') if let Some(b'i') = bytes.get(cursor + 1) && let Some(b'm') = bytes.get(cursor + 2) => Ok((Kind::LIMIT, 3)),
+        Some(b'i') if let Some(b'n') = bytes.get(cursor + 1) && let Some(b'f') = bytes.get(cursor + 2) => Ok((Kind::INFINITE, 3)),
+        Some(b'o') if let Some(b'f') = bytes.get(cursor + 1) => Ok((Kind::OF, 2)),
+        Some(b'A'..=b'Z' | b'a'..=b'z' | b'%' | b'$') => {
             let mut amount = 1;
-            while let Some(b'A'..=b'z' | b'%' | b'$') = bytes.get(cursor + amount) {amount += 1}
-            Some((Kind::IDENTIFIER, amount))
+            while let Some(b'A'..=b'Z' | b'a'..=b'z' | b'%' | b'$') = bytes.get(cursor + amount) {amount += 1}
+            Ok((Kind::IDENTIFIER, amount))
         }
-        _ => None
+        None => Ok((Kind::ENDOFFILE, 0)),
+        _ => Err(Failure::UnknownToken {
+            index: cursor
+        })
     }
 }

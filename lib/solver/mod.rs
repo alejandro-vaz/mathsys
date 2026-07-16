@@ -14,12 +14,8 @@ pub mod types;
 
 //> HEAD -> LIBUTILS
 use libutils::{
-    array::Array,
-    report::{
-        Name,
-        Report,
-        Same
-    }
+    stack_array::Array,
+    active_reporting::Report
 };
 
 //> HEAD -> CRATE
@@ -79,13 +75,13 @@ pub fn solve<'valid>(
     context: Option<&mut Context<'valid>>,
     filename: &'valid str,
     interpreter: &'valid Interpreter<'valid, impl Resolver<'valid>>,
-    mut report: Report<Name<"Solver">>
-) -> Option<Start<'valid>> {
+    mut report: Report<"Solver">
+) -> Start<'valid> {
     let context = match context {
         None => &mut Context::default(),
         Some(previous) => previous
     };
-    return Some(build(
+    return build(
         pool.keys().find(|&item| {
             return if let Parsed::Object(Object::Start) = item.parsed {true} else {false}
         }).unwrap(),
@@ -96,7 +92,7 @@ pub fn solve<'valid>(
         interpreter,
         &mut Map::new(),
         report.to()
-    )?.into_non_terminal().ok().unwrap().into_start().ok().unwrap());
+    ).into_non_terminal().ok().unwrap().into_start().ok().unwrap();
 }
 
 //> SOLVER -> BUILD
@@ -108,11 +104,11 @@ fn build<'valid, 'active>(
     filename: &'valid str,
     interpreter: &'valid Interpreter<'valid, impl Resolver<'valid>>,
     memory: &mut Map<&'active Pointer<'valid>, Subtree<'valid>>,
-    mut report: Report<Same>
-) -> Option<Subtree<'valid>> {
+    mut report: Report<"">
+) -> Subtree<'valid> {
     let writeable = if write {context} else {&mut context.clone()};
-    if !write && let Some(cached) = memory.get(node).cloned() {return Some(cached)}
-    if let Parsed::Token(token) = &node.parsed {return Some(Subtree::Token(token.clone()))}
+    if !write && let Some(cached) = memory.get(node).cloned() {return cached}
+    if let Parsed::Token(token) = &node.parsed {return Subtree::Token(token.clone())}
     let mut children = Vec::new();
     for production in disambiguate(
         pool.get(node).unwrap(),
@@ -122,7 +118,7 @@ fn build<'valid, 'active>(
         interpreter,
         memory,
         report.to()
-    )? {match build(
+    ) {match build(
         production,
         pool,
         writeable,
@@ -131,7 +127,7 @@ fn build<'valid, 'active>(
         interpreter,
         memory,
         report.to()
-    )? {
+    ) {
         Subtree::NonTerminal(nonterminal) => children.push(Item::NonTerminal(nonterminal)),
         Subtree::Token(token) => if let Responsibility::Total = RESPONSIBILITIES[token.kind as usize] {
             children.push(Item::Token(token));
@@ -139,12 +135,12 @@ fn build<'valid, 'active>(
         Subtree::Vec(vec) => children.extend(vec)
     }};
     let partition = match &node.parsed {
-        Parsed::Object(object) => Subtree::NonTerminal(object.summon(children, writeable, report.to(), interpreter, filename)?),
+        Parsed::Object(object) => Subtree::NonTerminal(object.summon(children, writeable, report.to(), interpreter, filename).unwrap()),
         Parsed::usize(_) => Subtree::Vec(children),
         Parsed::Token(_) => unreachable!()
     };
     if !write {memory.insert(node, partition.clone());}
-    return Some(partition);
+    return partition;
 }
 
 //> SOLVER -> DISAMBIGUATE
@@ -155,8 +151,8 @@ fn disambiguate<'valid, 'active>(
     filename: &'valid str,
     interpreter: &'valid Interpreter<'valid, impl Resolver<'valid>>,
     memory: &mut Map<&'active Pointer<'valid>, Subtree<'valid>>,
-    mut report: Report<Same>
-) -> Option<&'active Array<Pointer<'valid>, DERIVATIONS>> {
+    mut report: Report<"">
+) -> &'active Array<Pointer<'valid>, DERIVATIONS> {
     let mut index = 0;
     let mut candidates = Vec::from_iter(candidates);
     while candidates.len() > 1 {
@@ -174,7 +170,7 @@ fn disambiguate<'valid, 'active>(
                 interpreter,
                 memory,
                 report.to()
-            )?));}
+            )));}
         }
         if built.len() > 1 {
             let winner = choose(&built, context);
@@ -182,7 +178,7 @@ fn disambiguate<'valid, 'active>(
         }
         index += 1;
     };
-    return Some(candidates.pop().unwrap());
+    return candidates.pop().unwrap();
 }
 
 //> SOLVER -> CHOOSE

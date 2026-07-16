@@ -25,10 +25,7 @@ use super::{
 };
 
 //> HEAD -> LIBUTILS
-use libutils::report::{
-    Same,
-    Report
-};
+use libutils::active_reporting::Report;
 
 //> HEAD -> ENUM_AS_INNER
 use enum_as_inner::EnumAsInner;
@@ -72,7 +69,7 @@ pub trait Spawn<'valid>: Sized + LaTeX {
     fn spawn(
         children: Vec<Item<'valid>>, 
         context: &mut Context<'valid>, 
-        report: Report<Same>, 
+        report: Report<"">, 
         interpreter: &'valid Interpreter<'valid, impl Resolver<'valid>>,
         filename: &'valid str
     ) -> Option<NonTerminal<'valid>>;

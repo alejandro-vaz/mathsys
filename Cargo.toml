@@ -1,8 +1,8 @@
 [package]
 name = "mathsys"
-version = "0.0.3"
+version = "0.1.0"
 edition = "2024"
-rust-version = "1.98"
+rust-version = "1.99"
 authors = ["Alejandro Vaz <alejandro.vaz.myt@gmail.com>"]
 description = "The Natural Language of Math."
 license = "MIT"
@@ -16,20 +16,27 @@ path = "lib/lib.rs"
 name = "mathsys"
 path = "main.rs"
 
-[profile.release]
+[[bench]]
+name = "tokenizer"
+harness = false
+
 opt-level = 3
 lto = "fat"
 codegen-units = 1
 strip = true
 debug = false
 
+[profile.bench]
+inherits = "release"
+
 [dependencies]
-regex = "1.12"
-rustc_version_runtime = "0.3"
 strum = "0.28"
 strum_macros = "0.28"
 enum_dispatch = "0.3"
 typed-arena = "2.0"
-libutils = "2.0"
 enum-as-inner = "0.7"
 elsa = "1.11"
+libutils = "14.1"
+
+[dev-dependencies]
+criterion = "0.8"

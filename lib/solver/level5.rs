@@ -24,10 +24,7 @@ use crate::{
 };
 
 //> HEAD -> LIBUTILS
-use libutils::report::{
-    Report,
-    Same
-};
+use libutils::active_reporting::Report;
 
 //> HEAD -> ENUM_AS_INNER
 use enum_as_inner::EnumAsInner;
@@ -58,7 +55,7 @@ pub struct Infinite; impl<'valid> Spawn<'valid> for Infinite {
     fn spawn(
         _children: Vec<Item<'valid>>, 
         _context: &mut Context<'valid>, 
-        _report: Report<Same>, 
+        _report: Report<"">, 
         _interpreter: &'valid Interpreter<'valid, impl Resolver<'valid>>,
         _filename: &'valid str
     ) -> Option<NonTerminal<'valid>> {return Some(NonTerminal::Level5(Level5::Infinite(Self)))}
@@ -72,7 +69,7 @@ pub struct Variable<'valid> {
     fn spawn(
         mut children: Vec<Item<'valid>>, 
         _context: &mut Context<'valid>, 
-        _report: Report<Same>, 
+        _report: Report<"">, 
         _interpreter: &'valid Interpreter<'valid, impl Resolver<'valid>>,
         _filename: &'valid str
     ) -> Option<NonTerminal<'valid>> {return Some(NonTerminal::Level5(Level5::Variable(Self {
@@ -88,7 +85,7 @@ pub struct Nest<'valid> {
     fn spawn(
         mut children: Vec<Item<'valid>>, 
         _context: &mut Context<'valid>, 
-        _report: Report<Same>, 
+        _report: Report<"">, 
         _interpreter: &'valid Interpreter<'valid, impl Resolver<'valid>>,
         _filename: &'valid str
     ) -> Option<NonTerminal<'valid>> {return Some(NonTerminal::Level5(Level5::Nest(Self {
@@ -104,7 +101,7 @@ pub struct Vector<'valid> {
     fn spawn(
         children: Vec<Item<'valid>>, 
         _context: &mut Context<'valid>, 
-        _report: Report<Same>, 
+        _report: Report<"">, 
         _interpreter: &'valid Interpreter<'valid, impl Resolver<'valid>>,
         _filename: &'valid str
     ) -> Option<NonTerminal<'valid>> {return Some(NonTerminal::Level5(Level5::Vector(Self {
@@ -120,7 +117,7 @@ pub struct Whole<'valid> {
     fn spawn(
         mut children: Vec<Item<'valid>>, 
         _context: &mut Context<'valid>, 
-        _report: Report<Same>, 
+        _report: Report<"">, 
         _interpreter: &'valid Interpreter<'valid, impl Resolver<'valid>>,
         _filename: &'valid str
     ) -> Option<NonTerminal<'valid>> {return Some(NonTerminal::Level5(Level5::Whole(Self {
@@ -136,7 +133,7 @@ pub struct Absolute<'valid> {
     fn spawn(
         mut children: Vec<Item<'valid>>,
         _context: &mut Context<'valid>, 
-        _report: Report<Same>, 
+        _report: Report<"">, 
         _interpreter: &'valid Interpreter<'valid, impl Resolver<'valid>>,
         _filename: &'valid str
     ) -> Option<NonTerminal<'valid>> {return Some(NonTerminal::Level5(Level5::Absolute(Self {
@@ -150,7 +147,7 @@ pub struct Undefined; impl<'valid> Spawn<'valid> for Undefined {
     fn spawn(
         _children: Vec<Item<'valid>>, 
         _context: &mut Context<'valid>, 
-        _report: Report<Same>, 
+        _report: Report<"">, 
         _interpreter: &'valid Interpreter<'valid, impl Resolver<'valid>>,
         _filename: &'valid str
     ) -> Option<NonTerminal<'valid>> {return Some(NonTerminal::Level5(Level5::Undefined(Self)))}
@@ -164,7 +161,7 @@ pub struct Rational<'valid> {
     fn spawn(
         mut children: Vec<Item<'valid>>, 
         _context: &mut Context<'valid>, 
-        _report: Report<Same>, 
+        _report: Report<"">, 
         _interpreter: &'valid Interpreter<'valid, impl Resolver<'valid>>,
         _filename: &'valid str
     ) -> Option<NonTerminal<'valid>> {return Some(NonTerminal::Level5(Level5::Rational(Self {
@@ -181,7 +178,7 @@ pub struct Call<'valid> {
     fn spawn(
         mut children: Vec<Item<'valid>>, 
         _context: &mut Context<'valid>, 
-        _report: Report<Same>, 
+        _report: Report<"">, 
         _interpreter: &'valid Interpreter<'valid, impl Resolver<'valid>>,
         _filename: &'valid str
     ) -> Option<NonTerminal<'valid>> {return Some(NonTerminal::Level5(Level5::Call(Self {

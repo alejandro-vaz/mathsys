@@ -3,17 +3,10 @@
 //^
 
 //> HEAD -> MODULES
-pub mod grammar;
 pub mod types;
 
 //> HEAD -> LIBUTILS
-use libutils::{
-    report::{
-        Report,
-        Name
-    },
-    array::Array
-};
+use libutils::stack_array::Array;
 
 //> HEAD -> STD
 use std::collections::HashMap as Map;
@@ -26,8 +19,11 @@ use types::{
     LENGTH
 };
 
-//> HEAD -> GRAMMAR
-use grammar::GRAMMAR;
+//> HEAD -> CRATE
+use crate::reducer::{
+    WIDTH,
+    DELIMITER
+};
 
 
 //^
@@ -36,11 +32,11 @@ use grammar::GRAMMAR;
 
 //> EXTENSOR -> FUNCTION
 pub fn extend(
-    _report: Report<Name<"Extensor">>
-) -> Option<Map<Rule, Array<Array<Symbol, LENGTH>, DERIVATIONS>>> {
+    grammar: [&'static str; WIDTH]
+) -> Map<Rule, Array<Array<Symbol, LENGTH>, DERIVATIONS>> {
     let mut map = Map::new();
-    for line in GRAMMAR {
-        let (rule, productions) = line.split_once(':').unwrap();
+    for line in grammar {
+        let (rule, productions) = line.split_once(Into::<&'static str>::into(DELIMITER)).unwrap();
         let rule = rule.into();
         for variant in productions.split('|').map(str::trim) {
             map.entry(rule).or_insert_with(Array::new).push(if variant.is_empty() {
@@ -50,5 +46,5 @@ pub fn extend(
             })
         }
     }
-    return Some(map);
+    return map;
 }

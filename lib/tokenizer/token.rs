@@ -15,7 +15,6 @@ use strum_macros::{
 
 //> TOKEN -> KIND
 #[derive(Clone, Copy, EnumCount, EnumString, PartialEq, Eq, Hash, Debug)]
-#[repr(u8)]
 pub enum Kind {
     IDENTIFIER,
     MODULE,
@@ -49,9 +48,4 @@ pub enum Kind {
 pub struct Token<'input> {
     pub value: &'input str,
     pub kind: Kind
-} impl<'input> Token<'input> {
-    pub fn new(cursor: usize, length: usize, kind: Kind, string: &'input str) -> Self {return Self {
-        value: &string[cursor .. cursor + length],
-        kind: kind
-    }}
 }

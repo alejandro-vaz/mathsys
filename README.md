@@ -40,6 +40,9 @@ stateDiagram-v2
     state Filter {
         Filter2: Filter
     }
+    state Reducer {
+        Reduce
+    }
     state Extensor {
         Extend
     }
@@ -51,8 +54,9 @@ stateDiagram-v2
     [*] --> Tokenizer: Input
     Tokenizer --> Filter: Tokens
     Filter --> Parser: FilteredTokens
-    Extensor --> Parser: Grammar
-    Parser --> Solver: SPPF
+    Reducer --> Extensor: Grammar
+    Extensor --> Parser: Syntax
+    Parser --> Solver: Forest
     Solver --> Tokenizer: Import
     Solver --> @LaTeX: Start
     @LaTeX --> [*]: String
@@ -69,6 +73,10 @@ This architecture was chosen because it is fast and reliable. It does not suppor
 The filter takes the tokenized input and filters for undesirable tokens that do not participate in the lexical analysis in any way, like comments.
 
 The tokenizer does not directly skip these undesirable tokens because syntax highlighting (e.g. for IDEs) needs a tokenstream encompassing the full document span, which the tokenizer provides.
+
+### Reducer
+
+The reducer takes the EBNF-written grammar and lowers it to BNF. This process is delegated to the crate `ebnftobnf` which does so automatically.
 
 ### Extensor
 

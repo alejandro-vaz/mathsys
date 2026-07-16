@@ -17,13 +17,7 @@ use crate::{
 };
 
 //> HEAD -> LIBUTILS
-use libutils::{
-    report::{
-        Name,
-        Report
-    },
-    array::Array
-};
+use libutils::stack_array::Array;
 
 //> HEAD -> STD
 use std::collections::{
@@ -50,9 +44,8 @@ use types::{
 //> PARSER -> FUNCTION
 pub fn parse<'valid>(
     tokens: Vec<Token<'valid>>, 
-    grammar: Map<Rule, Array<Array<Symbol, LENGTH>, DERIVATIONS>>, 
-    _report: Report<Name<"Parser">>
-) -> Option<Map<Pointer<'valid>, Set<Array<Pointer<'valid>, DERIVATIONS>>>> {
+    grammar: Map<Rule, Array<Array<Symbol, LENGTH>, DERIVATIONS>>
+) -> Map<Pointer<'valid>, Set<Array<Pointer<'valid>, DERIVATIONS>>> {
     let states = Arena::default();
     let pointers = Arena::default();
     let mut chart = Vec::<Map<&State, Set<Array<&Pointer<'valid>, DERIVATIONS>>>>::with_capacity(tokens.len() + 1);
@@ -87,7 +80,7 @@ pub fn parse<'valid>(
             }
         }
     }
-    return Some(pool.into_iter().map(|(backpointer, set)| (backpointer.clone(), set.into_iter().flat_map(|(index, state)| chart[index].get(state).into_iter().flat_map(|set| set.iter()).map(|small| small.iter().map(|pointer| (*pointer).clone()).collect::<Array<Pointer<'valid>, DERIVATIONS>>()).collect::<Vec<_>>()).collect())).collect());
+    return pool.into_iter().map(|(backpointer, set)| (backpointer.clone(), set.into_iter().flat_map(|(index, state)| chart[index].get(state).into_iter().flat_map(|set| set.iter()).map(|small| small.iter().map(|pointer| (*pointer).clone()).collect::<Array<Pointer<'valid>, DERIVATIONS>>()).collect::<Vec<_>>()).collect())).collect();
 }
 
 //> PARSER -> ENQUEUE

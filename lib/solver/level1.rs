@@ -28,13 +28,14 @@ use crate::{
     extensor::extend,
     solver::solve,
     Resolver,
-    failure::Failure
+    failure::Failure,
+    reducer::reduce
 };
 
 //> HEAD -> LIBUTILS
-use libutils::report::{
-    Report,
-    Same
+use libutils::{
+    active_reporting::Report,
+    systemstd::System
 };
 
 //> ENUM_AS_INNER
@@ -63,9 +64,9 @@ pub struct Definition<'valid> {
     pub value: Level2<'valid>
 } impl<'valid> Spawn<'valid> for Definition<'valid> {
     fn spawn(
-        mut children: Vec<Item<'valid>>, 
-        _context: &mut Context<'valid>, 
-        _report: Report<Same>, 
+        mut children: Vec<Item<'valid>>,
+        _context: &mut Context<'valid>,
+        _report: Report<"">,
         _interpreter: &'valid Interpreter<'valid, impl Resolver<'valid>>,
         _filename: &'valid str
     ) -> Option<NonTerminal<'valid>> {return Some(NonTerminal::Level1(Level1::Definition(Self {
@@ -82,9 +83,9 @@ pub struct Function<'valid> {
     pub expression: Level2<'valid>
 } impl<'valid> Spawn<'valid> for Function<'valid> {
     fn spawn(
-        mut children: Vec<Item<'valid>>, 
-        context: &mut Context<'valid>, 
-        _report: Report<Same>, 
+        mut children: Vec<Item<'valid>>,
+        context: &mut Context<'valid>,
+        _report: Report<"">,
         _interpreter: &'valid Interpreter<'valid, impl Resolver<'valid>>,
         _filename: &'valid str
     ) -> Option<NonTerminal<'valid>> {
@@ -105,9 +106,9 @@ pub struct Node<'valid> {
     pub value: Level2<'valid>
 } impl<'valid> Spawn<'valid> for Node<'valid> {
     fn spawn(
-        mut children: Vec<Item<'valid>>, 
-        _context: &mut Context<'valid>, 
-        _report: Report<Same>, 
+        mut children: Vec<Item<'valid>>,
+        _context: &mut Context<'valid>,
+        _report: Report<"">,
         _interpreter: &'valid Interpreter<'valid, impl Resolver<'valid>>,
         _filename: &'valid str
     ) -> Option<NonTerminal<'valid>> {return Some(NonTerminal::Level1(Level1::Node(Self {
@@ -122,9 +123,9 @@ pub struct Equation<'valid> {
     pub right: Level2<'valid>
 } impl<'valid> Spawn<'valid> for Equation<'valid> {
     fn spawn(
-        mut children: Vec<Item<'valid>>, 
-        _context: &mut Context<'valid>, 
-        _report: Report<Same>, 
+        mut children: Vec<Item<'valid>>,
+        _context: &mut Context<'valid>,
+        _report: Report<"">,
         _interpreter: &'valid Interpreter<'valid, impl Resolver<'valid>>,
         _filename: &'valid str
     ) -> Option<NonTerminal<'valid>> {return Some(NonTerminal::Level1(Level1::Equation(Self {
@@ -140,35 +141,37 @@ pub struct Use<'valid> {
     pub start: Start<'valid>
 } impl<'valid> Spawn<'valid> for Use<'valid> {
     fn spawn(
-        mut children: Vec<Item<'valid>>, 
-        context: &mut Context<'valid>, 
-        mut report: Report<Same>, 
+        mut children: Vec<Item<'valid>>,
+        context: &mut Context<'valid>,
+        mut report: Report<"">,
         interpreter: &'valid Interpreter<'valid, impl Resolver<'valid>>,
         filename: &'valid str
     ) -> Option<NonTerminal<'valid>> {
-        let module = children.pop().unwrap().into_token().unwrap().value;
+        let module = children.pop().unwrap().into_token().unwrap().value.strip_circumfix('"', '"').unwrap();
         context.dependencies.entry(filename).or_default().insert(module);
         return if context.dependencies.entry(module).or_default().contains(filename) {
-            report.issue(Failure::CircularImport(filename, module))?
+            System::critical(Failure::CircularImport {
+                from: filename,
+                to: module
+            }, &*report);
         } else {Some(NonTerminal::Level1(Level1::Use(Self {
             module: module,
             start: solve(
                 parse(
-                    filter(
-                        tokenize(
-                            interpreter.resolver.resolve(module, report.to())?,
+                    filter(tokenize(
+                        interpreter.resolver.resolve(
+                            module,
                             report.to()
-                        )?,
+                        ),
                         report.to()
-                    )?,
-                    extend(report.to())?,
-                    report.to()
-                )?,
+                    )),
+                    extend(reduce()),
+                ),
                 Some(context),
                 module,
                 interpreter,
                 report.to()
-            )?
+            )
         })))};
     }
 }

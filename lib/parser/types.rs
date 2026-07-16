@@ -14,7 +14,7 @@ use crate::{
 };
 
 //> HEAD -> LIBUTILS
-use libutils::array::Array;
+use libutils::stack_array::Array;
 
 //> HEAD -> ENUM_DISPATCH
 use enum_dispatch::enum_dispatch;
@@ -26,7 +26,7 @@ use enum_dispatch::enum_dispatch;
 
 //> TYPES -> PARSED
 #[enum_dispatch]
-#[derive(PartialEq, Eq, Hash, Clone)]
+#[derive(PartialEq, Eq, Hash, Clone, Debug)]
 pub enum Parsed<'valid> {
     Object,
     #[allow(nonstandard_style)]
@@ -49,7 +49,7 @@ pub struct State<'grammar> {
 }
 
 //> TYPES -> POINTER
-#[derive(PartialEq, Eq, Hash, Clone)]
+#[derive(PartialEq, Eq, Hash, Clone, Debug)]
 pub struct Pointer<'valid> {
     pub parsed: Parsed<'valid>,
     pub start: usize,

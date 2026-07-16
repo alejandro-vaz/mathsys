@@ -8,12 +8,6 @@ use super::tokenizer::token::{
     Token
 };
 
-//> HEAD -> LIBUTILS
-use libutils::report::{
-    Report,
-    Name
-};
-
 //> HEAD -> STRUM
 use strum::EnumCount;
 
@@ -68,8 +62,7 @@ pub static RESPONSIBILITIES: [Responsibility; Kind::COUNT] = {
 
 //> FILTER -> FUNCTION
 pub fn filter<'valid>(
-    tokens: Vec<Token<'valid>>, 
-    _report: Report<Name<"Filter">>
-) -> Option<Vec<Token<'valid>>> {return Some(tokens.into_iter().filter(|token| {
-    if let Responsibility::Null = RESPONSIBILITIES[token.kind as usize] {false} else {true}
-}).collect())}
+    tokens: Vec<Token<'valid>>
+) -> Vec<Token<'valid>> {return tokens.into_iter().filter(|token| {
+    if let Kind::SPACES | Kind::COMMENT = token.kind {false} else {true}
+}).collect()}

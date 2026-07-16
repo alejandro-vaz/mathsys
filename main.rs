@@ -3,36 +3,37 @@
 //^
 
 //> HEAD -> FEATURES
-#![feature(try_blocks)]
 #![feature(phantom_variance_markers)]
+
+//> HEAD -> MODULES
+mod interfaceerror;
 
 //> HEAD -> MATHSYS
 use mathsys::{
     Interpreter,
-    Failure,
     Resolver
 };
 
 //> HEAD -> LIBUTILS
 use libutils::{
-    report::{
+    active_reporting::{
         Report,
-        Name
+         Root
     },
-    terminal::Terminal,
-    console::{
-        Argument,
-        Console,
-        Update,
-        Descriptor
+    systemstd::{
+        System,
+        Argument
     }
 };
+
+//> HEAD -> CORE
+use core::marker::PhantomCovariantLifetime;
 
 //> HEAD -> ELSA
 use elsa::FrozenMap;
 
-//> HEAD -> CORE
-use core::marker::PhantomCovariantLifetime;
+//> HEAD -> INTERFACEERROR
+pub use interfaceerror::InterfaceError;
 
 
 //^
@@ -43,31 +44,42 @@ use core::marker::PhantomCovariantLifetime;
 struct Handler<'valid> {
     cache: FrozenMap<&'valid str, String>
 } impl<'valid> Resolver<'valid> for Handler<'valid> {
-    fn resolve(&'valid self, filename: &'valid str, report: Report<Name<'_, "Resolver">>) -> Option<&'valid str> {
-        return Some(match self.cache.get(filename) {
+    fn resolve(&'valid self, filename: &'valid str, report: Report<"Resolver">) -> &'valid str {
+        return match self.cache.get(filename) {
             Some(cached) => cached,
             None => self.cache.insert(
-                filename, 
-                report.eat(report.eat(Terminal.open(filename))?.read())?
+                filename,
+                System::expect(System::expect(System::open(filename), &*report).read(), &*report)
             )
-        });
+        };
     }
 }
 
 //> MAIN -> FUNCTION
-fn main() -> () {try {
-    let mut report = Report::default();
+fn main() -> () {
+    let mut root = Root::default();
     let interpreter = Interpreter {
-        resolver: Handler {
+            resolver: Handler {
             cache: FrozenMap::new()
         },
         lifetime: PhantomCovariantLifetime::new()
     };
-    let file = match Terminal.arguments() {
-        [Argument::Path(_), Argument::Path(file)] => file,
-        [_, _] => report.issue(Failure::IncorrectArgumentDistribution)?,
-        arguments => report.issue(Failure::IncorrectArgumentAmount(arguments.len()))?
+    let (target, arguments) = match System::arguments() {
+        [Argument::Target(target), arguments @ ..] => (target, arguments),
+        [Argument::Path(_), Argument::Target(target), arguments @ ..] => (target, arguments),
+        _ => System::critical(InterfaceError::TargetNotProvided, &*root)
     };
-    let latex = interpreter.latex(file, report.to())?;
-    Terminal.print(&latex).sync();
-};}
+    let output = match target.as_str() {
+        "latex" => {
+            let file = match arguments {
+                [Argument::Path(file)] => file,
+                _ => System::critical(InterfaceError::IncorrectLatexArguments, &*root)
+            };
+            interpreter.latex(file, root.to())
+        },
+        name => System::critical(InterfaceError::UnknownTarget {
+            name: name
+        }, &*root)
+    };
+    System::print(output);
+}

@@ -49,10 +49,7 @@ use enum_dispatch::enum_dispatch;
 use strum_macros::EnumString;
 
 //> HEAD -> LIBUTILS
-use libutils::report::{
-    Same,
-    Report
-};
+use libutils::active_reporting::Report;
 
 
 //^
@@ -64,7 +61,7 @@ pub const DERIVATIONS: usize = 9;
 pub const LENGTH: usize = 8;
 
 //> TYPES -> OBJECT
-#[derive(EnumString, PartialEq, Eq, Hash, Clone, Copy)]
+#[derive(EnumString, PartialEq, Eq, Hash, Clone, Copy, Debug)]
 pub enum Object {
     Start,
     Level1,
@@ -95,7 +92,7 @@ pub enum Object {
         &self, 
         mut children: Vec<Item<'valid>>, 
         context: &mut Context<'valid>, 
-        mut report: Report<Same>, 
+        mut report: Report<"">, 
         interpreter: &'valid Interpreter<'valid, impl Resolver<'valid>>,
         filename: &'valid str
     ) -> Option<NonTerminal<'valid>> {return match self {
@@ -124,7 +121,7 @@ pub enum Object {
 
 //> TYPES -> RULE
 #[enum_dispatch]
-#[derive(PartialEq, Eq, Hash, Clone, Copy)]
+#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
 pub enum Rule {
     Object,
     #[allow(nonstandard_style)]
@@ -139,7 +136,7 @@ pub enum Rule {
 
 //> TYPES -> SYMBOL
 #[enum_dispatch]
-#[derive(PartialEq, Eq, Hash, Clone, Copy)]
+#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
 pub enum Symbol {
     Object,
     #[allow(nonstandard_style)]
