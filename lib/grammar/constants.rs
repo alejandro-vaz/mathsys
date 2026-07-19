@@ -1,0 +1,9 @@
+//^
+//^ CONSTANTS
+//^
+
+//> CONSTANTS -> DERIVATIONS
+pub const DERIVATIONS: usize = 9;
+
+//> CONSTANTS -> DERIVATION LENGTH
+pub const DERIVATION_LENGTH: usize = 8;

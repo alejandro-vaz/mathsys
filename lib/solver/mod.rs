@@ -24,9 +24,9 @@ use crate::{
         Pointer,
         Parsed
     },
-    extensor::types::{
-        Object,
-        DERIVATIONS
+    grammar::{
+        object::Object,
+        constants::DERIVATIONS
     },
     filter::{
         Responsibility,

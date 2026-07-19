@@ -24,15 +24,18 @@ impl Into<Issue> for InterfaceError {
     fn into(self) -> Issue {return match self {
         InterfaceError::UnknownTarget {name} => Issue {
             name: "unknown target",
-            description: Some(format!("Unknown target found: {name:?}"))
+            description: Some(format!("unknown target found: {name:?}")),
+            ..
         },
         InterfaceError::TargetNotProvided => Issue {
             name: "target not provided",
-            description: Some(String::from("Interpreter target was not provided"))
+            description: Some(String::from("interpreter target was not provided")),
+            ..
         },
         Self::IncorrectLatexArguments => Issue {
             name: "incorrect arguments for latex",
-            description: Some(format!("usage: `mathsys latex (FILE)`"))
+            description: Some(format!("usage: `mathsys latex (FILE)`")),
+            ..
         }
-    }}
+    }.assert_normal()}
 }

@@ -35,9 +35,10 @@ impl<'valid> LaTeX for Variable<'valid> {
 
 //> 5ºLEVEL -> NEST
 impl<'valid> LaTeX for Nest<'valid> {
-    fn render(&self) -> String {
-        return format!(r"\left( {}\right) ", self.value.as_ref().map(LaTeX::render).unwrap_or_default())
-    }
+    fn render(&self) -> String {return format!(
+        r"\left( {}\right) ", 
+        self.value.as_ref().map(LaTeX::render).unwrap_or_default()
+    )}
 }
 
 //> 5ºLEVEL -> VECTOR

@@ -25,11 +25,10 @@ use libutils::{
         Root,
         Report
     },
-    systemio::{
-        SystemIO,
-        Descriptor
-    },
-    systemstd::System
+    systemstd::{
+        System,
+        OpenMode
+    }
 };
 
 //> HEAD -> CORE
@@ -54,12 +53,19 @@ criterion_main!(tokenizer);
 struct Handler<'valid> {
     cache: FrozenMap<&'valid str, String>
 } impl<'valid> Resolver<'valid> for Handler<'valid> {
-    fn resolve(&'valid self, filename: &'valid str, report: Report<"Resolver">) -> &'valid str {
+    fn resolve(
+        &'valid self, 
+        filename: &'valid str, 
+        report: Report<"Resolver">
+    ) -> &'valid str {
         return match self.cache.get(filename) {
             Some(cached) => cached,
             None => self.cache.insert(
                 filename, 
-                System::expect(System::expect(System::open(filename), &*report).read(), &*report)
+                System::expect(System::expect(
+                    System::path(filename).file::<{OpenMode::Read}>(None), 
+                    &*report
+                ).read(), &*report)
             )
         };
     }
@@ -74,7 +80,10 @@ fn benches(criterion: &mut Criterion) -> () {
         lifetime: PhantomCovariantLifetime::new(),
         resolver: Handler {
             cache: FrozenMap::new()
-        }
+        },
+        warning: |failure, chain| System::warning(failure, chain),
+        error: |failure, chain| System::error(failure, chain),
+        critical: |failure, chain| System::critical(failure, chain)
     };
     group.bench_function("full", |bencher| bencher.iter(|| {
         let result = interpreter.latex("std/file.msm", root.to());

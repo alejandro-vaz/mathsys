@@ -43,7 +43,11 @@ impl<'valid> LaTeX for Node<'valid> {
 
 //> 1ºLEVEL -> EQUATION
 impl<'valid> LaTeX for Equation<'valid> {
-    fn render(&self) -> String {return format!("{}={}", self.left.render(), self.right.render())}
+    fn render(&self) -> String {return format!(
+        "{}={}", 
+        self.left.render(), 
+        self.right.render()
+    )}
 }
 
 //> 1ºLEVEL -> USE

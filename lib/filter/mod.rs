@@ -3,9 +3,9 @@
 //^
 
 //> HEAD -> SUPER
-use super::tokenizer::token::{
-    Kind,
-    Token
+use super::tokenizer::{
+    token::Token,
+    kind::Kind
 };
 
 //> HEAD -> STRUM

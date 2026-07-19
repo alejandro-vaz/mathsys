@@ -25,18 +25,13 @@ use crate::{
     filter::filter,
     Interpreter,
     parser::parse,
-    extensor::extend,
     solver::solve,
     Resolver,
-    failure::Failure,
-    reducer::reduce
+    failure::Failure
 };
 
 //> HEAD -> LIBUTILS
-use libutils::{
-    active_reporting::Report,
-    systemstd::System
-};
+use libutils::active_reporting::Report;
 
 //> ENUM_AS_INNER
 use enum_as_inner::EnumAsInner;
@@ -69,10 +64,12 @@ pub struct Definition<'valid> {
         _report: Report<"">,
         _interpreter: &'valid Interpreter<'valid, impl Resolver<'valid>>,
         _filename: &'valid str
-    ) -> Option<NonTerminal<'valid>> {return Some(NonTerminal::Level1(Level1::Definition(Self {
-        variable: children.remove(0).into_non_terminal().unwrap().into_level5().unwrap().into_variable().unwrap(),
-        value: children.pop().unwrap().into_non_terminal().unwrap().into_level2().unwrap()
-    })))}
+    ) -> Option<NonTerminal<'valid>> {
+        return Some(NonTerminal::Level1(Level1::Definition(Self {
+            variable: children.remove(0).into_non_terminal().unwrap().into_level5().unwrap().into_variable().unwrap(),
+            value: children.pop().unwrap().into_non_terminal().unwrap().into_level2().unwrap()
+        })));
+    }
 }
 
 //> 1ºLEVEL -> FUNCTION
@@ -150,23 +147,21 @@ pub struct Use<'valid> {
         let module = children.pop().unwrap().into_token().unwrap().value.strip_circumfix('"', '"').unwrap();
         context.dependencies.entry(filename).or_default().insert(module);
         return if context.dependencies.entry(module).or_default().contains(filename) {
-            System::critical(Failure::CircularImport {
-                from: filename,
-                to: module
+            (interpreter.critical)(Failure::CircularImport { 
+                from: filename, 
+                to: module 
             }, &*report);
         } else {Some(NonTerminal::Level1(Level1::Use(Self {
             module: module,
             start: solve(
-                parse(
-                    filter(tokenize(
-                        interpreter.resolver.resolve(
-                            module,
-                            report.to()
-                        ),
+                parse(filter(tokenize(
+                    interpreter.resolver.resolve(
+                        module,
                         report.to()
-                    )),
-                    extend(reduce()),
-                ),
+                    ),
+                    report.to(),
+                    interpreter
+                ))),
                 Some(context),
                 module,
                 interpreter,

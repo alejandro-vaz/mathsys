@@ -4,11 +4,11 @@
 
 //> HEAD -> CRATE
 use crate::{
-    extensor::types::{
-        Rule,
-        Symbol,
-        LENGTH,
-        Object
+    grammar::{
+        rule::Rule,
+        symbol::Symbol,
+        constants::DERIVATION_LENGTH,
+        object::Object
     },
     tokenizer::token::Token
 };
@@ -41,9 +41,9 @@ pub enum Parsed<'valid> {
 
 //> TYPES -> STATE
 #[derive(PartialEq, Eq, Hash)]
-pub struct State<'grammar> {
+pub struct State {
     pub rule: Rule,
-    pub variant: &'grammar Array<Symbol, LENGTH>,
+    pub variant: &'static Array<Symbol, DERIVATION_LENGTH>,
     pub slot: usize,
     pub starting: usize
 }

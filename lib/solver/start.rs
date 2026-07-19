@@ -39,6 +39,8 @@ pub struct Start<'valid> {
         _interpreter: &'valid Interpreter<'valid, impl Resolver<'valid>>,
         _filename: &'valid str
     ) -> Option<NonTerminal<'valid>> {return Some(NonTerminal::Start(Self {
-        stream: children.into_iter().map(|item| item.into_non_terminal().unwrap().into_level1().unwrap()).collect()
+        stream: children.into_iter().map(|item| {
+            item.into_non_terminal().unwrap().into_level1().unwrap()
+        }).collect()
     }))}
 }

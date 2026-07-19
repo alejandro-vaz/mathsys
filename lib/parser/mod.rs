@@ -7,11 +7,11 @@ pub mod types;
 
 //> HEAD -> CRATE
 use crate::{
-    extensor::types::{
-        DERIVATIONS,
-        LENGTH,
-        Rule,
-        Symbol
+    grammar::{
+        constants::DERIVATIONS,
+        GRAMMAR,
+        rule::Rule,
+        symbol::Symbol
     },
     tokenizer::token::Token
 };
@@ -44,7 +44,6 @@ use types::{
 //> PARSER -> FUNCTION
 pub fn parse<'valid>(
     tokens: Vec<Token<'valid>>, 
-    grammar: Map<Rule, Array<Array<Symbol, LENGTH>, DERIVATIONS>>
 ) -> Map<Pointer<'valid>, Set<Array<Pointer<'valid>, DERIVATIONS>>> {
     let states = Arena::default();
     let pointers = Arena::default();
@@ -54,7 +53,7 @@ pub fn parse<'valid>(
     waiting.resize_with(tokens.len() + 1, Map::new);
     let root = states.alloc(State {
         rule: Rule::usize(0),
-        variant: &grammar.get(&Rule::usize(0)).unwrap()[0],
+        variant: &GRAMMAR.get(&Rule::usize(0)).unwrap()[0],
         slot: 0,
         starting: 0
     });
@@ -76,7 +75,7 @@ pub fn parse<'valid>(
             } else if let (Some(Symbol::Kind(kind)), Some(value)) = (state.variant.get(state.slot), token) && *kind == value.kind {
                 scan(index, state, value, &mut waiting, &mut chart, &states, &pointers);
             } else {
-                predict(index, state, &mut agenda, &mut queue, &seen, &completed, &mut pool, &mut waiting, &mut chart, &states, &pointers, &grammar);
+                predict(index, state, &mut agenda, &mut queue, &seen, &completed, &mut pool, &mut waiting, &mut chart, &states, &pointers);
             }
         }
     }
@@ -84,27 +83,27 @@ pub fn parse<'valid>(
 }
 
 //> PARSER -> ENQUEUE
-fn enqueue<'grammar, 'arena>(
-    state: &'arena State<'grammar>, 
-    agenda: &mut Deque<&'arena State<'grammar>>, 
-    queue: &mut Set<&'arena State<'grammar>>, 
-    seen: &Set<&'arena State<'grammar>>
+fn enqueue<'arena>(
+    state: &'arena State, 
+    agenda: &mut Deque<&'arena State>, 
+    queue: &mut Set<&'arena State>, 
+    seen: &Set<&'arena State>
 ) -> () {
     if !seen.contains(&state) && queue.insert(state) {agenda.push_back(state)}
 }
 
 //> PARSER -> COMPLETE
-fn complete<'valid, 'grammar, 'arena, 'land>(
+fn complete<'valid, 'arena, 'land>(
     index: usize, 
-    state: &'arena State<'grammar>, 
-    agenda: &mut Deque<&'arena State<'grammar>>, 
-    queue: &mut Set<&'arena State<'grammar>>,
-    seen: &Set<&'arena State<'grammar>>,
-    completed: &mut Map<Symbol, Set<&'arena State<'grammar>>>,
-    pool: &mut Map<&'land Pointer<'valid>, Set<(usize, &'arena State<'grammar>)>>,
-    waiting: &mut Vec<Map<&'grammar Symbol, Set<&'arena State<'grammar>>>>, 
-    chart: &mut Vec<Map<&'arena State<'grammar>, Set<Array<&'land Pointer<'valid>, DERIVATIONS>>>>,
-    states: &'arena Arena<State<'grammar>>,
+    state: &'arena State, 
+    agenda: &mut Deque<&'arena State>, 
+    queue: &mut Set<&'arena State>,
+    seen: &Set<&'arena State>,
+    completed: &mut Map<Symbol, Set<&'arena State>>,
+    pool: &mut Map<&'land Pointer<'valid>, Set<(usize, &'arena State)>>,
+    waiting: &mut Vec<Map<&'static Symbol, Set<&'arena State>>>, 
+    chart: &mut Vec<Map<&'arena State, Set<Array<&'land Pointer<'valid>, DERIVATIONS>>>>,
+    states: &'arena Arena<State>,
     pointers: &'land Arena<Pointer<'valid>>
 ) -> () {
     let symbol = state.rule.into();
@@ -113,13 +112,13 @@ fn complete<'valid, 'grammar, 'arena, 'land>(
 }
 
 //> PARSER -> SCAN
-fn scan<'valid, 'grammar, 'arena, 'land>(
+fn scan<'valid, 'arena, 'land>(
     index: usize,
-    state: &'arena State<'grammar>,
+    state: &'arena State,
     token: &Token<'valid>,
-    waiting: &mut Vec<Map<&'grammar Symbol, Set<&'arena State<'grammar>>>>,
-    chart: &mut Vec<Map<&'arena State<'grammar>, Set<Array<&'land Pointer<'valid>, DERIVATIONS>>>>,
-    states: &'arena Arena<State<'grammar>>,
+    waiting: &mut Vec<Map<&'static Symbol, Set<&'arena State>>>,
+    chart: &mut Vec<Map<&'arena State, Set<Array<&'land Pointer<'valid>, DERIVATIONS>>>>,
+    states: &'arena Arena<State>,
     pointers: &'land Arena<Pointer<'valid>>
 ) -> () {
     let addable = chart[index].entry(state).or_default().clone().into_iter().map(|mut element| {element.push(pointers.alloc(Pointer::<'valid> {
@@ -138,26 +137,25 @@ fn scan<'valid, 'grammar, 'arena, 'land>(
 }
 
 //> PARSER -> PREDICT
-fn predict<'valid, 'grammar, 'arena, 'land>(
+fn predict<'valid, 'arena, 'land>(
     index: usize, 
-    state: &'arena State<'grammar>, 
-    agenda: &mut Deque<&'arena State<'grammar>>, 
-    queue: &mut Set<&'arena State<'grammar>>,
-    seen: &Set<&'arena State<'grammar>>,
-    completed: &Map<Symbol, Set<&'arena State<'grammar>>>,
-    pool: &mut Map<&'land Pointer<'valid>, Set<(usize, &'arena State<'grammar>)>>,
-    waiting: &mut Vec<Map<&'grammar Symbol, Set<&'arena State<'grammar>>>>, 
-    chart: &mut Vec<Map<&'arena State<'grammar>, Set<Array<&'land Pointer<'valid>, DERIVATIONS>>>>,
-    states: &'arena Arena<State<'grammar>>,
+    state: &'arena State, 
+    agenda: &mut Deque<&'arena State>, 
+    queue: &mut Set<&'arena State>,
+    seen: &Set<&'arena State>,
+    completed: &Map<Symbol, Set<&'arena State>>,
+    pool: &mut Map<&'land Pointer<'valid>, Set<(usize, &'arena State)>>,
+    waiting: &mut Vec<Map<&'static Symbol, Set<&'arena State>>>, 
+    chart: &mut Vec<Map<&'arena State, Set<Array<&'land Pointer<'valid>, DERIVATIONS>>>>,
+    states: &'arena Arena<State>,
     pointers: &'land Arena<Pointer<'valid>>,
-    grammar: &'grammar Map<Rule, Array<Array<Symbol, LENGTH>, DERIVATIONS>>
 ) -> () {
     let rule = match state.variant[state.slot] {
-        Symbol::Kind(_) => return,
         Symbol::usize(internal) => Rule::usize(internal),
-        Symbol::Object(object) => Rule::Object(object)
+        Symbol::Object(object) => Rule::Object(object),
+        Symbol::Kind(_) => return
     };
-    for variant in grammar.get(&rule).unwrap() {
+    for variant in GRAMMAR.get(&rule).unwrap() {
         let possibility = states.alloc(State {
             rule: rule,
             variant: variant,
@@ -178,18 +176,18 @@ fn predict<'valid, 'grammar, 'arena, 'land>(
 }
 
 //> PARSER -> REPLAY
-fn replay<'valid, 'grammar, 'arena, 'land>(
+fn replay<'valid, 'arena, 'land>(
     index: usize,
-    awaiting: &'arena State<'grammar>,
-    symbol: &'grammar Symbol,
-    agenda: &mut Deque<&'arena State<'grammar>>,
-    enqueued: &mut Set<&'arena State<'grammar>>,
-    seen: &Set<&'arena State<'grammar>>,
-    completed_here: &Map<Symbol, Set<&'arena State<'grammar>>>,
-    pool: &mut Map<&'land Pointer<'valid>, Set<(usize, &'arena State<'grammar>)>>,
-    waiting: &mut Vec<Map<&'grammar Symbol, Set<&'arena State<'grammar>>>>,
-    chart: &mut Vec<Map<&'arena State<'grammar>, Set<Array<&'land Pointer<'valid>, DERIVATIONS>>>>,
-    arena: &'arena Arena<State<'grammar>>,
+    awaiting: &'arena State,
+    symbol: &'static Symbol,
+    agenda: &mut Deque<&'arena State>,
+    enqueued: &mut Set<&'arena State>,
+    seen: &Set<&'arena State>,
+    completed_here: &Map<Symbol, Set<&'arena State>>,
+    pool: &mut Map<&'land Pointer<'valid>, Set<(usize, &'arena State)>>,
+    waiting: &mut Vec<Map<&'static Symbol, Set<&'arena State>>>,
+    chart: &mut Vec<Map<&'arena State, Set<Array<&'land Pointer<'valid>, DERIVATIONS>>>>,
+    arena: &'arena Arena<State>,
     land: &'land Arena<Pointer<'valid>>
 ) -> () {
     if let Some(completed_states) = completed_here.get(symbol).cloned() {
@@ -200,18 +198,18 @@ fn replay<'valid, 'grammar, 'arena, 'land>(
 }
 
 //> PARSER -> ADVANCE
-fn advance<'valid, 'grammar, 'arena, 'land>(
+fn advance<'valid, 'arena, 'land>(
     index: usize,
-    awaiting: &'arena State<'grammar>,
-    completeds: &'arena State<'grammar>,
-    agenda: &mut Deque<&'arena State<'grammar>>,
-    enqueued: &mut Set<&'arena State<'grammar>>,
-    seen: &Set<&'arena State<'grammar>>,
-    completed: &Map<Symbol, Set<&'arena State<'grammar>>>,
-    pool: &mut Map<&'land Pointer<'valid>, Set<(usize, &'arena State<'grammar>)>>,
-    waiting: &mut Vec<Map<&'grammar Symbol, Set<&'arena State<'grammar>>>>,
-    chart: &mut Vec<Map<&'arena State<'grammar>, Set<Array<&'land Pointer<'valid>, DERIVATIONS>>>>,
-    arena: &'arena Arena<State<'grammar>>,
+    awaiting: &'arena State,
+    completeds: &'arena State,
+    agenda: &mut Deque<&'arena State>,
+    enqueued: &mut Set<&'arena State>,
+    seen: &Set<&'arena State>,
+    completed: &Map<Symbol, Set<&'arena State>>,
+    pool: &mut Map<&'land Pointer<'valid>, Set<(usize, &'arena State)>>,
+    waiting: &mut Vec<Map<&'static Symbol, Set<&'arena State>>>,
+    chart: &mut Vec<Map<&'arena State, Set<Array<&'land Pointer<'valid>, DERIVATIONS>>>>,
+    arena: &'arena Arena<State>,
     land: &'land Arena<Pointer<'valid>>
 ) -> () {
     let advanced = arena.alloc(State {

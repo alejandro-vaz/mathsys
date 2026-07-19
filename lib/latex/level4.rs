@@ -18,9 +18,14 @@ use super::LaTeX;
 
 //> 4ºLEVEL -> FACTOR
 impl<'valid> LaTeX for Factor<'valid> {
-    fn render(&self) -> String {
-        return format!("{}{}", self.value.render(), self.exponent.as_ref().map(|exponent| format!("^{{{}}}", exponent.render())).unwrap_or_default())
-    }
+    fn render(&self) -> String {return format!(
+        "{}{}", 
+        self.value.render(), 
+        self.exponent.as_ref().map(|exponent| format!(
+            "^{{{}}}", 
+            exponent.render()
+        )).unwrap_or_default()
+    )}
 }
 
 //> 4ºLEVEL -> LIMIT
@@ -35,6 +40,9 @@ impl<'valid> LaTeX for Limit<'valid> {
             Some(true) => '+'
         },
         self.nest.render(),
-        self.exponent.as_ref().map(|exponent| format!("^{{{}}}", exponent.render())).unwrap_or_default()
+        self.exponent.as_ref().map(|exponent| format!(
+            "^{{{}}}", 
+            exponent.render()
+        )).unwrap_or_default()
     )}
 }

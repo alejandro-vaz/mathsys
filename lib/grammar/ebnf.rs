@@ -1,9 +1,9 @@
 //^
-//^ GRAMMAR
+//^ EBNF
 //^
 
-//> GRAMMAR -> DEFINITION
-pub static GRAMMAR: &'static str = "
+//> EBNF -> DEFINITION
+pub static EBNF: &'static str = "
 Start -> (NEWLINES? Level1 (NEWLINES Level1)*)? NEWLINES? ENDOFFILE
 
 Definition -> Variable DEFINITION Level2

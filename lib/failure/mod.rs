@@ -5,6 +5,9 @@
 //> HEAD -> LIBUTILS
 use libutils::issuing::Issue;
 
+//> HEAD -> CORE
+use core::num::NonZero;
+
 
 //^
 //^ FAILURE
@@ -13,7 +16,8 @@ use libutils::issuing::Issue;
 //> FAILURE -> ENUM
 pub enum Failure<'valid> {
     UnknownToken {
-        index: usize
+        line: NonZero<usize>,
+        column: NonZero<usize>
     },
     CircularImport {
         from: &'valid str,
@@ -21,18 +25,20 @@ pub enum Failure<'valid> {
     }
 }
 
-//> FAILURE -> TOISSUE
+//> FAILURE -> INTO ISSUE
 impl<'valid> Into<Issue> for Failure<'valid> {
     fn into(self) -> Issue {return match self {
-        Failure::UnknownToken {index} => Issue {
+        Failure::UnknownToken {line, column} => Issue {
             name: "Unknown token",
-            description: Some(format!("Unknown token at index {index}")),
+            description: Some(format!("Unknown token at {line}:{column}")),
             ..
         },
         Failure::CircularImport {from, to} => Issue {
             name: "Circular import detected",
-            description: Some(format!("Circular import detected between {from:?} and {to:?}")),
+            description: Some(format!(
+                "Circular import detected between {from:?} and {to:?}"
+            )),
             ..
         }
-    }}
+    }.assert_normal()}
 }
