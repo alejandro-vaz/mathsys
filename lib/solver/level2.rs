@@ -2,70 +2,57 @@
 //^ HEAD
 //^
 
-//> HEAD -> ENUM_DISPATCH
-use enum_dispatch::enum_dispatch;
-
 //> HEAD -> SUPER
 use super::{
-    level3::Level3,
-    types::{
-        Spawn,
-        Item,
-        NonTerminal
-    },
+    spawn::Spawn,
+    item::Item,
+    nonterminal::NonTerminal,
     context::Context
 };
 
 //> HEAD -> CRATE
 use crate::{
     tokenizer::token::Token,
-    latex::LaTeX,
-    Interpreter,
-    Resolver
+    failure::Failure,
+    syntax::level2::{
+        Expression,
+        Level2
+    }
 };
 
 //> HEAD -> CORE
 use core::mem::take;
 
 //> HEAD -> LIBUTILS
-use libutils::active_reporting::Report;
-
-//> HEAD -> ENUM_AS_INNER
-use enum_as_inner::EnumAsInner;
+use libutils::{
+    active_reporting::Report,
+    systemio::SystemIO
+};
 
 
 //^
 //^ 2ºLEVEL
 //^
 
-//> 2ºLEVEL -> ENUM
-#[enum_dispatch(LaTeX)]
-#[derive(Clone, EnumAsInner, Debug)]
-pub enum Level2<'valid> {
-    Expression(Expression<'valid>)
-}
-
 //> 2ºLEVEL -> EXPRESSION
-#[derive(Clone, Debug)]
-pub struct Expression<'valid> {
-    pub terms: Vec<(Vec<bool>, Level3<'valid>)>
-} impl<'valid> Spawn<'valid> for Expression<'valid> {
+impl<'valid> Spawn<'valid> for Expression<'valid> {
     fn spawn(
         children: Vec<Item<'valid>>, 
         _context: &mut Context<'valid>, 
         _report: Report<"">, 
-        _interpreter: &'valid Interpreter<'valid, impl Resolver<'valid>>,
+        _systemio: &'valid SystemIO<Failure<'valid>>,
+        _resolver: &'valid fn(&'valid str, Report<"Resolver">) -> &'valid [u8],
         _filename: &'valid str
-    ) -> Option<NonTerminal<'valid>> {
+    ) -> NonTerminal<'valid> {
         let mut terms = Vec::new();
         let mut current = Vec::new();
         for child in children {match child {
-            Item::Token(Token {value, ..}) => current.push(value == "+"),
+            Item::Token(Token::SIGN {positive}) => current.push(positive),
             Item::NonTerminal(NonTerminal::Level3(level3)) => terms.push((take(&mut current), level3)),
             _ => unreachable!()
         }};
-        return Some(NonTerminal::Level2(Level2::Expression(Self {
+        return NonTerminal::Level2(Level2::Expression(Self {
             terms: terms
-        })))
+        }));
     }
 }

@@ -6,18 +6,18 @@
 use crate::{
     solver::{
         context::Context,
-        types::{
-            NonTerminal,
-            Item,
-            Spawn
-        },
-        start::Start,
+        spawn::Spawn,
+        item::Item,
+        nonterminal::NonTerminal
+    },
+    syntax::{
+        Start,
         level1::{
             Definition,
             Equation,
-            Use,
+            Function,
             Node,
-            Function
+            Use
         },
         level2::Expression,
         level3::Term,
@@ -30,29 +30,30 @@ use crate::{
             Variable,
             Nest,
             Vector,
-            Whole,
+            Number,
             Absolute,
             Undefined,
-            Rational,
             Call
         }
     },
-    Interpreter,
-    Resolver
+    failure::Failure
 };
 
 //> HEAD -> STRUM_MACROS
 use strum_macros::EnumString;
 
 //> HEAD -> LIBUTILS
-use libutils::active_reporting::Report;
+use libutils::{
+    active_reporting::Report,
+    systemio::SystemIO
+};
 
 
 //^
-//^ TYPES
+//^ OBJECT
 //^
 
-//> TYPES -> OBJECT
+//> OBJECT -> ENUM
 #[derive(EnumString, PartialEq, Eq, Hash, Clone, Copy, Debug)]
 pub enum Object {
     Start,
@@ -74,156 +75,167 @@ pub enum Object {
     Variable,
     Nest,
     Vector,
-    Whole,
+    Number,
     Absolute,
     Undefined,
-    Rational,
     Call
-} impl Object {
+} 
+
+//> OBJECT -> SUMMON
+impl Object {
     pub fn summon<'valid>(
         &self, 
         mut children: Vec<Item<'valid>>, 
         context: &mut Context<'valid>, 
         mut report: Report<"">, 
-        interpreter: &'valid Interpreter<'valid, impl Resolver<'valid>>,
+        systemio: &'valid SystemIO<Failure<'valid>>,
+        resolver: &'valid fn(&'valid str, Report<"Resolver">) -> &'valid [u8],
         filename: &'valid str
-    ) -> Option<NonTerminal<'valid>> {return match self {
+    ) -> NonTerminal<'valid> {return match self {
         Object::Start => Start::spawn(
             children, 
             context, 
             report.to(), 
-            interpreter, 
+            systemio, 
+            resolver,
             filename
         ),
         Object::Definition => Definition::spawn(
             children, 
             context, 
             report.to(), 
-            interpreter, 
+            systemio, 
+            resolver,
             filename
         ),
         Object::Function => Function::spawn(
             children, 
             context, 
             report.to(), 
-            interpreter, 
+            systemio, 
+            resolver,
             filename
         ),
         Object::Node => Node::spawn(
             children,
             context, 
             report.to(), 
-            interpreter, 
+            systemio, 
+            resolver,
             filename
         ),
         Object::Equation => Equation::spawn(
             children,
             context, 
             report.to(), 
-            interpreter, 
+            systemio, 
+            resolver,
             filename
         ),
         Object::Use => Use::spawn(
             children, 
             context, 
             report.to(), 
-            interpreter, 
+            systemio, 
+            resolver,
             filename
         ),
         Object::Expression => Expression::spawn(
             children, 
             context, 
             report.to(), 
-            interpreter, 
+            systemio, 
+            resolver,
             filename
         ),
         Object::Term => Term::spawn(
             children, 
             context, 
             report.to(), 
-            interpreter, 
+            systemio, 
+            resolver,
             filename
         ),
         Object::Factor => Factor::spawn(
             children, 
             context, 
             report.to(), 
-            interpreter, 
+            systemio, 
+            resolver,
             filename
         ),
         Object::Limit => Limit::spawn(
             children, 
             context, 
             report.to(), 
-            interpreter, 
+            systemio, 
+            resolver,
             filename
         ),
         Object::Infinite => Infinite::spawn(
             children, 
             context, 
             report.to(), 
-            interpreter, 
+            systemio, 
+            resolver,
             filename
         ),
         Object::Variable => Variable::spawn(
             children, 
             context, 
             report.to(), 
-            interpreter, 
+            systemio, 
+            resolver,
             filename
         ),
         Object::Nest => Nest::spawn(
             children, 
             context, 
             report.to(), 
-            interpreter, 
+            systemio, 
+            resolver,
             filename
         ),
         Object::Vector => Vector::spawn(
             children, 
             context, 
             report.to(), 
-            interpreter, 
+            systemio, 
+            resolver,
             filename
         ),
-        Object::Whole => Whole::spawn(
+        Object::Number => Number::spawn(
             children, 
             context, 
             report.to(), 
-            interpreter, 
+            systemio, 
+            resolver,
             filename
         ),
         Object::Absolute => Absolute::spawn(
             children, 
             context, 
             report.to(), 
-            interpreter, 
+            systemio, 
+            resolver,
             filename
         ),
         Object::Undefined => Undefined::spawn(
             children, 
             context, 
             report.to(), 
-            interpreter, 
-            filename
-        ),
-        Object::Rational => Rational::spawn(
-            children, 
-            context, 
-            report.to(), 
-            interpreter, 
+            systemio, 
+            resolver,
             filename
         ),
         Object::Call => Call::spawn(
             children, 
             context, 
             report.to(), 
-            interpreter, 
+            systemio,
+            resolver, 
             filename
         ),
-        _ => Some(children.pop().unwrap().into_non_terminal().unwrap()),
+        _ => children.pop().unwrap().into_non_terminal().unwrap(),
     }}
 }
-
-
-

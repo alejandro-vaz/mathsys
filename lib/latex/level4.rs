@@ -3,7 +3,7 @@
 //^
 
 //> HEAD -> CRATE
-use crate::solver::level4::{
+use crate::syntax::level4::{
     Factor,
     Limit
 };
@@ -31,7 +31,7 @@ impl<'valid> LaTeX for Factor<'valid> {
 //> 4ºLEVEL -> LIMIT
 impl<'valid> LaTeX for Limit<'valid> {
     fn render(&self) -> String {return format!(
-        "\\lim_{{{}\to {}{}}}({}){}",
+        "\\lim_{{{}\\to {}{}}}{}{}",
         self.variable.render(),
         self.approach.render(),
         match self.direction {

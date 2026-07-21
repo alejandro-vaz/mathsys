@@ -3,7 +3,7 @@
 //^
 
 //> HEAD -> CRATE
-use crate::solver::level2::Expression;
+use crate::syntax::level2::Expression;
 
 //> HEAD -> SUPER
 use super::LaTeX;

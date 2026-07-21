@@ -3,12 +3,12 @@
 //^
 
 //> HEAD -> MODULES
-mod level1;
-mod level2;
-mod level3;
-mod level4;
-mod level5;
-mod start;
+pub mod level1;
+pub mod level2;
+pub mod level3;
+pub mod level4;
+pub mod level5;
+pub mod start;
 
 //> HEAD -> ENUM_DISPATCH
 use enum_dispatch::enum_dispatch;

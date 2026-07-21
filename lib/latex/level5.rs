@@ -3,15 +3,14 @@
 //^
 
 //> HEAD -> CRATE
-use crate::solver::level5::{
+use crate::syntax::level5::{
     Infinite,
     Variable,
     Nest,
     Vector,
-    Whole,
+    Number,
     Absolute,
     Undefined,
-    Rational,
     Call
 };
 
@@ -43,16 +42,17 @@ impl<'valid> LaTeX for Nest<'valid> {
 
 //> 5ºLEVEL -> VECTOR
 impl<'valid> LaTeX for Vector<'valid> {
-    fn render(&self) -> String {
-        return format!(r"\begin{{bmatrix}}{}\end{{bmatrix}}", match self.values.len() {
+    fn render(&self) -> String {return format!(
+        r"\begin{{bmatrix}}{}\end{{bmatrix}}", 
+        match self.values.len() {
             0 => String::from(r"\; "),
             _ => self.values.iter().map(LaTeX::render).collect::<Vec<String>>().join(r"\\ ")
-        })
-    }
+        }
+    )}
 }
 
-//> 5ºLEVEL -> WHOLE
-impl<'valid> LaTeX for Whole<'valid> {
+//> 5ºLEVEL -> NUMBER
+impl<'valid> LaTeX for Number<'valid> {
     fn render(&self) -> String {return self.number.to_string()}
 }
 
@@ -64,11 +64,6 @@ impl<'valid> LaTeX for Absolute<'valid> {
 //> 5ºLEVEL -> UNDEFINED
 impl LaTeX for Undefined {
     fn render(&self) -> String {return String::from(r"\left. ?\right. ")}
-}
-
-//> 5ºLEVEL -> RATIONAL
-impl<'valid> LaTeX for Rational<'valid> {
-    fn render(&self) -> String {return self.number.to_string()}
 }
 
 //> 5ºLEVEL -> CALL

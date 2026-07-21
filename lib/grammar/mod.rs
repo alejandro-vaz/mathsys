@@ -22,7 +22,8 @@ use std::{
 //> HEAD -> CONSTANTS
 use constants::{
     DERIVATIONS,
-    DERIVATION_LENGTH
+    DERIVATION_LENGTH,
+    DELIMITER
 };
 
 //> HEAD -> RULE
@@ -45,9 +46,9 @@ pub static GRAMMAR: LazyLock<Map<
     Array<Array<Symbol, DERIVATION_LENGTH>, DERIVATIONS>
 >> = LazyLock::new(|| {
     let mut map = Map::new();
-    for line in *BNF.split('\n').collect::<Vec<&'static str>>().into_array::<49>().unwrap() {
-        let (rule, productions) = line.split_once(" -> ").unwrap();
-        let rule = rule.into();
+    for line in *BNF.split('\n').collect::<Vec<&'static str>>().into_array::<48>().unwrap() {
+        let (rule, productions) = line.split_once(DELIMITER).unwrap();
+        let rule = rule.try_into().unwrap();
         for variant in productions.split('|').map(str::trim) {
             map.entry(rule).or_insert_with(Array::new).push(if variant.is_empty() {
                 Array::new()

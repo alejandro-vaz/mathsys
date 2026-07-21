@@ -9,7 +9,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "498861a87ec904afc9fce9c48d72959c18eb47244fdec83c505fdc6c47f0e0ba"
 dependencies = [
  "issuing 0.4.0",
- "systemstd",
+ "systemstd 2.2.0",
 ]
 
 [[package]]
@@ -501,9 +501,9 @@ checksum = "68ab91017fe16c622486840e4c83c9a37afeff978bd239b5293d61ece587de66"
 
 [[package]]
 name = "libutils"
-version = "16.1.0"
+version = "18.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "183ea411abf866e9fa43be36509e30a9ecfe4dfd9a9d003a965265da8fbc680f"
+checksum = "c766b811a03754c742fb77d9fdb763f04c67682134f41aa0acb882c87ff66017"
 dependencies = [
  "active-reporting",
  "constrangeiter",
@@ -511,7 +511,8 @@ dependencies = [
  "issuing 0.6.0",
  "locks",
  "stack-array",
- "systemstd",
+ "systemio",
+ "systemstd 3.2.0",
 ]
 
 [[package]]
@@ -558,7 +559,7 @@ dependencies = [
 
 [[package]]
 name = "mathsys"
-version = "0.2.0"
+version = "1.0.0"
 dependencies = [
  "criterion",
  "elsa",
@@ -983,9 +984,9 @@ checksum = "6ce2be8dc25455e1f91df71bfa12ad37d7af1092ae736f3a6cd0e37bc7810596"
 
 [[package]]
 name = "stack-array"
-version = "0.8.0"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9e52054899e925a4a329f1abd0dfd44e20bf7cad9619f2089ba4db0a8bbde416"
+checksum = "39311f31e1ac4ba825f5e24d9e41822cc77a19d9104eb6d04a0781722ceb2f48"
 dependencies = [
  "constrangeiter",
 ]
@@ -1041,6 +1042,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "systemio"
+version = "2.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4558420e58237a2d1549f29fe3463f2e52d6e3670e8bcc3d87ac4a8246108fbf"
+dependencies = [
+ "issuing 0.6.0",
+]
+
+[[package]]
 name = "systemstd"
 version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1048,6 +1058,17 @@ checksum = "620ed430dcb882930b101ef3fc36c75e0bc43ee42107fcfe7ff09265c147ea3b"
 dependencies = [
  "issuing 0.6.0",
  "rich_rust",
+]
+
+[[package]]
+name = "systemstd"
+version = "3.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c9e2cf7930e901e449cc04e98173c3f13f6d4049851d3a0a3a0e2b449f631cba"
+dependencies = [
+ "issuing 0.6.0",
+ "rich_rust",
+ "systemio",
 ]
 
 [[package]]

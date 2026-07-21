@@ -3,28 +3,24 @@
 //^
 
 //> HEAD -> MODULES
-pub mod kind;
 pub mod position;
+pub mod responsibility;
 pub mod token;
 
-use core::str;
-use std::num::NonZero;
-
 //> HEAD -> LIBUTILS
-use libutils::active_reporting::Report;
+use libutils::{
+    active_reporting::Report,
+    systemio::SystemIO
+};
 
 //> HEAD -> TOKEN
 use token::Token;
 
-//> HEAD -> KIND
-use kind::Kind;
+//> HEAD -> CORE
+use core::num::NonZero;
 
 //> HEAD -> CRATE
-use crate::{
-    failure::Failure,
-    Interpreter,
-    Resolver
-};
+use crate::failure::Failure;
 
 //> HEAD -> POSITION
 use position::Position;
@@ -36,104 +32,172 @@ use position::Position;
 
 //> TOKENIZER -> FUNCTION
 pub fn tokenize<'input>(
-    content: &'input str, 
-    report: Report<"Tokenizer">,
-    interpreter: &'input Interpreter<'input, impl Resolver<'input>>
+    content: &'input [u8], 
+    filename: &'input str,
+    systemio: &'input SystemIO<Failure<'input>>,
+    report: Report<"Tokenizer">
 ) -> Vec<Token<'input>> {
-    let bytes = content.as_bytes();
-    let pointer = bytes.as_ptr();
     let mut tokens = Vec::new();
     let mut position = Position {..};
     loop {
-        let (kind, amount) = match scan(bytes, &position.cursor) {
-            Some(tuple) => tuple,
-            None => (interpreter.critical)(Failure::UnknownToken {
-                line: position.line,
-                column: position.column
-            }, &*report)
+        let (token, amount) = match scan(content, &position, filename) {
+            Ok(tuple) => tuple,
+            Err(failure) => (systemio.critical)(failure, &*report)
         };
-        tokens.push(Token {
-            kind: kind,
-            value: unsafe {str::from_raw_parts(pointer.add(position.cursor), amount)}
-        });
-        if let Kind::ENDOFFILE = kind {break}
-        match kind {
-            Kind::NEWLINES => {
-                position.column = NonZero::new(1).unwrap();
-                position.line = position.line.checked_add(amount).unwrap();
-            },
-            _ => position.column = position.column.checked_add(amount).unwrap()
-        }
+        tokens.push(token);
         position.cursor += amount;
+        match token {
+            Token::ENDOFFILE => break,
+            Token::NEWLINES => {
+                position.column = unsafe {NonZero::new_unchecked(1)};
+                position.line = unsafe {position.line.unchecked_add(amount)};
+            },
+            _ => position.column = unsafe {position.column.unchecked_add(amount)}
+        }
     }
     return tokens;
 }
 
 //> TOKENIZER -> SCAN
-fn scan(bytes: &[u8], cursor: &usize) -> Option<(Kind, usize)> {
-    return match bytes.get(*cursor) {
-        Some(b' ') => {
-            let mut amount = 1;
-            while let Some(b' ') = bytes.get(cursor + amount) {amount += 1}
-            Some((Kind::SPACES, amount))
+fn scan<'input>(
+    content: &'input [u8], 
+    position: &Position,
+    filename: &'input str
+) -> Result<(Token<'input>, usize), Failure<'input>> {
+    return match &content[position.cursor..] {
+        [b' ', following @ ..] => Ok((Token::SPACES, meanwhile(following, b' ') + 1)),
+        [b'\n', following @ ..] => Ok((Token::NEWLINES, meanwhile(following, b'\n') + 1)),
+        [b'#', following @ ..] => Ok((Token::COMMENT, until(following, b'\n') + 1)),
+        [b'"', following @ ..] => {
+            let amount = delimited(following, b'"').ok_or_else(|| Failure::UnmatchedModuleDelimiter {
+                filename: filename, 
+                start: *position
+            })? + 1;
+            Ok((Token::MODULE {
+                name: str::from_utf8(
+                    &content[position.cursor .. position.cursor + amount]
+                ).map_err(|error| Failure::IrregularText {
+                    filename: filename,
+                    starting: *position, 
+                    error: error 
+                })?
+            }, amount))
         },
-        Some(b'\n') => {
-            let mut amount = 1;
-            while let Some(b'\n') = bytes.get(cursor + amount) {amount += 1}
-            Some((Kind::NEWLINES, amount))
-        },
-        Some(b'#') => {
-            let mut amount = 1;
-            while let Some(byte) = bytes.get(cursor + amount) && *byte != b'\n' {amount += 1}
-            Some((Kind::COMMENT, amount))
-        },
-        Some(b'"') => {
-            let mut amount = 1;
-            while let Some(byte) = bytes.get(cursor + amount) && *byte != b'"' {amount += 1}
-            amount += 1;
-            Some((Kind::MODULE, amount))
-        },
-        Some(b'?') => Some((Kind::UNDEFINED, 1)),
-        Some(b'^') => Some((Kind::EXPONENTIATION, 1)),
-        Some(b'|') => Some((Kind::PIPE, 1)),
-        Some(b',') => Some((Kind::COMMA, 1)),
-        Some(b'(') => Some((Kind::OPEN, 1)),
-        Some(b')') => Some((Kind::CLOSE, 1)),
-        Some(b'[') => Some((Kind::ENTER, 1)),
-        Some(b']') => Some((Kind::EXIT, 1)),
-        Some(b'*' | b'/') => Some((Kind::OPERATOR, 1)),
-        Some(b'+') => Some((Kind::SIGN, 1)),
-        Some(b'-') => if let Some(b'>') = bytes.get(cursor + 1) {Some((Kind::TO, 2))} else {
-            Some((Kind::SIGN, 1))
+        [b'?', ..] => Ok((Token::UNDEFINED, 1)),
+        [b'^', ..] => Ok((Token::EXPONENTIATION, 1)),
+        [b'|', ..] => Ok((Token::PIPE, 1)),
+        [b',', ..] => Ok((Token::COMMA, 1)),
+        [b'(', ..] => Ok((Token::OPEN, 1)),
+        [b')', ..] => Ok((Token::CLOSE, 1)),
+        [b'[', ..] => Ok((Token::ENTER, 1)),
+        [b']', ..] => Ok((Token::EXIT, 1)),
+        [b'*', ..] => Ok((Token::OPERATOR {
+            multiplication: true
+        }, 1)),
+        [b'/', ..] => Ok((Token::OPERATOR {
+            multiplication: false
+        }, 1)),
+        [b'+', ..] => Ok((Token::SIGN {
+            positive: true
+        }, 1)),
+        [b'-', b'>', ..] => Ok((Token::TO, 2)),
+        [b'-', ..] => Ok((Token::SIGN {
+            positive: false
+        }, 1)),
+        [b':', b'=', ..] => Ok((Token::DEFINITION, 2)),
+        [b'=', ..] => Ok((Token::EQUALITY, 1)),
+        [b'0'..=b'9', following @ ..] => {
+            let amount = number(following) + 1;
+            Ok((Token::NUMBER {
+                value: str::from_utf8(
+                    &content[position.cursor .. position.cursor + amount]
+                ).map_err(|error| Failure::IrregularText {
+                    filename: filename,
+                    starting: *position, 
+                    error: error 
+                })?
+            }, amount))
         }
-        Some(b':') if let Some(b'=') = bytes.get(cursor + 1) => Some((Kind::DEFINITION, 2)),
-        Some(b'=') => Some((Kind::EQUALITY, 1)),
-        Some(b'0'..=b'9') => {
-            let mut amount = 1;
-            let mut decimal = false;
-            while let Some(byte @ (b'_' | b'0'..=b'9' | b'.')) = bytes.get(cursor + amount) {
-                if *byte == b'.' {
-                    if decimal {break} else {decimal = true}
-                }
-                amount += 1;
-            }
-            Some((if decimal {Kind::RATIONAL} else {Kind::NUMBER}, amount))
+        [b'A'..=b'Z' | b'a'..=b'z' | b'$'..=b'%', following @ ..] => {
+            let amount = 1 + identifier(following);
+            Ok(match str::from_utf8(
+                &content[position.cursor .. position.cursor + amount]
+            ).map_err(|error| Failure::IrregularText {
+                filename: filename,
+                starting: *position, 
+                error: error 
+            })? {
+                "use" => (Token::USE, 3),
+                "lim" => (Token::LIMIT, 3),
+                "inf" => (Token::INFINITE, 3),
+                "of" => (Token::OF, 2),
+                other => (Token::IDENTIFIER {
+                    name: other
+                }, amount)
+            })
         },
-        Some(b'u') if let Some(b's') = bytes.get(cursor + 1) && let Some(b'e') = bytes.get(cursor + 2) => Some((Kind::USE, 3)),
-        Some(b'l') if let Some(b'i') = bytes.get(cursor + 1) && let Some(b'm') = bytes.get(cursor + 2) => Some((Kind::LIMIT, 3)),
-        Some(b'i') if let Some(b'n') = bytes.get(cursor + 1) && let Some(b'f') = bytes.get(cursor + 2) => Some((Kind::INFINITE, 3)),
-        Some(b'o') if let Some(b'f') = bytes.get(cursor + 1) => Some((Kind::OF, 2)),
-        Some(b'A'..=b'Z' | b'a'..=b'z' | b'%' | b'$') => {
-            let mut amount = 1;
-            while let Some(
-                b'A'..=b'Z' 
-                | b'a'..=b'z' 
-                | b'%' 
-                | b'$'
-            ) = bytes.get(cursor + amount) {amount += 1}
-            Some((Kind::IDENTIFIER, amount))
-        }
-        Some(_) => None,
-        None => Some((Kind::ENDOFFILE, 0))
+        [] => Ok((Token::ENDOFFILE, 0)),
+        _ => Err(Failure::UnknownToken {
+            filename: filename,
+            position: *position
+        })
+    };
+}
+
+//> TOKENIZER -> DELIMITED
+fn delimited(
+    content: &[u8], 
+    value: u8
+) -> Option<usize> {
+    let mut amount = 0;
+    for now in content {
+        amount += 1;
+        if *now == value {return Some(amount)}
     }
+    return None;
+}
+
+//> TOKENIZER -> UNTIL
+fn until(content: &[u8], value: u8) -> usize {
+    let mut amount = 0;
+    for now in content {
+        if *now == value {return amount};
+        amount += 1;
+    }
+    return amount;
+}
+
+//> TOKENIZER -> MEANWHILE
+fn meanwhile(content: &[u8], value: u8) -> usize {
+    let mut amount = 0;
+    for now in content {
+        if *now != value {return amount};
+        amount += 1;
+    }
+    return amount;
+}
+
+//> TOKENIZER -> IDENTIFIER
+fn identifier(content: &[u8]) -> usize {
+    let mut amount = 0;
+    for now in content {
+        if !matches!(now, b'A'..=b'Z' | b'a'..=b'z' | b'$'..=b'%') {return amount}
+        amount += 1;
+    };
+    return amount;
+}
+
+//> TOKENIZER -> NUMBER
+fn number(content: &[u8]) -> usize {
+    let mut amount = 0;
+    let mut decimal = false;
+    for now in content {
+        match now {
+            b'.' if !decimal => {decimal = true}
+            b'0'..=b'9' | b'_' => (),
+            _ => break
+        };
+        amount += 1;
+    };
+    return amount;
 }

@@ -2,9 +2,6 @@
 //^ HEAD
 //^
 
-//> HEAD -> FEATURES
-#![feature(phantom_variance_markers)]
-
 //> HEAD -> CRITERION
 use criterion::{
     Criterion,
@@ -14,31 +11,17 @@ use criterion::{
 };
 
 //> HEAD -> MATHSYS
-use mathsys::{
-    Interpreter,
-    Resolver
-};
+use mathsys::Interpreter;
 
 //> HEAD -> LIBUTILS
 use libutils::{
-    active_reporting::{
-        Root,
-        Report
-    },
-    systemstd::{
-        System,
-        OpenMode
-    }
+    active_reporting::Root,
+    systemstd::System,
+    systemio::Dump
 };
 
 //> HEAD -> CORE
-use core::{
-    hint::black_box,
-    marker::PhantomCovariantLifetime
-};
-
-//> HEAD -> ELSA
-use elsa::FrozenMap;
+use core::hint::black_box;
 
 
 //^
@@ -49,44 +32,20 @@ use elsa::FrozenMap;
 criterion_group!(tokenizer, benches);
 criterion_main!(tokenizer);
 
-//> BENCHES -> HANDLER
-struct Handler<'valid> {
-    cache: FrozenMap<&'valid str, String>
-} impl<'valid> Resolver<'valid> for Handler<'valid> {
-    fn resolve(
-        &'valid self, 
-        filename: &'valid str, 
-        report: Report<"Resolver">
-    ) -> &'valid str {
-        return match self.cache.get(filename) {
-            Some(cached) => cached,
-            None => self.cache.insert(
-                filename, 
-                System::expect(System::expect(
-                    System::path(filename).file::<{OpenMode::Read}>(None), 
-                    &*report
-                ).read(), &*report)
-            )
-        };
-    }
-}
-
 //> BENCHES -> RUN
 fn benches(criterion: &mut Criterion) -> () {
     let mut group = criterion.benchmark_group("tokenizer");
     group.throughput(Throughput::Elements(1));
     let mut root = Root::default();
     let interpreter = Interpreter {
-        lifetime: PhantomCovariantLifetime::new(),
-        resolver: Handler {
-            cache: FrozenMap::new()
+        resolver: |filename, _report| match filename {
+            "data/root.msm" => include_bytes!("../data/root.msm"),
+            _ => panic!()
         },
-        warning: |failure, chain| System::warning(failure, chain),
-        error: |failure, chain| System::error(failure, chain),
-        critical: |failure, chain| System::critical(failure, chain)
+        systemio: System::dump()
     };
     group.bench_function("full", |bencher| bencher.iter(|| {
-        let result = interpreter.latex("std/file.msm", root.to());
+        let result = interpreter.latex("data/root.msm", root.to());
         black_box(result);
     }));
 }

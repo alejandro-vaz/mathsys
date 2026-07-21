@@ -3,7 +3,7 @@
 //^
 
 //> HEAD -> CRATE
-use crate::solver::level1::{
+use crate::syntax::level1::{
     Definition,
     Function,
     Node,

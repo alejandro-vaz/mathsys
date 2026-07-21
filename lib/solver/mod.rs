@@ -4,36 +4,45 @@
 
 //> HEAD -> MODULES
 pub mod context;
+pub mod item;
 pub mod level1;
 pub mod level2;
 pub mod level3;
 pub mod level4;
 pub mod level5;
+pub mod nonterminal;
+pub mod spawn;
 pub mod start;
-pub mod types;
+pub mod subtree;
 
 //> HEAD -> LIBUTILS
 use libutils::{
     stack_array::Array,
-    active_reporting::Report
+    active_reporting::Report,
+    systemio::SystemIO
 };
 
 //> HEAD -> CRATE
 use crate::{
-    parser::types::{
-        Pointer,
-        Parsed
+    parser::{
+        parsed::Parsed,
+        pointer::Pointer,
+        data::AMBIGUITY
     },
     grammar::{
         object::Object,
-        constants::DERIVATIONS
+        constants::DERIVATIONS,
+        rule::Rule
     },
-    filter::{
-        Responsibility,
-        RESPONSIBILITIES
-    },
-    Interpreter,
-    Resolver
+    failure::Failure,
+    syntax::{
+        Start,
+        level4::{
+            Level4,
+            Factor
+        },
+        level5::Level5
+    }
 };
 
 //> HEAD -> STD
@@ -45,24 +54,14 @@ use std::collections::{
 //> HEAD -> CONTEXT
 use context::Context;
 
-//> HEAD -> START
-use start::Start;
+//> HEAD -> ITEM
+use item::Item;
 
 //> HEAD -> NONTERMINAL
-use types::{
-    Subtree,
-    Item,
-    NonTerminal
-};
+use nonterminal::NonTerminal;
 
-//> HEAD -> LEVEL4
-use level4::{
-    Level4,
-    Factor
-};
-
-//> HEAD -> LEVEL5
-use level5::Level5;
+//> HEAD -> SUBTREE
+use subtree::Subtree;
 
 
 //^
@@ -71,127 +70,135 @@ use level5::Level5;
 
 //> SOLVER -> SOLVE
 pub fn solve<'valid>(
-    pool: Map<Pointer<'valid>, Set<Array<Pointer<'valid>, DERIVATIONS>>>,
-    context: Option<&mut Context<'valid>>,
+    pool: Map<Pointer<'valid>, Array<Array<Pointer<'valid>, DERIVATIONS>, AMBIGUITY>>,
+    context: &mut Context<'valid>,
     filename: &'valid str,
-    interpreter: &'valid Interpreter<'valid, impl Resolver<'valid>>,
+    systemio: &'valid SystemIO<Failure<'valid>>,
+    resolver: &'valid fn(&'valid str, Report<"Resolver">) -> &'valid [u8],
     mut report: Report<"Solver">
-) -> Start<'valid> {
-    let context = match context {
-        None => &mut Context::default(),
-        Some(previous) => previous
-    };
-    return build(
-        pool.keys().find(|&item| {
-            return if let Parsed::Object(Object::Start) = item.parsed {true} else {false}
-        }).unwrap(),
-        &pool,
-        context,
-        true,
-        filename,
-        interpreter,
-        &mut Map::new(),
-        report.to()
-    ).into_non_terminal().ok().unwrap().into_start().ok().unwrap();
-}
+) -> Start<'valid> {return build(
+    pool.keys().find(|&item| {
+        return if let Parsed::Rule(Rule::Object(Object::Start)) = item.parsed {true} else {false}
+    }).unwrap(),
+    &pool,
+    context,
+    filename,
+    systemio,
+    resolver,
+    report.to()
+).into_item().unwrap().into_non_terminal().unwrap().into_start().unwrap()}
 
 //> SOLVER -> BUILD
 fn build<'valid, 'active>(
     node: &'active Pointer<'valid>,
-    pool: &'active Map<Pointer<'valid>, Set<Array<Pointer<'valid>, DERIVATIONS>>>,
+    pool: &'active Map<
+        Pointer<'valid>, 
+        Array<Array<Pointer<'valid>, DERIVATIONS>, AMBIGUITY>
+    >,
     context: &mut Context<'valid>,
-    write: bool,
     filename: &'valid str,
-    interpreter: &'valid Interpreter<'valid, impl Resolver<'valid>>,
-    memory: &mut Map<&'active Pointer<'valid>, Subtree<'valid>>,
+    systemio: &'valid SystemIO<Failure<'valid>>,
+    resolver: &'valid fn(&'valid str, Report<"Resolver">) -> &'valid [u8],
     mut report: Report<"">
 ) -> Subtree<'valid> {
-    let writeable = if write {context} else {&mut context.clone()};
-    if !write && let Some(cached) = memory.get(node).cloned() {return cached}
-    if let Parsed::Token(token) = &node.parsed {return Subtree::Token(token.clone())}
+    let rule = match node.parsed {
+        Parsed::Rule(rule) => rule,
+        Parsed::Token(token) => return Subtree::Item(Item::Token(token))
+    };
     let mut children = Vec::new();
     for production in disambiguate(
         pool.get(node).unwrap(),
         pool,
-        writeable,
+        context,
         filename,
-        interpreter,
-        memory,
+        systemio,
+        resolver,
         report.to()
     ) {match build(
         production,
         pool,
-        writeable,
-        true,
+        context,
         filename,
-        interpreter,
-        memory,
+        systemio,
+        resolver,
         report.to()
     ) {
-        Subtree::NonTerminal(nonterminal) => children.push(Item::NonTerminal(nonterminal)),
-        Subtree::Token(token) => if let Responsibility::Total = RESPONSIBILITIES[token.kind as usize] {
-            children.push(Item::Token(token));
+        Subtree::Item(Item::NonTerminal(nonterminal)) => children.push(Item::NonTerminal(nonterminal)),
+        Subtree::Item(Item::Token(token)) => if token.responsibility().is_full() {
+            children.push(Item::Token(token))
         },
         Subtree::Vec(vec) => children.extend(vec)
     }};
-    let partition = match &node.parsed {
-        Parsed::Object(object) => Subtree::NonTerminal(object.summon(children, writeable, report.to(), interpreter, filename).unwrap()),
-        Parsed::usize(_) => Subtree::Vec(children),
-        Parsed::Token(_) => unreachable!()
-    };
-    if !write {memory.insert(node, partition.clone());}
-    return partition;
+    return match rule {
+        Rule::Object(object) => Subtree::Item(Item::NonTerminal(object.summon(
+            children, 
+            context, 
+            report, 
+            systemio, 
+            resolver, 
+            filename
+        ))),
+        Rule::usize(_) => Subtree::Vec(children)
+    }
 }
 
 //> SOLVER -> DISAMBIGUATE
 fn disambiguate<'valid, 'active>(
-    candidates: &'active Set<Array<Pointer<'valid>, DERIVATIONS>>,
-    pool: &'active Map<Pointer<'valid>, Set<Array<Pointer<'valid>, DERIVATIONS>>>,
+    candidates: &'active Array<Array<Pointer<'valid>, DERIVATIONS>, AMBIGUITY>,
+    pool: &'active Map<
+        Pointer<'valid>, 
+        Array<Array<Pointer<'valid>, DERIVATIONS>, AMBIGUITY>
+    >,
     context: &mut Context<'valid>,
     filename: &'valid str,
-    interpreter: &'valid Interpreter<'valid, impl Resolver<'valid>>,
-    memory: &mut Map<&'active Pointer<'valid>, Subtree<'valid>>,
+    systemio: &'valid SystemIO<Failure<'valid>>,
+    resolver: &'valid fn(&'valid str, Report<"Resolver">) -> &'valid [u8],
     mut report: Report<"">
 ) -> &'active Array<Pointer<'valid>, DERIVATIONS> {
-    let mut index = 0;
-    let mut candidates = Vec::from_iter(candidates);
-    while candidates.len() > 1 {
-        candidates.retain(|derivation| derivation.get(index).is_some());
+    let mut candidates = Vec::from_iter(candidates.into_iter().map(|candidate| (
+        candidate, 
+        context.clone()
+    )));
+    for index in 0.. {
+        if candidates.len() == 1 {break}
+        candidates.retain(|derivation| derivation.0.get(index).is_some());
         let mut built = Vec::new();
         let mut seen = Set::new();
-        for &derivation in &candidates {
+        for (derivation, context) in &mut candidates {
             let current = &derivation[index];
             if seen.insert(current) {built.push((current, build(
                 current,
                 pool,
                 context,
-                false,
                 filename,
-                interpreter,
-                memory,
+                systemio,
+                resolver,
                 report.to()
-            )));}
+            ), &*context));}
         }
-        if built.len() > 1 {
-            let winner = choose(&built, context);
-            candidates.retain(|derivation| &derivation[index] == winner);
-        }
-        index += 1;
+        built.sort_by(|first, second| first.1.cmp(&second.1));
+        let winner = choose(&built, context);
+        candidates.retain(|(derivation, _)| &derivation[index] == winner);
     };
-    return candidates.pop().unwrap();
+    return candidates.pop().unwrap().0;
 }
 
 //> SOLVER -> CHOOSE
 fn choose<'valid, 'active>(
-    possibilities: &Vec<(&'active Pointer<'valid>, Subtree<'valid>)>, 
-    context: &mut Context<'valid>
+    possibilities: &Vec<(
+        &'active Pointer<'valid>, 
+        Subtree<'valid>,
+        &Context<'valid>
+    )>, 
+    context: &Context<'valid>
 ) -> &'active Pointer<'valid> {match possibilities.as_slice() {
-    [(first, Subtree::NonTerminal(NonTerminal::Level4(Level4::Factor(Factor {
+    [(first, Subtree::Item(Item::NonTerminal(NonTerminal::Level4(Level4::Factor(Factor {
         value: Level5::Variable(variable),
         ..
-    })))), (second, Subtree::NonTerminal(NonTerminal::Level4(Level4::Factor(Factor {
+    })))), _), (second, Subtree::Item(Item::NonTerminal(NonTerminal::Level4(Level4::Factor(Factor {
         value: Level5::Call(_),
         ..
-    }))))] => if context.functions.contains(variable.name) {second} else {first},
+    })))), _)] => if context.functions.contains(variable.name) {second} else {first},
+    [(pointer, _, _)] => pointer,
     _ => unreachable!()
 }}

@@ -23,15 +23,14 @@ Infinite -> INFINITE
 Variable -> IDENTIFIER
 Nest -> OPEN Level2? CLOSE
 Vector -> ENTER (Level2 (COMMA Level2)*)? EXIT
-Whole -> NUMBER
+Number -> NUMBER
 Absolute -> PIPE Level2 PIPE
 Undefined -> UNDEFINED
-Rational -> RATIONAL
 Call -> Variable OPEN (Level2 (COMMA Level2)*)? CLOSE
 
 Level1 -> Definition | Function | Node | Equation | Use
 Level2 -> Expression
 Level3 -> Term
 Level4 -> Factor | Limit
-Level5 -> Infinite | Variable | Nest | Vector | Whole | Absolute | Undefined | Rational | Call
+Level5 -> Infinite | Variable | Nest | Vector | Number | Absolute | Undefined | Call
 ";

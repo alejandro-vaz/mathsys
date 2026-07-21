@@ -6,7 +6,13 @@
 use enum_dispatch::enum_dispatch;
 
 //> HEAD -> SUPER
-use super::object::Object;
+use super::{
+    object::Object,
+    constants::TEMPORAL
+};
+
+//> HEAD -> STRUM
+use strum::ParseError;
 
 
 //^
@@ -22,11 +28,14 @@ pub enum Rule {
     usize
 } 
 
-//> RULE -> FROM STR
-impl From<&str> for Rule {
-    fn from(value: &str) -> Self {return if let Some(internal) = value.strip_prefix('$') {
-        Rule::usize(internal.parse().unwrap())
-    } else {
-        Rule::Object(value.parse().unwrap())
-    }}
+//> RULE -> TRY FROM STR
+impl TryFrom<&str> for Rule {
+    type Error = ParseError;
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        return if let Some(internal) = value.strip_prefix(TEMPORAL) {
+            Ok(Rule::usize(internal.parse().unwrap()))
+        } else {
+            Ok(Rule::Object(value.parse::<Object>()?))
+        }
+    }
 }

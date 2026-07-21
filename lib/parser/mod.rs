@@ -3,7 +3,10 @@
 //^
 
 //> HEAD -> MODULES
-pub mod types;
+pub mod data;
+pub mod parsed;
+pub mod pointer;
+pub mod state;
 
 //> HEAD -> CRATE
 use crate::{
@@ -29,12 +32,17 @@ use std::collections::{
 //> HEAD -> TYPED_ARENA
 use typed_arena::Arena;
 
-//> HEAD -> TYPES
-use types::{
-    State,
-    Pointer,
-    Parsed
-};
+//> HEAD -> AMBIGUITY
+use data::AMBIGUITY;
+
+//> HEAD -> STATE
+use state::State;
+
+//> HEAD -> POINTER
+use pointer::Pointer;
+
+//> HEAD -> PARSED
+use parsed::Parsed;
 
 
 //^
@@ -44,10 +52,13 @@ use types::{
 //> PARSER -> FUNCTION
 pub fn parse<'valid>(
     tokens: Vec<Token<'valid>>, 
-) -> Map<Pointer<'valid>, Set<Array<Pointer<'valid>, DERIVATIONS>>> {
+) -> Map<Pointer<'valid>, Array<Array<Pointer<'valid>, DERIVATIONS>, AMBIGUITY>> {
     let states = Arena::default();
     let pointers = Arena::default();
-    let mut chart = Vec::<Map<&State, Set<Array<&Pointer<'valid>, DERIVATIONS>>>>::with_capacity(tokens.len() + 1);
+    let mut chart = Vec::<Map<
+        &State, 
+        Set<Array<&Pointer<'valid>, DERIVATIONS>>
+    >>::with_capacity(tokens.len() + 1);
     let mut waiting = Vec::<Map<&Symbol, Set<&State>>>::with_capacity(tokens.len() + 1);
     chart.resize_with(tokens.len() + 1, Map::new);
     waiting.resize_with(tokens.len() + 1, Map::new);
@@ -66,30 +77,31 @@ pub fn parse<'valid>(
         let mut queue = Set::new();
         let mut seen = Set::new();
         let mut completed = Map::new();
-        chart[index].keys().copied().for_each(|state| enqueue(state, &mut agenda, &mut queue, &seen));
+        chart[index].keys().copied().for_each(|state| {
+            if !seen.contains(&state) && queue.insert(state) {agenda.push_back(state)}
+        });
         while let Some(state) = agenda.pop_front() {
             queue.remove(&state);
             if !seen.insert(state) {continue}
             if state.variant.get(state.slot).is_none() {
                 complete(index, state, &mut agenda, &mut queue, &seen, &mut completed, &mut pool, &mut waiting, &mut chart, &states, &pointers);
-            } else if let (Some(Symbol::Kind(kind)), Some(value)) = (state.variant.get(state.slot), token) && *kind == value.kind {
+            } else if let (Some(Symbol::str(kind)), Some(value)) = (state.variant.get(state.slot), token) && *kind == value.as_ref() {
                 scan(index, state, value, &mut waiting, &mut chart, &states, &pointers);
             } else {
                 predict(index, state, &mut agenda, &mut queue, &seen, &completed, &mut pool, &mut waiting, &mut chart, &states, &pointers);
             }
         }
     }
-    return pool.into_iter().map(|(backpointer, set)| (backpointer.clone(), set.into_iter().flat_map(|(index, state)| chart[index].get(state).into_iter().flat_map(|set| set.iter()).map(|small| small.iter().map(|pointer| (*pointer).clone()).collect::<Array<Pointer<'valid>, DERIVATIONS>>()).collect::<Vec<_>>()).collect())).collect();
-}
-
-//> PARSER -> ENQUEUE
-fn enqueue<'arena>(
-    state: &'arena State, 
-    agenda: &mut Deque<&'arena State>, 
-    queue: &mut Set<&'arena State>, 
-    seen: &Set<&'arena State>
-) -> () {
-    if !seen.contains(&state) && queue.insert(state) {agenda.push_back(state)}
+    return pool.into_iter().map(|(backpointer, set)| (
+        backpointer.clone(), 
+        set.into_iter().flat_map(|(index, state)| {
+            chart[index].get(state).into_iter().flat_map(Set::iter).map(|small| {
+                small.iter().map(|pointer| {
+                    (*pointer).clone()
+                }).collect::<Array<Pointer<'valid>, DERIVATIONS>>()
+            })
+        }).collect()
+    )).collect();
 }
 
 //> PARSER -> COMPLETE
@@ -151,9 +163,8 @@ fn predict<'valid, 'arena, 'land>(
     pointers: &'land Arena<Pointer<'valid>>,
 ) -> () {
     let rule = match state.variant[state.slot] {
-        Symbol::usize(internal) => Rule::usize(internal),
-        Symbol::Object(object) => Rule::Object(object),
-        Symbol::Kind(_) => return
+        Symbol::Rule(rule) => rule,
+        Symbol::str(_) => return
     };
     for variant in GRAMMAR.get(&rule).unwrap() {
         let possibility = states.alloc(State {
@@ -165,7 +176,7 @@ fn predict<'valid, 'arena, 'land>(
         let produced = chart[index].entry(possibility).or_default();
         if produced.is_empty() {
             produced.insert(Array::new());
-            enqueue(possibility, agenda, queue, seen);
+            if !seen.contains(possibility) && queue.insert(possibility) {agenda.push_back(possibility)}
         }
         if let Some(symbol) = possibility.variant.get(possibility.slot) {
             if waiting[index].entry(symbol).or_default().insert(possibility) {
@@ -232,7 +243,7 @@ fn advance<'valid, 'arena, 'land>(
     let additional = chart[index].entry(advanced).or_default();
     if additional.is_empty() {
         additional.extend(backpointers);
-        enqueue(advanced, agenda, enqueued, seen);
+        if !seen.contains(advanced) && enqueued.insert(advanced) {agenda.push_back(advanced)}
     } else if let Rule::Object(_) = advanced.rule {
         additional.extend(backpointers);
     }

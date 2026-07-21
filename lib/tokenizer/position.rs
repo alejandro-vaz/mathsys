@@ -11,6 +11,7 @@ use core::num::NonZero;
 //^
 
 //> POSITION -> STRUCT
+#[derive(Clone, Copy)]
 pub struct Position {
     pub cursor: usize = 0,
     pub line: NonZero<usize> = NonZero::new(1).unwrap(),

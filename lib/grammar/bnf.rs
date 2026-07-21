@@ -12,7 +12,13 @@ use libutils::ebnftobnf::{
 };
 
 //> HEAD -> SUPER
-use super::ebnf::EBNF;
+use super::{
+    ebnf::EBNF,
+    constants::{
+        DELIMITER,
+        TEMPORAL
+    }
+};
 
 
 //^
@@ -23,7 +29,8 @@ use super::ebnf::EBNF;
 pub static BNF: LazyLock<String> = LazyLock::new(|| reduce(EBNF, Settings {
     keep_comments: false,
     keep_empty_lines: false,
-    delimiter: " -> ",
+    delimiter: DELIMITER,
     start_rule: Some("Start"),
+    temporal_production_character: TEMPORAL,
     ..
 }));

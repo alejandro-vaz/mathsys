@@ -32,7 +32,7 @@ impl Into<Issue> for InterfaceError {
             description: Some(String::from("interpreter target was not provided")),
             ..
         },
-        Self::IncorrectLatexArguments => Issue {
+        InterfaceError::IncorrectLatexArguments => Issue {
             name: "incorrect arguments for latex",
             description: Some(format!("usage: `mathsys latex (FILE)`")),
             ..
