@@ -11,5 +11,5 @@ use petgraph::graph::NodeIndex;
 //^
 
 //> STATE -> STRUCT
-#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)] // rm debug
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct State(pub NodeIndex);

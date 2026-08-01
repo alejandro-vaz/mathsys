@@ -56,22 +56,18 @@ pub static ACTION: LazyLock<[Map<&'static str, Array<Action, CONFLICTS>>; STATES
     >(|_| Map::new());
     for (&(state, symbol), &next) in &AUTOMATON.transitions {
         if let Symbol::str(token) = symbol {
-            let array = actions[state].entry(token).or_default();
-            let action = Action::Shift {
+            actions[state].entry(token).or_default().push(Action::Shift {
                 goto: next
-            };
-            if !array.contains(&action) {array.push(action)}
+            });
         }
     };
     for (index, state) in AUTOMATON.states.iter().enumerate() {for item in state {
         if item.at != item.derivation.len() {continue}
-        if let Rule::Object(Object::Start) = item.rule && item.lookahead == Token::EndOfFile.as_ref() {actions[index].entry(Token::EndOfFile.as_ref()).or_default().push(Action::Accept)} else {for &token in Token::VARIANTS {
-            let array = actions[index].entry(token).or_default();
-            let action = Action::Reduce {
+        if let Rule::Object(Object::Start) = item.rule {actions[index].entry(Token::EndOfFile.as_ref()).or_default().push(Action::Accept)} else {for &token in Token::VARIANTS {
+            actions[index].entry(token).or_default().push(Action::Reduce {
                 rule: item.rule, 
                 length: item.derivation.len()
-            };
-            if !array.contains(&action) {array.push(action)}
+            });
         }}
     }}
     return actions;

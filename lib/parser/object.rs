@@ -57,7 +57,7 @@ use libutils::{
 //^
 
 //> OBJECT -> ENUM
-#[derive(EnumString, EnumIter, PartialEq, Eq, Hash, Debug)] // rm edebug
+#[derive(EnumString, EnumIter, PartialEq, Eq, Hash)]
 pub enum Object {
     Start,
     Level1,

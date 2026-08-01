@@ -33,7 +33,6 @@ use super::{
 //^
 
 //> STACK -> STRUCT
-#[derive(Debug)] // rm
 pub struct Stack {
     traces: Map<(usize, &'static Action), Trace>,
     graph: Graph<usize, (), Directed>,
@@ -47,17 +46,17 @@ pub struct Stack {
 //> STACK -> DEFAULT
 impl Default for Stack {
     fn default() -> Self {
-        static START: &'static Action = &Action::Start;
+        static START: Action = Action::Start;
         let mut graph = Graph::default();
         let mut forest = Graph::default();
         let state = State(graph.add_node(0));
-        let trace = Trace(forest.add_node(START));
+        let trace = Trace(forest.add_node(&START));
         let head = Head {
             state: state,
             trace: trace
         };
         return Self {
-            traces: Map::from([((0, START), trace)]),
+            traces: Map::from([((0, &START), trace)]),
             graph: graph,
             states: Map::from([((0, 0), state)]),
             processed: Set::from([head]),

@@ -14,7 +14,7 @@ use super::{
 //^
 
 //> PARSEHEAD -> STRUCT
-#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)] // rm debug
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Head {
     pub state: State,
     pub trace: Trace

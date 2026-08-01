@@ -9,7 +9,6 @@ pub mod bnf;
 pub mod closure;
 pub mod constants;
 pub mod ebnf;
-pub mod first;
 pub mod goto;
 pub mod grammar;
 pub mod head;
@@ -58,7 +57,7 @@ use head::Head;
 pub fn parse<'input>(tokens: Vec<Token<'input>>) -> Start<'input> {
     let mut index = 0;
     let mut stack = Stack::default();
-    'parsing: loop {
+    loop {
         let token = &tokens[index];
         while let Some(head) = stack.next() {for action in ACTION[stack.get(head.state)].get(
             token.as_ref()
@@ -80,7 +79,7 @@ pub fn parse<'input>(tokens: Vec<Token<'input>>) -> Start<'input> {
                 };
                 stack.shift(head, next);
             }
-            Action::Accept => break 'parsing,
+            Action::Accept => continue,
             Action::Start => unsafe {unreachable_unchecked()}
         }}}
         if !stack.advance() {break};

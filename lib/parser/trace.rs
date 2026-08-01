@@ -11,5 +11,5 @@ use petgraph::graph::NodeIndex;
 //^
 
 //> TRACE -> STRUCT
-#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)] // rm debug
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Trace(pub NodeIndex);

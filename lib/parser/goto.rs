@@ -24,8 +24,7 @@ pub fn goto(items: &Set<Production>, symbol: &'static Symbol) -> Set<Production>
         following.insert(Production {
             rule: item.rule,
             derivation: item.derivation,
-            at: item.at + 1,
-            lookahead: item.lookahead
+            at: item.at + 1
         });
     }};
     closure(&mut following);
