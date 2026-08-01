@@ -9,6 +9,7 @@
 #![feature(const_trait_impl)]
 #![feature(nonzero_ops)]
 #![feature(new_range)]
+#![feature(phantom_variance_markers)]
 #![feature(generic_const_exprs)]
 
 //> HEAD -> MODULES
@@ -16,15 +17,10 @@ mod failure;
 mod filter;
 mod latex;
 mod parser;
+mod runtime;
 mod solver;
 mod syntax;
 mod tokenizer;
-
-//> HEAD -> LIBUTILS
-use libutils::{
-    active_reporting::Report,
-    systemio::SystemIO
-};
 
 //> HEAD -> TOKENIZER
 use tokenizer::tokenize;
@@ -47,57 +43,32 @@ use latex::LaTeX;
 //> HEAD -> FAILURE
 pub use failure::Failure;
 
+//> HEAD -> RUNTIME
+pub use runtime::Runtime;
+
+//> HEAD -> CORE
+use core::marker::PhantomCovariantLifetime;
+
 
 //^
 //^ INTERPRETER
 //^
 
 //> INTERPRETER -> STRUCT
-pub struct Interpreter<'valid> {
-    pub resolver: fn(&'valid str, Report<"Resolver">) -> &'valid [u8],
-    pub systemio: SystemIO<Failure<'valid>>
+pub struct Interpreter<'valid, Implementation: Runtime<'valid>> {
+    pub runtime: Implementation,
+    pub lifetime: PhantomCovariantLifetime<'valid>
 } 
 
 //> INTERPRETER -> IMPLEMENTATION
-impl<'valid> Interpreter<'valid> {
+impl<'valid, Implementation: Runtime<'valid>> Interpreter<'valid, Implementation> {
     pub const VERSION: &'static str = env!("CARGO_PKG_VERSION");
     pub fn latex(
         &'valid self,
-        filename: &'valid str,
-        mut report: Report<"Latex">
-    ) -> String {return parse(
-        filter(tokenize(
-            (self.resolver)(
-                filename,
-                report.to()
-            ),
-            filename,
-            &self.systemio,
-            report.to()
-        )),
-        report.to(),
-        &self.systemio,
-        &self.resolver,
-        filename
-    ).render()}
-    //pub fn latex(
-    //    &'valid self, 
-    //    filename: &'valid str, 
-    //    mut report: Report<"Latex">
-    //) -> String {return solve(
-    //    parse(filter(tokenize(
-    //        (self.resolver)(
-    //            filename,
-    //            report.to()
-    //        ),
-    //        filename,
-    //        &self.systemio,
-    //        report.to()
-    //    ))),
-    //    &mut Context::default(),
-    //    filename,
-    //    &self.systemio,
-    //    &self.resolver,
-    //    report.to()
-    //).render()}
+        filename: &'valid str
+    ) -> String {return parse(filter(tokenize(
+        self.runtime.resolve(filename),
+        filename,
+        &self.runtime
+    ))).render()}
 }

@@ -15,7 +15,7 @@ pub const DELIMITER: &'static str = " -> ";
 pub const TEMPORAL: char = '$';
 
 //> CONSTANTS -> STATES
-pub const STATES: usize = 107;
+pub const STATES: usize = 785;
 
 //> CONSTANTS -> CONFLICTS
-pub const CONFLICTS: usize = 20;
+pub const CONFLICTS: usize = 23;

@@ -123,21 +123,24 @@ impl<'valid> Spawn<'valid> for Use<'valid> {
             }, &*report);
         } else {NonTerminal::Level1(Level1::Use(Self {
             _module: module,
-            _start: parse(
-                filter(tokenize(
-                    resolver(
-                        module,
-                        report.to()
-                    ),
-                    filename,
-                    systemio,
-                    report.to()
-                )),
-                report.to(),
-                systemio,
-                resolver,
-                module
-            )
+            _start: crate::syntax::Start {
+                stream: Vec::new()
+            }
+            //_start: parse(
+            //    filter(tokenize(
+            //        resolver(
+            //            module,
+            //            report.to()
+            //        ),
+            //        filename,
+            //        systemio,
+            //        report.to()
+            //    )),
+            //    report.to(),
+            //    systemio,
+            //    resolver,
+            //    module
+            //)
         }))}
     }
 }

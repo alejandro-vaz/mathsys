@@ -2,6 +2,9 @@
 //^ HEAD
 //^
 
+//> HEAD -> FEATURES
+#![feature(phantom_variance_markers)]
+
 //> HEAD -> CRITERION
 use criterion::{
     Criterion,
@@ -11,17 +14,17 @@ use criterion::{
 };
 
 //> HEAD -> MATHSYS
-use mathsys::Interpreter;
-
-//> HEAD -> LIBUTILS
-use libutils::{
-    active_reporting::Root,
-    systemstd::System,
-    systemio::Dump
+use mathsys::{
+    Interpreter,
+    Runtime,
+    Failure
 };
 
 //> HEAD -> CORE
-use core::hint::black_box;
+use core::{
+    hint::black_box,
+    marker::PhantomCovariantLifetime
+};
 
 
 //^
@@ -34,19 +37,22 @@ criterion_main!(tokenizer);
 
 //> BENCHES -> RUN
 fn benches(criterion: &mut Criterion) -> () {
-    static DATA: &'static [u8; 3199] = include_bytes!("../data/root.msm");
     let mut group = criterion.benchmark_group("tokenizer");
-    let mut root = Root::default();
-    group.throughput(Throughput::Bytes(DATA.len() as u64));
-    let interpreter = Interpreter {
-        resolver: |filename, _report| match filename {
+    group.throughput(Throughput::Bytes(include_bytes!("../data/root.msm").len() as u64));
+    struct Handler;
+    impl<'valid> Runtime<'valid> for Handler {
+        fn critical(&'valid self, _failure: Failure<'valid>) -> ! {panic!()}
+        fn resolve(&'valid self, module: &'valid str) -> &'valid [u8] {return match module {
             "data/root.msm" => include_bytes!("../data/root.msm"),
-            _ => panic!()
-        },
-        systemio: System::dump()
+            _ => unreachable!()
+        }}
+    }
+    let interpreter = Interpreter {
+        runtime: Handler,
+        lifetime: PhantomCovariantLifetime::new()
     };
     group.bench_function("full", |bencher| bencher.iter(|| {
-        let result = interpreter.latex("data/root.msm", root.to());
+        let result = interpreter.latex("data/root.msm");
         black_box(result);
     }));
 }

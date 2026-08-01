@@ -7,12 +7,6 @@ pub mod position;
 pub mod responsibility;
 pub mod token;
 
-//> HEAD -> LIBUTILS
-use libutils::{
-    active_reporting::Report,
-    systemio::SystemIO
-};
-
 //> HEAD -> TOKEN
 use token::Token;
 
@@ -20,7 +14,10 @@ use token::Token;
 use core::num::NonZero;
 
 //> HEAD -> CRATE
-use crate::failure::Failure;
+use crate::{
+    failure::Failure,
+    runtime::Runtime
+};
 
 //> HEAD -> POSITION
 use position::Position;
@@ -34,15 +31,14 @@ use position::Position;
 pub fn tokenize<'input>(
     content: &'input [u8], 
     filename: &'input str,
-    systemio: &'input SystemIO<Failure<'input>>,
-    report: Report<"Tokenizer">
+    runtime: &'input impl Runtime<'input>
 ) -> Vec<Token<'input>> {
     let mut tokens = Vec::new();
     let mut position = Position {..};
     loop {
         let (token, amount) = match scan(content, &position, filename) {
             Ok(tuple) => tuple,
-            Err(failure) => (systemio.critical)(failure, &*report)
+            Err(failure) => runtime.critical(failure)
         };
         position.cursor += amount;
         match token {
