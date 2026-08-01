@@ -18,4 +18,4 @@ pub const TEMPORAL: char = '$';
 pub const STATES: usize = 785;
 
 //> CONSTANTS -> CONFLICTS
-pub const CONFLICTS: usize = 23;
+pub const CONFLICTS: usize = 3;
