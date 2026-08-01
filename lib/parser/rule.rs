@@ -21,7 +21,7 @@ use strum::ParseError;
 
 //> RULE -> STRUCT
 #[enum_dispatch]
-#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
+#[derive(PartialEq, Eq, Hash, Debug)] // rm debug
 pub enum Rule {
     Object,
     #[allow(nonstandard_style)]
@@ -38,4 +38,9 @@ impl TryFrom<&str> for Rule {
             Ok(Rule::Object(value.parse::<Object>()?))
         }
     }
+}
+
+//> RULE -> DEFAULT
+const impl Default for Rule {
+    fn default() -> Self {return Rule::usize(0)}
 }

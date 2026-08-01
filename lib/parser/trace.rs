@@ -7,9 +7,9 @@ use petgraph::graph::NodeIndex;
 
 
 //^
-//^ STATE
+//^ TRACE
 //^
 
-//> STATE -> STRUCT
+//> TRACE -> STRUCT
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)] // rm debug
-pub struct State(pub NodeIndex);
+pub struct Trace(pub NodeIndex);

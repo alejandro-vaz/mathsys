@@ -4,12 +4,6 @@
 
 //> HEAD -> CRATE
 use crate::{
-    solver::{
-        context::Context,
-        spawn::Spawn,
-        item::Item,
-        nonterminal::NonTerminal
-    },
     syntax::{
         Start,
         level1::{
@@ -36,11 +30,20 @@ use crate::{
             Call
         }
     },
-    failure::Failure
+    failure::Failure,
+    solver::{
+        item::Item,
+        spawn::Spawn,
+        context::Context,
+        nonterminal::NonTerminal
+    }
 };
 
 //> HEAD -> STRUM_MACROS
-use strum_macros::EnumString;
+use strum_macros::{
+    EnumString,
+    EnumIter
+};
 
 //> HEAD -> LIBUTILS
 use libutils::{
@@ -54,7 +57,7 @@ use libutils::{
 //^
 
 //> OBJECT -> ENUM
-#[derive(EnumString, PartialEq, Eq, Hash, Clone, Copy, Debug)]
+#[derive(EnumString, EnumIter, PartialEq, Eq, Hash, Debug)] // rm edebug
 pub enum Object {
     Start,
     Level1,
@@ -81,11 +84,11 @@ pub enum Object {
     Call
 } 
 
-//> OBJECT -> SUMMON
+//> OBJECT -> IMPLEMENTATION
 impl Object {
     pub fn summon<'valid>(
         &self, 
-        mut children: Vec<Item<'valid>>, 
+        mut children: Vec<Item<'_, 'valid>>, 
         context: &mut Context<'valid>, 
         mut report: Report<"">, 
         systemio: &'valid SystemIO<Failure<'valid>>,

@@ -25,7 +25,7 @@ use crate::syntax::{
 
 //> NONTERMINAL -> ENUM
 #[enum_dispatch]
-#[derive(Clone, EnumAsInner, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(EnumAsInner, Debug)]
 pub enum NonTerminal<'valid> {
     Start(Start<'valid>),
     Level1(Level1<'valid>),

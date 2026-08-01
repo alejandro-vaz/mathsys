@@ -34,7 +34,8 @@ enum_dispatch = "0.3"
 typed-arena = "2.0"
 enum-as-inner = "0.7"
 elsa = "1.11"
-libutils = "18.1"
+libutils = "20.0"
+petgraph = "0.8"
 
 [dev-dependencies]
 criterion = "0.8"

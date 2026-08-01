@@ -34,9 +34,10 @@ criterion_main!(tokenizer);
 
 //> BENCHES -> RUN
 fn benches(criterion: &mut Criterion) -> () {
+    static DATA: &'static [u8; 3199] = include_bytes!("../data/root.msm");
     let mut group = criterion.benchmark_group("tokenizer");
-    group.throughput(Throughput::Elements(1));
     let mut root = Root::default();
+    group.throughput(Throughput::Bytes(DATA.len() as u64));
     let interpreter = Interpreter {
         resolver: |filename, _report| match filename {
             "data/root.msm" => include_bytes!("../data/root.msm"),

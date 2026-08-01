@@ -4,15 +4,16 @@
 
 //> HEAD -> ATTRIBUTES
 #![allow(incomplete_features)]
-#![feature(alloc_slice_into_array)]
 #![feature(default_field_values)]
+#![feature(const_default)]
+#![feature(const_trait_impl)]
 #![feature(nonzero_ops)]
+#![feature(new_range)]
 #![feature(generic_const_exprs)]
 
 //> HEAD -> MODULES
 mod failure;
 mod filter;
-mod grammar;
 mod latex;
 mod parser;
 mod solver;
@@ -35,10 +36,10 @@ use filter::filter;
 use parser::parse;
 
 //> HEAD -> SOLVER
-use solver::{
-    solve,
-    context::Context
-};
+//use solver::{
+//    solve,
+//    context::Context
+//};
 
 //> HEAD -> LATEX
 use latex::LaTeX;
@@ -61,11 +62,11 @@ pub struct Interpreter<'valid> {
 impl<'valid> Interpreter<'valid> {
     pub const VERSION: &'static str = env!("CARGO_PKG_VERSION");
     pub fn latex(
-        &'valid self, 
-        filename: &'valid str, 
+        &'valid self,
+        filename: &'valid str,
         mut report: Report<"Latex">
-    ) -> String {return solve(
-        parse(filter(tokenize(
+    ) -> String {return parse(
+        filter(tokenize(
             (self.resolver)(
                 filename,
                 report.to()
@@ -73,11 +74,30 @@ impl<'valid> Interpreter<'valid> {
             filename,
             &self.systemio,
             report.to()
-        ))),
-        &mut Context::default(),
-        filename,
+        )),
+        report.to(),
         &self.systemio,
         &self.resolver,
-        report.to()
+        filename
     ).render()}
+    //pub fn latex(
+    //    &'valid self, 
+    //    filename: &'valid str, 
+    //    mut report: Report<"Latex">
+    //) -> String {return solve(
+    //    parse(filter(tokenize(
+    //        (self.resolver)(
+    //            filename,
+    //            report.to()
+    //        ),
+    //        filename,
+    //        &self.systemio,
+    //        report.to()
+    //    ))),
+    //    &mut Context::default(),
+    //    filename,
+    //    &self.systemio,
+    //    &self.resolver,
+    //    report.to()
+    //).render()}
 }

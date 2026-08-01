@@ -34,7 +34,7 @@ use libutils::{
 //> 3ºLEVEL -> TERM
 impl<'valid> Spawn<'valid> for Term<'valid> {
     fn spawn(
-        children: Vec<Item<'valid>>, 
+        children: Vec<Item<'_, 'valid>>, 
         _context: &mut Context<'valid>, 
         _report: Report<"">, 
         _systemio: &'valid SystemIO<Failure<'valid>>,
@@ -45,7 +45,7 @@ impl<'valid> Spawn<'valid> for Term<'valid> {
         let mut denominator = Vec::new();
         let mut location = true;
         for child in children {match child {
-            Item::Token(Token::OPERATOR {multiplication}) => location = multiplication,
+            Item::Token(Token::Operator {multiplication}) => location = *multiplication,
             Item::NonTerminal(NonTerminal::Level4(level4)) => (if location {&mut numerator} else {&mut denominator}).push(level4),
             _ => unreachable!()
         }};

@@ -37,7 +37,7 @@ use libutils::{
 //> 2ºLEVEL -> EXPRESSION
 impl<'valid> Spawn<'valid> for Expression<'valid> {
     fn spawn(
-        children: Vec<Item<'valid>>, 
+        children: Vec<Item<'_, 'valid>>, 
         _context: &mut Context<'valid>, 
         _report: Report<"">, 
         _systemio: &'valid SystemIO<Failure<'valid>>,
@@ -47,7 +47,7 @@ impl<'valid> Spawn<'valid> for Expression<'valid> {
         let mut terms = Vec::new();
         let mut current = Vec::new();
         for child in children {match child {
-            Item::Token(Token::SIGN {positive}) => current.push(positive),
+            Item::Token(Token::Sign {positive}) => current.push(*positive),
             Item::NonTerminal(NonTerminal::Level3(level3)) => terms.push((take(&mut current), level3)),
             _ => unreachable!()
         }};

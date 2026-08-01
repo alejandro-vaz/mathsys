@@ -30,7 +30,8 @@ pub static BNF: LazyLock<String> = LazyLock::new(|| reduce(EBNF, Settings {
     keep_comments: false,
     keep_empty_lines: false,
     delimiter: DELIMITER,
-    start_rule: Some("Start"),
     temporal_production_character: TEMPORAL,
+    comment_start_character: '#',
+    augment_start: Some("Start"),
     ..
 }));

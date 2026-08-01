@@ -21,8 +21,8 @@ use enum_as_inner::EnumAsInner;
 
 //> ITEM -> ENUM
 #[enum_dispatch]
-#[derive(Clone, EnumAsInner, Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub enum Item<'valid> {
+#[derive(EnumAsInner, Debug)]
+pub enum Item<'parsing, 'valid> {
     NonTerminal(NonTerminal<'valid>),
-    Token(Token<'valid>)
+    Token(&'parsing Token<'valid>)
 }

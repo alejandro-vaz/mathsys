@@ -14,8 +14,6 @@ use super::{
 use crate::{
     tokenizer::tokenize,
     filter::filter,
-    parser::parse,
-    solver::solve,
     failure::Failure,
     syntax::level1::{
         Level1,
@@ -24,7 +22,8 @@ use crate::{
         Node,
         Equation,
         Use
-    }
+    },
+    parser::parse
 };
 
 //> HEAD -> LIBUTILS
@@ -41,7 +40,7 @@ use libutils::{
 //> 1ºLEVEL -> DEFINITION
 impl<'valid> Spawn<'valid> for Definition<'valid> {
     fn spawn(
-        mut children: Vec<Item<'valid>>,
+        mut children: Vec<Item<'_, 'valid>>,
         _context: &mut Context<'valid>,
         _report: Report<"">,
         _systemio: &'valid SystemIO<Failure<'valid>>,
@@ -58,7 +57,7 @@ impl<'valid> Spawn<'valid> for Definition<'valid> {
 //> 1ºLEVEL -> FUNCTION
 impl<'valid> Spawn<'valid> for Function<'valid> {
     fn spawn(
-        mut children: Vec<Item<'valid>>,
+        mut children: Vec<Item<'_, 'valid>>,
         context: &mut Context<'valid>,
         _report: Report<"">,
         _systemio: &'valid SystemIO<Failure<'valid>>,
@@ -79,7 +78,7 @@ impl<'valid> Spawn<'valid> for Function<'valid> {
 //> 1ºLEVEL -> NODE
 impl<'valid> Spawn<'valid> for Node<'valid> {
     fn spawn(
-        mut children: Vec<Item<'valid>>,
+        mut children: Vec<Item<'_, 'valid>>,
         _context: &mut Context<'valid>,
         _report: Report<"">,
         _systemio: &'valid SystemIO<Failure<'valid>>,
@@ -93,7 +92,7 @@ impl<'valid> Spawn<'valid> for Node<'valid> {
 //> 1ºLEVEL -> EQUATION
 impl<'valid> Spawn<'valid> for Equation<'valid> {
     fn spawn(
-        mut children: Vec<Item<'valid>>,
+        mut children: Vec<Item<'_, 'valid>>,
         _context: &mut Context<'valid>,
         _report: Report<"">,
         _systemio: &'valid SystemIO<Failure<'valid>>,
@@ -108,14 +107,14 @@ impl<'valid> Spawn<'valid> for Equation<'valid> {
 //> 1ºLEVEL -> USE
 impl<'valid> Spawn<'valid> for Use<'valid> {
     fn spawn(
-        mut children: Vec<Item<'valid>>,
+        mut children: Vec<Item<'_, 'valid>>,
         context: &mut Context<'valid>,
         mut report: Report<"">,
         systemio: &'valid SystemIO<Failure<'valid>>,
         resolver: &'valid fn(&'valid str, Report<"Resolver">) -> &'valid [u8],
         filename: &'valid str
     ) -> NonTerminal<'valid> {
-        let module = children.pop().unwrap().into_token().unwrap().into_module().unwrap().strip_circumfix('"', '"').unwrap();
+        let module = children.pop().unwrap().into_token().unwrap().as_module().unwrap().strip_circumfix('"', '"').unwrap();
         context.dependencies.entry(filename).or_default().insert(module);
         return if context.dependencies.entry(module).or_default().contains(filename) {
             (systemio.critical)(Failure::CircularImport { 
@@ -124,22 +123,21 @@ impl<'valid> Spawn<'valid> for Use<'valid> {
             }, &*report);
         } else {NonTerminal::Level1(Level1::Use(Self {
             _module: module,
-            _start: solve(
-                parse(filter(tokenize(
+            _start: parse(
+                filter(tokenize(
                     resolver(
                         module,
                         report.to()
                     ),
                     filename,
-                    &systemio,
+                    systemio,
                     report.to()
-                ))),
-                context,
-                module,
+                )),
+                report.to(),
                 systemio,
                 resolver,
-                report.to()
+                module
             )
-        }))};
+        }))}
     }
 }

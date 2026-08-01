@@ -30,7 +30,7 @@ use crate::{
 //> START -> SPAWN
 impl<'valid> Spawn<'valid> for Start<'valid> {
     fn spawn(
-        children: Vec<Item<'valid>>, 
+        children: Vec<Item<'_, 'valid>>, 
         _context: &mut Context<'valid>, 
         _report: Report<"">, 
         _systemio: &'valid SystemIO<Failure<'valid>>,

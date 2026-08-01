@@ -14,6 +14,6 @@ use core::num::NonZero;
 #[derive(Clone, Copy)]
 pub struct Position {
     pub cursor: usize = 0,
-    pub line: NonZero<usize> = NonZero::new(1).unwrap(),
-    pub column: NonZero<usize> = NonZero::new(1).unwrap()
+    pub line: NonZero<usize> = unsafe {NonZero::new_unchecked(1)},
+    pub column: NonZero<usize> = unsafe {NonZero::new_unchecked(1)}
 }

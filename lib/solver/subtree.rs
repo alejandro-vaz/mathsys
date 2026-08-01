@@ -18,8 +18,8 @@ use super::item::Item;
 
 //> SUBTREE -> ENUM
 #[enum_dispatch]
-#[derive(Clone, EnumAsInner, PartialEq, Eq, PartialOrd, Ord, Debug)]
-pub enum Subtree<'valid> {
-    Item(Item<'valid>),
-    Vec(Vec<Item<'valid>>)
+#[derive(EnumAsInner, Debug)] // rm debug
+pub enum Subtree<'parsing, 'valid> {
+    Item(Item<'parsing, 'valid>),
+    Vec(Vec<Item<'parsing, 'valid>>)
 }

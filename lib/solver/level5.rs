@@ -40,7 +40,7 @@ use libutils::{
 //> 5ºLEVEL -> INFINITE
  impl<'valid> Spawn<'valid> for Infinite {
     fn spawn(
-        _children: Vec<Item<'valid>>, 
+        _children: Vec<Item<'_, 'valid>>, 
         _context: &mut Context<'valid>, 
         _report: Report<"">, 
         _systemio: &'valid SystemIO<Failure<'valid>>,
@@ -52,21 +52,21 @@ use libutils::{
 //> 5ºLEVEL -> VARIABLE
 impl<'valid> Spawn<'valid> for Variable<'valid> {
     fn spawn(
-        mut children: Vec<Item<'valid>>, 
+        mut children: Vec<Item<'_, 'valid>>, 
         _context: &mut Context<'valid>, 
         _report: Report<"">, 
         _systemio: &'valid SystemIO<Failure<'valid>>,
         _resolver: &'valid fn(&'valid str, Report<"Resolver">) -> &'valid [u8],
         _filename: &'valid str
     ) -> NonTerminal<'valid> {return NonTerminal::Level5(Level5::Variable(Self {
-        name: children.remove(0).into_token().unwrap().into_identifier().unwrap()
+        name: children.remove(0).into_token().unwrap().as_identifier().unwrap()
     }))}
 }
 
 //> 5ºLEVEL -> NEST
 impl<'valid> Spawn<'valid> for Nest<'valid> {
     fn spawn(
-        mut children: Vec<Item<'valid>>, 
+        mut children: Vec<Item<'_, 'valid>>, 
         _context: &mut Context<'valid>, 
         _report: Report<"">, 
         _systemio: &'valid SystemIO<Failure<'valid>>,
@@ -80,7 +80,7 @@ impl<'valid> Spawn<'valid> for Nest<'valid> {
 //> 5ºLEVEL -> VECTOR
 impl<'valid> Spawn<'valid> for Vector<'valid> {
     fn spawn(
-        children: Vec<Item<'valid>>, 
+        children: Vec<Item<'_, 'valid>>, 
         _context: &mut Context<'valid>, 
         _report: Report<"">, 
         _systemio: &'valid SystemIO<Failure<'valid>>,
@@ -94,21 +94,21 @@ impl<'valid> Spawn<'valid> for Vector<'valid> {
 //> 5ºLEVEL -> NUMBER
 impl<'valid> Spawn<'valid> for Number<'valid> {
     fn spawn(
-        mut children: Vec<Item<'valid>>, 
+        mut children: Vec<Item<'_, 'valid>>, 
         _context: &mut Context<'valid>, 
         _report: Report<"">, 
         _systemio: &'valid SystemIO<Failure<'valid>>,
         _resolver: &'valid fn(&'valid str, Report<"Resolver">) -> &'valid [u8],
         _filename: &'valid str
     ) -> NonTerminal<'valid> {return NonTerminal::Level5(Level5::Number(Self {
-        number: children.remove(0).into_token().unwrap().into_number().unwrap()
+        number: children.remove(0).into_token().unwrap().as_number().unwrap()
     }))}
 }
 
 //> 5ºLEVEL -> ABSOLUTE
 impl<'valid> Spawn<'valid> for Absolute<'valid> {
     fn spawn(
-        mut children: Vec<Item<'valid>>,
+        mut children: Vec<Item<'_, 'valid>>,
         _context: &mut Context<'valid>, 
         _report: Report<"">, 
         _systemio: &'valid SystemIO<Failure<'valid>>,
@@ -122,7 +122,7 @@ impl<'valid> Spawn<'valid> for Absolute<'valid> {
 //> 5ºLEVEL -> UNDEFINED
 impl<'valid> Spawn<'valid> for Undefined {
     fn spawn(
-        _children: Vec<Item<'valid>>, 
+        _children: Vec<Item<'_, 'valid>>, 
         _context: &mut Context<'valid>, 
         _report: Report<"">, 
         _systemio: &'valid SystemIO<Failure<'valid>>,
@@ -134,7 +134,7 @@ impl<'valid> Spawn<'valid> for Undefined {
 //> 5ºLEVEL -> CALL
 impl<'valid> Spawn<'valid> for Call<'valid> {
     fn spawn(
-        mut children: Vec<Item<'valid>>, 
+        mut children: Vec<Item<'_, 'valid>>, 
         _context: &mut Context<'valid>, 
         _report: Report<"">, 
         _systemio: &'valid SystemIO<Failure<'valid>>,

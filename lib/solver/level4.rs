@@ -39,7 +39,7 @@ use libutils::{
 //> 4ºLEVEL -> FACTOR
 impl<'valid> Spawn<'valid> for Factor<'valid> {
     fn spawn(
-        mut children: Vec<Item<'valid>>, 
+        mut children: Vec<Item<'_, 'valid>>, 
         _context: &mut Context<'valid>, 
         _report: Report<"">, 
         _systemio: &'valid SystemIO<Failure<'valid>>,
@@ -54,7 +54,7 @@ impl<'valid> Spawn<'valid> for Factor<'valid> {
 //> 4ºLEVEL -> LIMIT
 impl<'valid> Spawn<'valid> for Limit<'valid> {
     fn spawn(
-        children: Vec<Item<'valid>>, 
+        children: Vec<Item<'_, 'valid>>, 
         _context: &mut Context<'valid>, 
         _report: Report<"">, 
         _systemio: &'valid SystemIO<Failure<'valid>>,
@@ -65,7 +65,7 @@ impl<'valid> Spawn<'valid> for Limit<'valid> {
         let variable = iterator.next().unwrap().into_non_terminal().unwrap().into_level5().unwrap().into_variable().ok().unwrap();
         let approach = iterator.next().unwrap().into_non_terminal().unwrap().into_level2().unwrap();
         let mut next = iterator.next();
-        let direction = if let Some(Item::Token(Token::SIGN {positive})) = next {next = iterator.next(); Some(positive)} else {None};
+        let direction = if let Some(Item::Token(Token::Sign {positive})) = next {next = iterator.next(); Some(*positive)} else {None};
         let Some(Item::NonTerminal(NonTerminal::Level5(Level5::Nest(nest)))) = next else {panic!()};
         let exponent = if let Some(Item::NonTerminal(NonTerminal::Level2(level2))) = iterator.next() {Some(level2)} else {None};
         return NonTerminal::Level4(Level4::Limit(Self {

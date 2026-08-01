@@ -45,7 +45,8 @@ fn main() -> () {
                 [Argument::Path {buffer}] => buffer,
                 _ => System::critical(InterfaceError::IncorrectLatexArguments, &*root)
             };
-            INTERPRETER.latex(file.to_str().unwrap(), root.to())
+            INTERPRETER.latex(file.to_str().unwrap(), root.to());
+            String::from("yessss")
         },
         name => System::critical(InterfaceError::UnknownTarget {
             name: name

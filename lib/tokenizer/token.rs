@@ -6,7 +6,10 @@
 use enum_as_inner::EnumAsInner;
 
 //> HEAD -> STRUM_MACROS
-use strum_macros::AsRefStr;
+use strum_macros::{
+    AsRefStr,
+    VariantNames
+};
 
 //> HEAD -> SUPER
 use super::responsibility::Responsibility;
@@ -17,49 +20,50 @@ use super::responsibility::Responsibility;
 //^
 
 //> TOKEN -> ENUM
-#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug, EnumAsInner, AsRefStr, PartialOrd, Ord)]
+#[derive(EnumAsInner, AsRefStr, VariantNames, Debug)]
+#[strum(serialize_all = "UPPERCASE")]
 pub enum Token<'input> {
-    SPACES,
-    IDENTIFIER {
+    Spaces,
+    Identifier {
         name: &'input str
     },
-    MODULE {
+    Module {
         name: &'input str
     },
-    NUMBER {
+    Number {
         value: &'input str
     },
-    OPERATOR {
+    Operator {
         multiplication: bool
     },
-    COMMENT,
-    SIGN {
+    Comment,
+    Sign {
         positive: bool
     },
-    DEFINITION,
-    CLOSE,
-    COMMA,
-    ENTER,
-    EQUALITY,
-    EXIT,
-    EXPONENTIATION,
-    INFINITE,
-    LIMIT,
-    NEWLINES,
-    OF,
-    OPEN,
-    PIPE,
-    TO,
-    UNDEFINED,
-    USE,
-    ENDOFFILE
+    Definition,
+    Close,
+    Comma,
+    Enter,
+    Equality,
+    Exit,
+    Exponentiation,
+    Infinite,
+    Limit,
+    Newlines,
+    Of,
+    Open,
+    Pipe,
+    To,
+    Undefined,
+    Use,
+    EndOfFile
 }
 
 //> TOKEN -> IMPLEMENTATION
 impl<'valid> Token<'valid> {
-    pub fn responsibility(self) -> Responsibility {return match self {
-        Token::SPACES | Token::COMMENT => Responsibility::Null,
-        Token::MODULE {..} | Token::SIGN {..} | Token::OPERATOR {..} | Token::NUMBER {..} | Token::IDENTIFIER {..} => Responsibility::Full,
+    pub fn responsibility(&self) -> Responsibility {return match self {
+        Token::Spaces | Token::Comment => Responsibility::Null,
+        Token::Module {..} | Token::Sign {..} | Token::Operator {..} | Token::Number {..} | Token::Identifier {..} => Responsibility::Full,
         _ => Responsibility::Structural
     }}
 }

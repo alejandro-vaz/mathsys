@@ -29,7 +29,7 @@ use core::fmt::Debug;
 //> SPAWN -> TRAIT
 pub trait Spawn<'valid>: Sized + Clone + Debug + Eq + PartialEq + Ord + PartialOrd {
     fn spawn(
-        children: Vec<Item<'valid>>, 
+        children: Vec<Item<'_, 'valid>>, 
         context: &mut Context<'valid>, 
         report: Report<"">, 
         systemio: &'valid SystemIO<Failure<'valid>>,
