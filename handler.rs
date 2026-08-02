@@ -41,4 +41,6 @@ impl<'valid> Runtime<'valid> for Handler<'valid> {
             ).read_bytes(), &[]))
         }
     }
+    fn error(&'valid self, failure: Failure<'valid>) -> () {System::error(failure, &[])}
+    fn warning(&'valid self, failure: Failure<'valid>) -> () {System::error(failure, &[])}
 }

@@ -58,9 +58,8 @@ pub fn parse<'input>(tokens: Vec<Token<'input>>) -> Start<'input> {
     let mut index = 0;
     let mut stack = Stack::default();
     loop {
-        let token = &tokens[index];
         while let Some(head) = stack.next() {for action in ACTION[stack.get(head.state)].get(
-            token.as_ref()
+            tokens[index].as_ref()
         ).map(Array::as_ref).unwrap_or_default() {match action {
             Action::Reduce {rule, length} => {
                 for state in stack.frontier(head.state, *length) {
