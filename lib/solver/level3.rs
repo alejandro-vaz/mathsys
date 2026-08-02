@@ -13,17 +13,10 @@ use super::{
 //> HEAD -> CRATE
 use crate::{
     tokenizer::token::Token,
-    failure::Failure,
     syntax::level3::{
         Level3,
         Term
     }
-};
-
-//> HEAD -> LIBUTILS
-use libutils::{
-    active_reporting::Report,
-    systemio::SystemIO
 };
 
 
@@ -36,9 +29,6 @@ impl<'valid> Spawn<'valid> for Term<'valid> {
     fn spawn(
         children: Vec<Item<'_, 'valid>>, 
         _context: &mut Context<'valid>, 
-        _report: Report<"">, 
-        _systemio: &'valid SystemIO<Failure<'valid>>,
-        _resolver: &'valid fn(&'valid str, Report<"Resolver">) -> &'valid [u8],
         _filename: &'valid str
     ) -> NonTerminal<'valid> {
         let mut numerator = Vec::new();

@@ -12,7 +12,6 @@ use super::{
 
 //> HEAD -> CRATE
 use crate::{
-    failure::Failure,
     tokenizer::token::Token,
     syntax::{
         level4::{
@@ -24,13 +23,6 @@ use crate::{
     }
 };
 
-//> HEAD -> LIBUTILS
-use libutils::{
-    active_reporting::Report,
-    systemio::SystemIO
-};
-
-
 
 //^
 //^ 4ºLEVEL
@@ -41,9 +33,6 @@ impl<'valid> Spawn<'valid> for Factor<'valid> {
     fn spawn(
         mut children: Vec<Item<'_, 'valid>>, 
         _context: &mut Context<'valid>, 
-        _report: Report<"">, 
-        _systemio: &'valid SystemIO<Failure<'valid>>,
-        _resolver: &'valid fn(&'valid str, Report<"Resolver">) -> &'valid [u8],
         _filename: &'valid str
     ) -> NonTerminal<'valid> {return NonTerminal::Level4(Level4::Factor(Self {
         value: children.remove(0).into_non_terminal().unwrap().into_level5().unwrap(),
@@ -56,9 +45,6 @@ impl<'valid> Spawn<'valid> for Limit<'valid> {
     fn spawn(
         children: Vec<Item<'_, 'valid>>, 
         _context: &mut Context<'valid>, 
-        _report: Report<"">, 
-        _systemio: &'valid SystemIO<Failure<'valid>>,
-        _resolver: &'valid fn(&'valid str, Report<"Resolver">) -> &'valid [u8],
         _filename: &'valid str
     ) -> NonTerminal<'valid> {
         let mut iterator = children.into_iter();

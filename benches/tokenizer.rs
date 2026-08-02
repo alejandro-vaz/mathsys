@@ -46,6 +46,8 @@ fn benches(criterion: &mut Criterion) -> () {
             "data/root.msm" => include_bytes!("../data/root.msm"),
             _ => unreachable!()
         }}
+        fn error(&'valid self, _failure: Failure<'valid>) -> () {}
+        fn warning(&'valid self, _failure: Failure<'valid>) -> () {}
     }
     let interpreter = Interpreter {
         runtime: Handler,

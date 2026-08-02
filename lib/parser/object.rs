@@ -30,7 +30,6 @@ use crate::{
             Call
         }
     },
-    failure::Failure,
     solver::{
         item::Item,
         spawn::Spawn,
@@ -45,19 +44,13 @@ use strum_macros::{
     EnumIter
 };
 
-//> HEAD -> LIBUTILS
-use libutils::{
-    active_reporting::Report,
-    systemio::SystemIO
-};
-
 
 //^
 //^ OBJECT
 //^
 
 //> OBJECT -> ENUM
-#[derive(EnumString, EnumIter, PartialEq, Eq, Hash)]
+#[derive(EnumString, EnumIter, PartialEq, Eq, Hash, Debug)] // rm debug
 pub enum Object {
     Start,
     Level1,
@@ -90,155 +83,26 @@ impl Object {
         &self, 
         mut children: Vec<Item<'_, 'valid>>, 
         context: &mut Context<'valid>, 
-        mut report: Report<"">, 
-        systemio: &'valid SystemIO<Failure<'valid>>,
-        resolver: &'valid fn(&'valid str, Report<"Resolver">) -> &'valid [u8],
         filename: &'valid str
     ) -> NonTerminal<'valid> {return match self {
-        Object::Start => Start::spawn(
-            children, 
-            context, 
-            report.to(), 
-            systemio, 
-            resolver,
-            filename
-        ),
-        Object::Definition => Definition::spawn(
-            children, 
-            context, 
-            report.to(), 
-            systemio, 
-            resolver,
-            filename
-        ),
-        Object::Function => Function::spawn(
-            children, 
-            context, 
-            report.to(), 
-            systemio, 
-            resolver,
-            filename
-        ),
-        Object::Node => Node::spawn(
-            children,
-            context, 
-            report.to(), 
-            systemio, 
-            resolver,
-            filename
-        ),
-        Object::Equation => Equation::spawn(
-            children,
-            context, 
-            report.to(), 
-            systemio, 
-            resolver,
-            filename
-        ),
-        Object::Use => Use::spawn(
-            children, 
-            context, 
-            report.to(), 
-            systemio, 
-            resolver,
-            filename
-        ),
-        Object::Expression => Expression::spawn(
-            children, 
-            context, 
-            report.to(), 
-            systemio, 
-            resolver,
-            filename
-        ),
-        Object::Term => Term::spawn(
-            children, 
-            context, 
-            report.to(), 
-            systemio, 
-            resolver,
-            filename
-        ),
-        Object::Factor => Factor::spawn(
-            children, 
-            context, 
-            report.to(), 
-            systemio, 
-            resolver,
-            filename
-        ),
-        Object::Limit => Limit::spawn(
-            children, 
-            context, 
-            report.to(), 
-            systemio, 
-            resolver,
-            filename
-        ),
-        Object::Infinite => Infinite::spawn(
-            children, 
-            context, 
-            report.to(), 
-            systemio, 
-            resolver,
-            filename
-        ),
-        Object::Variable => Variable::spawn(
-            children, 
-            context, 
-            report.to(), 
-            systemio, 
-            resolver,
-            filename
-        ),
-        Object::Nest => Nest::spawn(
-            children, 
-            context, 
-            report.to(), 
-            systemio, 
-            resolver,
-            filename
-        ),
-        Object::Vector => Vector::spawn(
-            children, 
-            context, 
-            report.to(), 
-            systemio, 
-            resolver,
-            filename
-        ),
-        Object::Number => Number::spawn(
-            children, 
-            context, 
-            report.to(), 
-            systemio, 
-            resolver,
-            filename
-        ),
-        Object::Absolute => Absolute::spawn(
-            children, 
-            context, 
-            report.to(), 
-            systemio, 
-            resolver,
-            filename
-        ),
-        Object::Undefined => Undefined::spawn(
-            children, 
-            context, 
-            report.to(), 
-            systemio, 
-            resolver,
-            filename
-        ),
-        Object::Call => Call::spawn(
-            children, 
-            context, 
-            report.to(), 
-            systemio,
-            resolver, 
-            filename
-        ),
+        Object::Start => Start::spawn(children, context, filename),
+        Object::Definition => Definition::spawn(children, context, filename),
+        Object::Function => Function::spawn(children, context, filename),
+        Object::Node => Node::spawn(children,context, filename),
+        Object::Equation => Equation::spawn(children,context, filename),
+        Object::Use => Use::spawn(children, context, filename),
+        Object::Expression => Expression::spawn(children, context, filename),
+        Object::Term => Term::spawn(children, context, filename),
+        Object::Factor => Factor::spawn(children, context, filename),
+        Object::Limit => Limit::spawn(children, context, filename),
+        Object::Infinite => Infinite::spawn(children, context, filename),
+        Object::Variable => Variable::spawn(children, context, filename),
+        Object::Nest => Nest::spawn(children, context, filename),
+        Object::Vector => Vector::spawn(children, context, filename),
+        Object::Number => Number::spawn(children, context, filename),
+        Object::Absolute => Absolute::spawn(children, context, filename),
+        Object::Undefined => Undefined::spawn(children, context, filename),
+        Object::Call => Call::spawn(children, context, filename),
         _ => children.pop().unwrap().into_non_terminal().unwrap(),
     }}
 }

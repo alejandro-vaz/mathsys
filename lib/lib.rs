@@ -17,6 +17,7 @@ mod failure;
 mod filter;
 mod latex;
 mod parser;
+mod pruner;
 mod runtime;
 mod solver;
 mod syntax;
@@ -49,6 +50,9 @@ pub use runtime::Runtime;
 //> HEAD -> CORE
 use core::marker::PhantomCovariantLifetime;
 
+//> HEAD -> PRUNER
+use pruner::prune;
+
 
 //^
 //^ INTERPRETER
@@ -66,9 +70,9 @@ impl<'valid, Implementation: Runtime<'valid>> Interpreter<'valid, Implementation
     pub fn latex(
         &'valid self,
         filename: &'valid str
-    ) -> String {return parse(filter(tokenize(
+    ) -> String {prune(parse(filter(tokenize(
         self.runtime.resolve(filename),
         filename,
         &self.runtime
-    ))).render()}
+    )))); String::new()}
 }

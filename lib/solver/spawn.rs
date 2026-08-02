@@ -5,12 +5,6 @@
 //> HEAD -> CRATE
 use crate::failure::Failure;
 
-//> HEAD -> LIBUTILS
-use libutils::{
-    active_reporting::Report,
-    systemio::SystemIO
-};
-
 //> HEAD -> SUPER
 use super::{
     item::Item,
@@ -31,9 +25,6 @@ pub trait Spawn<'valid>: Sized + Clone + Debug + Eq + PartialEq + Ord + PartialO
     fn spawn(
         children: Vec<Item<'_, 'valid>>, 
         context: &mut Context<'valid>, 
-        report: Report<"">, 
-        systemio: &'valid SystemIO<Failure<'valid>>,
-        resolver: &'valid fn(&'valid str, Report<"Resolver">) -> &'valid [u8],
         filename: &'valid str
     ) -> NonTerminal<'valid>;
 }

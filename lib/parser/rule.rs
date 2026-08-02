@@ -21,7 +21,7 @@ use strum::ParseError;
 
 //> RULE -> STRUCT
 #[enum_dispatch]
-#[derive(PartialEq, Eq, Hash)]
+#[derive(PartialEq, Eq, Hash, Debug)] // rm debug
 pub enum Rule {
     Object,
     #[allow(nonstandard_style)]

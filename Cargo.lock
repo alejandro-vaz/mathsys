@@ -3,16 +3,6 @@
 version = 4
 
 [[package]]
-name = "active-reporting"
-version = "1.1.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "498861a87ec904afc9fce9c48d72959c18eb47244fdec83c505fdc6c47f0e0ba"
-dependencies = [
- "issuing 0.4.0",
- "systemstd 2.2.1",
-]
-
-[[package]]
 name = "aho-corasick"
 version = "1.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -132,18 +122,18 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.6.4"
+version = "4.6.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d91e0c145792ef73a6ad36d27c75ac09f1832222a3c209689d90f534685ee5b7"
+checksum = "301b56658598e48f3648647ac6fc887be7e7108eddfa4e9b63fcf3ec58c0cadf"
 dependencies = [
  "clap_builder",
 ]
 
 [[package]]
 name = "clap_builder"
-version = "4.6.2"
+version = "4.6.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f09628afdcc538b57f3c6341e9c8e9970f18e4a481690a64974d7023bd33548b"
+checksum = "94a65403d1a1bd28f7dc68eb8506e8874808ee5eecb59298de588e2e1407a078"
 dependencies = [
  "anstyle",
  "clap_lex",
@@ -488,12 +478,6 @@ dependencies = [
 
 [[package]]
 name = "issuing"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3db9a09683e7b2f993ac337451726daf30e0773efd15a9d6c2ca40b48afddbc0"
-
-[[package]]
-name = "issuing"
 version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "53244883a307ececc12000acc20520ce75d77756f3d988b310847e6963a52415"
@@ -532,18 +516,16 @@ checksum = "3eaf3ede3fee6db1a4c2ee091bf8a8b4dccdc6d17f656fb07896ee72867612f2"
 
 [[package]]
 name = "libutils"
-version = "20.0.0"
+version = "21.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "215965d7e03dcce1dc220588b03695cfe3ac939985c15daa3afe7996e22aaebe"
+checksum = "aab56aadc81a2b46bc1dcd3f3af8f249bea6301ac603ef3a4b4fc661c5faff24"
 dependencies = [
- "active-reporting",
  "constrangeiter",
  "ebnftobnf",
- "issuing 0.6.1",
+ "issuing",
  "locks",
  "stack-array",
- "systemio",
- "systemstd 4.0.0",
+ "systemstd",
 ]
 
 [[package]]
@@ -1086,34 +1068,14 @@ dependencies = [
 ]
 
 [[package]]
-name = "systemio"
-version = "2.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4558420e58237a2d1549f29fe3463f2e52d6e3670e8bcc3d87ac4a8246108fbf"
-dependencies = [
- "issuing 0.6.1",
-]
-
-[[package]]
 name = "systemstd"
-version = "2.2.1"
+version = "4.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d0bb5510f53f1f2ab30a28eaf362be6604afb1c3f05779aa7008e01155f6d9cb"
-dependencies = [
- "issuing 0.6.1",
- "rich_rust",
-]
-
-[[package]]
-name = "systemstd"
-version = "4.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0f60c6c47592d6f7eb18949fbf1ade7019e29172d1696271d13012fb8e4cb394"
+checksum = "199f1c7b143650956310e6c166bd3a25b18ecf04c39cc6165596085a97a24ea0"
 dependencies = [
  "enum-as-inner",
- "issuing 0.6.1",
+ "issuing",
  "rich_rust",
- "systemio",
 ]
 
 [[package]]

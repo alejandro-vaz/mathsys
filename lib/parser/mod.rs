@@ -13,6 +13,7 @@ pub mod goto;
 pub mod grammar;
 pub mod head;
 pub mod object;
+pub mod parse;
 pub mod production;
 pub mod rule;
 pub mod stack;
@@ -22,10 +23,7 @@ pub mod tables;
 pub mod trace;
 
 //> HEAD -> CRATE
-use crate::{
-    tokenizer::token::Token,
-    syntax::Start
-};
+use crate::tokenizer::token::Token;
 
 //> HEAD -> TABLES
 use tables::{
@@ -48,13 +46,16 @@ use core::hint::unreachable_unchecked;
 //> HEAD -> HEAD
 use head::Head;
 
+//> HEAD -> FOREST
+use parse::Parse;
+
 
 //^
 //^ PARSER
 //^
 
 //> PARSER -> FUNCTION6
-pub fn parse<'input>(tokens: Vec<Token<'input>>) -> Start<'input> {
+pub fn parse<'input>(tokens: Vec<Token<'input>>) -> Parse {
     let mut index = 0;
     let mut stack = Stack::default();
     loop {
@@ -62,29 +63,35 @@ pub fn parse<'input>(tokens: Vec<Token<'input>>) -> Start<'input> {
             tokens[index].as_ref()
         ).map(Array::as_ref).unwrap_or_default() {match action {
             Action::Reduce {rule, length} => {
-                for state in stack.frontier(head.state, *length) {
-                    let rawstate = GOTO[stack.get(state)][rule];
-                    let next = Head {
-                        state: stack.state(rawstate, index),
-                        trace: stack.trace(action, index)
+                for base in stack.frontier(head, *length) {
+                    let rawstate = *match GOTO[stack.get(base.state)].get(rule) {
+                        None => continue,
+                        Some(rawstate) => rawstate
                     };
-                    stack.reduce(state, head.trace, next);
+                    let nextstate = stack.state(rawstate, index);
+                    let next = Head {
+                        state: nextstate,
+                        trace: stack.trace(action, index, head.trace, base.trace, nextstate)
+                    };
+                    stack.reduce(base, head.trace, next);
                 }
             }
             Action::Shift {goto} => {
+                let nextstate = stack.state(*goto, index + 1);
                 let next = Head {
-                    state: stack.state(*goto, index + 1),
-                    trace: stack.trace(action, index)
+                    state: nextstate,
+                    trace: stack.trace(action, index, head.trace, head.trace, nextstate)
                 };
                 stack.shift(head, next);
             }
-            Action::Accept => continue,
+            Action::Accept => {
+                let trace = stack.trace(action, index, head.trace, head.trace, head.state);
+                stack.accept(head.trace, trace);
+            }
             Action::Start => unsafe {unreachable_unchecked()}
         }}}
         if !stack.advance() {break};
         index += 1;
     }
-    Start {
-        stream: Vec::new()
-    }
+    return stack.finish();
 }

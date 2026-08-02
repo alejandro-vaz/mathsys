@@ -10,17 +10,8 @@ use super::{
     context::Context
 };
 
-//> HEAD -> LIBUTILS
-use libutils::{
-    active_reporting::Report,
-    systemio::SystemIO
-};
-
 //> HEAD -> CRATE
-use crate::{
-    failure::Failure,
-    syntax::Start
-};
+use crate::syntax::Start;
 
 
 //^
@@ -32,9 +23,6 @@ impl<'valid> Spawn<'valid> for Start<'valid> {
     fn spawn(
         children: Vec<Item<'_, 'valid>>, 
         _context: &mut Context<'valid>, 
-        _report: Report<"">, 
-        _systemio: &'valid SystemIO<Failure<'valid>>,
-        _resolver: &'valid fn(&'valid str, Report<"Resolver">) -> &'valid [u8],
         _filename: &'valid str
     ) -> NonTerminal<'valid> {return NonTerminal::Start(Self {
         stream: children.into_iter().map(|item| {

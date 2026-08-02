@@ -11,25 +11,13 @@ use super::{
 };
 
 //> HEAD -> CRATE
-use crate::{
-    tokenizer::tokenize,
-    filter::filter,
-    failure::Failure,
-    syntax::level1::{
-        Level1,
-        Definition,
-        Function,
-        Node,
-        Equation,
-        Use
-    },
-    parser::parse
-};
-
-//> HEAD -> LIBUTILS
-use libutils::{
-    active_reporting::Report,
-    systemio::SystemIO
+use crate::syntax::level1::{
+    Level1,
+    Definition,
+    Function,
+    Node,
+    Equation,
+    Use
 };
 
 
@@ -42,9 +30,6 @@ impl<'valid> Spawn<'valid> for Definition<'valid> {
     fn spawn(
         mut children: Vec<Item<'_, 'valid>>,
         _context: &mut Context<'valid>,
-        _report: Report<"">,
-        _systemio: &'valid SystemIO<Failure<'valid>>,
-        _resolver: &'valid fn(&'valid str, Report<"Resolver">) -> &'valid [u8],
         _filename: &'valid str
     ) -> NonTerminal<'valid> {
         return NonTerminal::Level1(Level1::Definition(Self {
@@ -59,9 +44,6 @@ impl<'valid> Spawn<'valid> for Function<'valid> {
     fn spawn(
         mut children: Vec<Item<'_, 'valid>>,
         context: &mut Context<'valid>,
-        _report: Report<"">,
-        _systemio: &'valid SystemIO<Failure<'valid>>,
-        _resolver: &'valid fn(&'valid str, Report<"Resolver">) -> &'valid [u8],
         _filename: &'valid str
     ) -> NonTerminal<'valid> {
         let variable = children.remove(0).into_non_terminal().unwrap().into_level5().unwrap().into_variable().unwrap();
@@ -80,9 +62,6 @@ impl<'valid> Spawn<'valid> for Node<'valid> {
     fn spawn(
         mut children: Vec<Item<'_, 'valid>>,
         _context: &mut Context<'valid>,
-        _report: Report<"">,
-        _systemio: &'valid SystemIO<Failure<'valid>>,
-        _resolver: &'valid fn(&'valid str, Report<"Resolver">) -> &'valid [u8],
         _filename: &'valid str
     ) -> NonTerminal<'valid> {return NonTerminal::Level1(Level1::Node(Self {
         value: children.pop().unwrap().into_non_terminal().unwrap().into_level2().unwrap()
@@ -94,9 +73,6 @@ impl<'valid> Spawn<'valid> for Equation<'valid> {
     fn spawn(
         mut children: Vec<Item<'_, 'valid>>,
         _context: &mut Context<'valid>,
-        _report: Report<"">,
-        _systemio: &'valid SystemIO<Failure<'valid>>,
-        _resolver: &'valid fn(&'valid str, Report<"Resolver">) -> &'valid [u8],
         _filename: &'valid str
     ) -> NonTerminal<'valid> {return NonTerminal::Level1(Level1::Equation(Self {
         right: children.pop().unwrap().into_non_terminal().unwrap().into_level2().unwrap(),
@@ -109,18 +85,16 @@ impl<'valid> Spawn<'valid> for Use<'valid> {
     fn spawn(
         mut children: Vec<Item<'_, 'valid>>,
         context: &mut Context<'valid>,
-        mut report: Report<"">,
-        systemio: &'valid SystemIO<Failure<'valid>>,
-        resolver: &'valid fn(&'valid str, Report<"Resolver">) -> &'valid [u8],
         filename: &'valid str
     ) -> NonTerminal<'valid> {
         let module = children.pop().unwrap().into_token().unwrap().as_module().unwrap().strip_circumfix('"', '"').unwrap();
         context.dependencies.entry(filename).or_default().insert(module);
         return if context.dependencies.entry(module).or_default().contains(filename) {
-            (systemio.critical)(Failure::CircularImport { 
-                from: filename, 
-                to: module 
-            }, &*report);
+            //(systemio.critical)(Failure::CircularImport { 
+            //    from: filename, 
+            //    to: module 
+            //}, &*report);
+            panic!()
         } else {NonTerminal::Level1(Level1::Use(Self {
             _module: module,
             _start: crate::syntax::Start {
