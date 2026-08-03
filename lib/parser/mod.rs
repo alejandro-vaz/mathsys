@@ -12,7 +12,6 @@ pub mod ebnf;
 pub mod goto;
 pub mod grammar;
 pub mod object;
-pub mod parse;
 pub mod production;
 pub mod rule;
 pub mod stack;
@@ -20,7 +19,10 @@ pub mod symbol;
 pub mod tables;
 
 //> HEAD -> CRATE
-use crate::tokenizer::token::Token;
+use crate::{
+    tokenizer::token::Token,
+    syntax::Start
+};
 
 //> HEAD -> TABLES
 use tables::{
@@ -43,7 +45,7 @@ use stack::Stack;
 //^
 
 //> PARSER -> FUNCTION6
-pub fn parse<'input>(tokens: Vec<Token<'input>>) -> Parse {
+pub fn parse<'input>(tokens: Vec<Token<'input>>) -> Start<'input> {
     let mut index = 0;
     let mut stack = Stack::default();
     loop {
