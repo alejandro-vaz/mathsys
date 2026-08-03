@@ -20,6 +20,5 @@ pub enum Action {
         rule: &'static Rule,
         length: usize
     },
-    Accept,
-    Start
+    Accept
 }
