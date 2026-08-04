@@ -19,7 +19,6 @@ use std::collections::{
 //> HEAD -> SUPER
 use super::{
     rule::Rule,
-    forest::Forest,
     tables::{
         GOTO,
         ACTION
@@ -42,17 +41,16 @@ use core::mem::take;
 //^
 
 //> MACHINE -> STRUCT
-pub struct Machine<'valid> {
-    graph: Graph<usize, NodeIndex>,
+pub struct Machine {
+    graph: Graph<usize, ()>,
     states: Map<(usize, usize), NodeIndex>,
     heads: VecDeque<NodeIndex>,
     following: Vec<NodeIndex>,
-    forest: Forest<'valid>,
     index: usize
 }
 
 //> MACHINE -> DEFAULT
-impl<'valid> Default for Machine<'valid> {
+impl Default for Machine {
     fn default() -> Self {
         let mut graph = Graph::default();
         let node = graph.add_node(0);
@@ -61,18 +59,16 @@ impl<'valid> Default for Machine<'valid> {
             states: Map::from([((0, 0), node)]),
             heads: VecDeque::from([node]),
             following: Vec::new(),
-            forest: Forest::default(),
             index: 0
         }
     }
 }
 
 //> MACHINE -> IMPLEMENTATION
-impl<'valid> Machine<'valid> {
+impl Machine {
     fn shift(
         &mut self, 
         state: NodeIndex, 
-        token: &'valid Token<'valid>,
         goto: &'static usize
     ) -> () {
         let to = *self.states.entry((*goto, self.index + 1)).or_insert_with(|| {
@@ -80,8 +76,7 @@ impl<'valid> Machine<'valid> {
             self.following.push(to);
             to
         });
-        let node = self.forest.shift(token, self.index);
-        self.graph.update_edge(state, to, node);
+        self.graph.update_edge(state, to, ());
     }
     fn reduce(
         &mut self, 
@@ -89,39 +84,36 @@ impl<'valid> Machine<'valid> {
         length: &'static usize,
         rule: &'static Rule
     ) -> () {
-        let mut frontier = Vec::from([(state, Array::new())]);
+        let mut frontier = Vec::from([state]);
         for _ in 0..*length {
-            for (node, children) in take(&mut frontier) {
+            for node in take(&mut frontier) {
                 for edge in self.graph.edges_directed(node, Incoming) {
-                    let mut next = children.clone();
-                    next.push(*edge.weight());
-                    frontier.push((edge.source(), next));
+                    frontier.push(edge.source());
                 }
             }
         }
-        for (from, children) in frontier {
-            let Some(node) = self.forest.reduce(rule, children, self.index) else {continue};
+        for from in frontier {
             let goto = GOTO[self.graph[from]][rule];
             let to = *self.states.entry((goto, self.index)).or_insert_with(|| {
                 let to = self.graph.add_node(goto);
                 self.heads.push_back(to);
                 to
             });
-            self.graph.update_edge(from, to, node);
+            self.graph.update_edge(from, to, ());
         }
     }
-    pub fn finish(self) -> Forest<'valid> {return self.forest}
+    pub fn finish(self) -> () {}
     pub fn advance(&mut self) -> () {
         self.heads.extend(self.following.drain(..));
         self.index += 1;
     }
-    pub fn pass(&mut self, token: &'valid Token<'valid>) -> () {
+    pub fn pass(&mut self, token: &Token) -> () {
         let name = token.as_ref();
         while let Some(state) = self.heads.pop_front() {for action in ACTION[
             self.graph[state]
         ].get(name).map(Array::as_ref).unwrap_or_default() {match action {
             Action::Reduce {rule, length} => self.reduce(state, length, rule),
-            Action::Shift {goto} => self.shift(state, token, goto),
+            Action::Shift {goto} => self.shift(state, goto),
         }}}
     }
 }
