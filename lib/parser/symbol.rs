@@ -18,7 +18,7 @@ use enum_as_inner::EnumAsInner;
 
 //> SYMBOL -> STRUCT
 #[enum_dispatch]
-#[derive(PartialEq, Eq, EnumAsInner, Hash)]
+#[derive(Debug, PartialEq, Eq, EnumAsInner, Hash)]
 pub enum Symbol {
     Rule,
     #[allow(nonstandard_style)]
@@ -33,8 +33,3 @@ impl From<&'static str> for Symbol {
         Self::str(value)
     }
 }}
-
-//> SYMBOL -> FROM RULE
-impl From<Rule> for Symbol {
-    fn from(value: Rule) -> Self {return Symbol::Rule(value)}
-}

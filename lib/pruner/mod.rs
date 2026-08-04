@@ -11,8 +11,8 @@ use petgraph::{
     }
 };
 
-//> HEAD -> STD
-use std::collections::HashSet as Set;
+//> HEAD -> PARSER
+use crate::parser::forest::Forest;
 
 
 //^
@@ -20,6 +20,6 @@ use std::collections::HashSet as Set;
 //^
 
 //> PRUNER -> FUNCTION
-pub fn prune<'valid>(mut forest: ()) -> () {
-
+pub fn prune<'valid>(forest: Forest<'valid>) -> () {
+    dbg!(forest.roots());
 }

@@ -18,6 +18,7 @@ use super::{
         STATES,
         CONFLICTS
     },
+    production::Production,
     rule::Rule,
     action::Action,
     symbol::Symbol
@@ -64,8 +65,11 @@ pub static ACTION: LazyLock<[Map<&'static str, Array<Action, CONFLICTS>>; STATES
         if item.at != item.derivation.len() {continue}
         for &token in Token::VARIANTS {
             actions[index].entry(token).or_default().push(Action::Reduce {
-                rule: item.rule, 
-                length: item.derivation.len()
+                production: Production {
+                    rule: item.rule,
+                    derivation: item.derivation,
+                    at: item.at
+                }
             });
         }
     }}

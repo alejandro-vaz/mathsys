@@ -3,7 +3,7 @@
 //^
 
 //> HEAD -> SUPER
-use super::rule::Rule;
+use super::production::Production;
 
 
 //^
@@ -17,7 +17,6 @@ pub enum Action {
         goto: usize
     },
     Reduce {
-        rule: &'static Rule,
-        length: usize
+        production: Production
     }
 }
