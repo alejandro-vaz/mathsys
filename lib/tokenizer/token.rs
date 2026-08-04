@@ -20,7 +20,7 @@ use super::responsibility::Responsibility;
 //^
 
 //> TOKEN -> ENUM
-#[derive(EnumAsInner, AsRefStr, VariantNames, Debug)]
+#[derive(EnumAsInner, AsRefStr, VariantNames, Debug, PartialEq, Eq, Hash)] // rm debug
 #[strum(serialize_all = "UPPERCASE")]
 pub enum Token<'input> {
     Spaces,

@@ -78,6 +78,14 @@ pub enum Object {
 } 
 
 //> OBJECT -> IMPLEMENTATION
+///
+///
+/// does this really need to exist???
+/// 
+/// can't i just make object simply Rule variants???
+///
+///
+///
 impl Object {
     pub fn summon<'valid>(
         &self, 

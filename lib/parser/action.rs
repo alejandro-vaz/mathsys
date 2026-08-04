@@ -11,7 +11,7 @@ use super::rule::Rule;
 //^
 
 //> ACTION -> ENUM
-#[derive(PartialEq, Eq, Hash, Debug)] // rm debug
+#[derive(PartialEq, Eq, Hash)]
 pub enum Action {
     Shift {
         goto: usize

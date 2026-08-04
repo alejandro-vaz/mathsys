@@ -70,7 +70,7 @@ impl<'valid, Implementation: Runtime<'valid>> Interpreter<'valid, Implementation
     pub fn latex(
         &'valid self,
         filename: &'valid str
-    ) -> String {prune(parse(filter(tokenize(
+    ) -> String {prune(parse(&filter(tokenize(
         self.runtime.resolve(filename),
         filename,
         &self.runtime
