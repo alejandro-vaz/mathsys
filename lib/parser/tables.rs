@@ -20,8 +20,7 @@ use super::{
     },
     rule::Rule,
     action::Action,
-    symbol::Symbol,
-    object::Object
+    symbol::Symbol
 };
 
 //> HEAD -> CORE
@@ -63,12 +62,12 @@ pub static ACTION: LazyLock<[Map<&'static str, Array<Action, CONFLICTS>>; STATES
     };
     for (index, state) in AUTOMATON.states.iter().enumerate() {for item in state {
         if item.at != item.derivation.len() {continue}
-        if let Rule::Object(Object::Start) = item.rule {actions[index].entry(Token::EndOfFile.as_ref()).or_default().push(Action::Accept)} else {for &token in Token::VARIANTS {
+        for &token in Token::VARIANTS {
             actions[index].entry(token).or_default().push(Action::Reduce {
                 rule: item.rule, 
                 length: item.derivation.len()
             });
-        }}
+        }
     }}
     return actions;
 });

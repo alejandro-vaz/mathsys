@@ -5,17 +5,14 @@
 //> HEAD -> PETGRAPH
 use petgraph::{
     Graph,
-    graph::{
-        NodeIndex,
-        Edges
-    },
-    Directed
+    graph::NodeIndex
 };
 
 //> HEAD -> SUPER
 use super::{
     parsed::Parsed,
-    rule::Rule
+    rule::Rule,
+    constants::DERIVATION_LENGTH
 };
 
 //> HEAD -> CRATE
@@ -27,6 +24,9 @@ use std::collections::{
     HashSet as Set
 };
 
+//> HEAD -> LIBUTILS
+use libutils::stack_array::Array;
+
 
 //^
 //^ FOREST
@@ -35,23 +35,42 @@ use std::collections::{
 //> FOREST -> STRUCT
 #[derive(Default)]
 pub struct Forest<'valid> {
-    graph: Graph<Parsed<'valid>, ()>,
-    nodes: Map<Parsed<'valid>, NodeIndex>,
-    accepted: Set<NodeIndex>
+    pub graph: Graph<Parsed<'valid>, ()>,
+    pub nodes: Map<Parsed<'valid>, NodeIndex>,
+    pub accepted: Set<NodeIndex>
 }
 
 //> FOREST -> IMPLEMENTATION
 impl<'valid> Forest<'valid> {
     pub fn shift(&mut self, token: &'valid Token<'valid>, index: usize) -> NodeIndex {
-        return *self.nodes.entry(Parsed::Terminal {
-            token: token,
-            index: index
-        }).or_insert_with(|| self.graph.add_node(Parsed::Terminal {
-            token: token,
-            index: index
-        }));
+        let parsed = Parsed::Terminal {
+            token: token, 
+            index: index 
+        };
+        return *self.nodes.entry(parsed).or_insert_with(|| self.graph.add_node(parsed));
     }
-    pub fn accept(&mut self, nodes: Edges<NodeIndex, Directed>) -> () {
-        self.accepted.extend(nodes.map(|reference| *reference.weight()));
+    pub fn reduce(
+        &mut self, 
+        rule: &'static Rule, 
+        children: Array<NodeIndex, DERIVATION_LENGTH>,
+        index: usize
+    ) -> Option<NodeIndex> {
+        let start = children.last().map(|&node| match self.graph[node] {
+            Parsed::NonTerminal {span, ..} => span.start,
+            Parsed::Terminal {index, ..} => index
+        }).unwrap_or(index);
+        let parsed = Parsed::NonTerminal {
+            rule: rule, 
+            span: start..index
+        };
+        let node = *self.nodes.entry(parsed).or_insert_with(|| self.graph.add_node(parsed));
+        for child in children {self.graph.update_edge(node, child, ());}
+        return match rule {
+            Rule::usize(0) => {
+                self.accepted.insert(node);
+                None
+            },
+            _ => Some(node)
+        }
     }
 }

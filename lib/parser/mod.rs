@@ -23,15 +23,6 @@ pub mod tables;
 //> HEAD -> CRATE
 use crate::tokenizer::token::Token;
 
-//> HEAD -> TABLES
-use tables::ACTION;
-
-//> HEAD -> ACTION
-use action::Action;
-
-//> HEAD -> LIBUTILS
-use libutils::stack_array::Array;
-
 //> HEAD -> MACHINE
 use machine::Machine;
 
@@ -47,15 +38,9 @@ use forest::Forest;
 pub fn parse<'input>(tokens: &'input Vec<Token<'input>>) -> Forest<'input> {
     let mut machine = Machine::default();
     for token in tokens {
-        let name = token.as_ref();
-        while let Some(state) = machine.next() {for action in ACTION[machine.get(state)].get(
-            name
-        ).map(Array::as_ref).unwrap_or_default() {match action {
-            Action::Reduce {rule, length} => machine.reduce(state, length, rule),
-            Action::Shift {goto} => machine.shift(state, token, goto),
-            Action::Accept => machine.accept(state)
-        }}}
+        machine.pass(token);
         machine.advance();
     }
+    machine.pass(&Token::EndOfFile);
     return machine.finish();
 }

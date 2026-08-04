@@ -9,7 +9,7 @@ use crate::tokenizer::token::Token;
 use super::rule::Rule;
 
 //> HEAD -> CORE
-use core::range::RangeInclusive;
+use core::range::Range;
 
 
 //^
@@ -17,15 +17,14 @@ use core::range::RangeInclusive;
 //^
 
 //> PARSED -> ENUM
-#[derive(PartialEq, Eq, Hash)]
+#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)] // rm debug
 pub enum Parsed<'valid> {
     Terminal {
         token: &'valid Token<'valid>,
-        /// this could theoretically be removed, maybe in the future
         index: usize
     },
     NonTerminal {
         rule: &'static Rule,
-        span: RangeInclusive<usize>,
+        span: Range<usize>,
     }
 }

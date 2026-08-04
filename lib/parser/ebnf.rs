@@ -4,7 +4,7 @@
 
 //> EBNF -> DEFINITION
 pub static EBNF: &'static str = "
-Start -> (NEWLINES? Level1 (NEWLINES Level1)*)? NEWLINES?
+Start -> (NEWLINES? Level1 (NEWLINES Level1)*)? NEWLINES? ENDOFFILE
 
 Definition -> Variable DEFINITION Level2
 Function -> Variable OPEN (Variable (COMMA Variable)*)? CLOSE DEFINITION Level2

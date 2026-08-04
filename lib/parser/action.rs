@@ -19,6 +19,5 @@ pub enum Action {
     Reduce {
         rule: &'static Rule,
         length: usize
-    },
-    Accept
+    }
 }
