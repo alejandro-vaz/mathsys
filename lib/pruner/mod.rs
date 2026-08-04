@@ -24,7 +24,7 @@ use std::collections::HashSet as Set;
 
 //> PRUNER -> FUNCTION
 pub fn prune<'valid>(mut forest: Forest<'valid>) -> () {
-    //dbg!(&forest.accepted);
+    dbg!(&forest.accepted);
     //println!(
     //    "{:?}",
     //    Dot::with_config(&forest.graph, &[Config::EdgeNoLabel])
@@ -36,8 +36,8 @@ pub fn prune<'valid>(mut forest: Forest<'valid>) -> () {
         frontier.extend(forest.graph.neighbors_directed(node, Outgoing));
     }
     forest.graph.retain_nodes(|_, node| seen.contains(&node));
-    //println!(
-    //    "{:?}",
-    //    Dot::with_config(&forest.graph, &[Config::EdgeNoLabel])
-    //);
+    println!(
+        "{:?}",
+        Dot::with_config(&forest.graph, &[Config::EdgeNoLabel])
+    );
 }

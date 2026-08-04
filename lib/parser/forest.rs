@@ -65,12 +65,9 @@ impl<'valid> Forest<'valid> {
         };
         let node = *self.nodes.entry(parsed).or_insert_with(|| self.graph.add_node(parsed));
         for child in children {self.graph.update_edge(node, child, ());}
-        return match rule {
-            Rule::usize(0) => {
-                self.accepted.insert(node);
-                None
-            },
-            _ => Some(node)
-        }
+        return if let Rule::usize(0) = rule {
+            self.accepted.insert(node);
+            None
+        } else {Some(node)}
     }
 }

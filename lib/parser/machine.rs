@@ -13,9 +13,7 @@ use petgraph::{
 //> HEAD -> STD
 use std::collections::{
     HashMap as Map, 
-    HashSet as Set, 
-    VecDeque,
-    hash_map::Entry
+    VecDeque
 };
 
 //> HEAD -> SUPER
@@ -47,9 +45,8 @@ use core::mem::take;
 pub struct Machine<'valid> {
     graph: Graph<usize, NodeIndex>,
     states: Map<(usize, usize), NodeIndex>,
-    processed: Set<NodeIndex>,
     heads: VecDeque<NodeIndex>,
-    following: Set<NodeIndex>,
+    following: Vec<NodeIndex>,
     forest: Forest<'valid>,
     index: usize
 }
@@ -62,9 +59,8 @@ impl<'valid> Default for Machine<'valid> {
         return Self {
             graph: graph,
             states: Map::from([((0, 0), node)]),
-            processed: Set::from([node]),
             heads: VecDeque::from([node]),
-            following: Set::new(),
+            following: Vec::new(),
             forest: Forest::default(),
             index: 0
         }
@@ -80,11 +76,12 @@ impl<'valid> Machine<'valid> {
         goto: &'static usize
     ) -> () {
         let to = *self.states.entry((*goto, self.index + 1)).or_insert_with(|| {
-            self.graph.add_node(*goto)
+            let to = self.graph.add_node(*goto);
+            self.following.push(to);
+            to
         });
         let node = self.forest.shift(token, self.index);
         self.graph.update_edge(state, to, node);
-        self.following.insert(to);
     }
     fn reduce(
         &mut self, 
@@ -106,16 +103,16 @@ impl<'valid> Machine<'valid> {
             let Some(node) = self.forest.reduce(rule, children, self.index) else {continue};
             let goto = GOTO[self.graph[from]][rule];
             let to = *self.states.entry((goto, self.index)).or_insert_with(|| {
-                self.graph.add_node(goto)
+                let to = self.graph.add_node(goto);
+                self.heads.push_back(to);
+                to
             });
             self.graph.update_edge(from, to, node);
-            if self.processed.insert(to) {self.heads.push_back(to)}
         }
     }
     pub fn finish(self) -> Forest<'valid> {return self.forest}
     pub fn advance(&mut self) -> () {
-        self.heads.extend(self.following.drain());
-        self.processed.clear();
+        self.heads.extend(self.following.drain(..));
         self.index += 1;
     }
     pub fn pass(&mut self, token: &'valid Token<'valid>) -> () {
