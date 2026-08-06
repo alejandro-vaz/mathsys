@@ -13,7 +13,7 @@ use crate::failure::Failure;
 //> RUNTIME -> TRAIT
 pub const trait Runtime<'valid> {
     fn resolve(&'valid self, module: &'valid str) -> &'valid [u8];
-    fn critical(&'valid self, failure: Failure<'valid>) -> !;
-    fn error(&'valid self, failure: Failure<'valid>) -> ();
-    fn warning(&'valid self, failure: Failure<'valid>) -> ();
+    fn critical(failure: Failure<'valid>) -> !;
+    fn error(failure: Failure<'valid>) -> ();
+    fn warning(failure: Failure<'valid>) -> ();
 }

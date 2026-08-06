@@ -5,7 +5,6 @@
 //> HEAD -> ATTRIBUTES
 #![allow(incomplete_features)]
 #![feature(default_field_values)]
-#![feature(const_default)]
 #![feature(const_trait_impl)]
 #![feature(nonzero_ops)]
 #![feature(new_range)]
@@ -17,9 +16,7 @@ mod failure;
 mod filter;
 mod latex;
 mod parser;
-mod pruner;
 mod runtime;
-mod solver;
 mod syntax;
 mod tokenizer;
 
@@ -31,12 +28,6 @@ use filter::filter;
 
 //> HEAD -> PARSER
 use parser::parse;
-
-//> HEAD -> SOLVER
-//use solver::{
-//    solve,
-//    context::Context
-//};
 
 //> HEAD -> LATEX
 use latex::LaTeX;
@@ -50,9 +41,6 @@ pub use runtime::Runtime;
 //> HEAD -> CORE
 use core::marker::PhantomCovariantLifetime;
 
-//> HEAD -> PRUNER
-use pruner::prune;
-
 
 //^
 //^ INTERPRETER
@@ -60,8 +48,8 @@ use pruner::prune;
 
 //> INTERPRETER -> STRUCT
 pub struct Interpreter<'valid, Implementation: Runtime<'valid>> {
-    pub runtime: Implementation,
-    pub lifetime: PhantomCovariantLifetime<'valid>
+    runtime: Implementation,
+    _lifetime: PhantomCovariantLifetime<'valid>
 } 
 
 //> INTERPRETER -> IMPLEMENTATION
@@ -70,9 +58,21 @@ impl<'valid, Implementation: Runtime<'valid>> Interpreter<'valid, Implementation
     pub fn latex(
         &'valid self,
         filename: &'valid str
-    ) -> String {prune(parse(&filter(tokenize(
-        self.runtime.resolve(filename),
-        filename,
-        &self.runtime
-    )))); String::new()}
+    ) -> String {return parse::<Implementation>(
+        filter(tokenize::<Implementation>(
+            self.runtime.resolve(filename),
+            filename
+        ))
+    ).render()}
+}
+
+//> INTERPRETER -> FROM IMPLEMENTATION
+impl<
+    'valid, 
+    Implementation: Runtime<'valid>
+> From<Implementation> for Interpreter<'valid, Implementation> {
+    fn from(value: Implementation) -> Self {return Self {
+        runtime: value,
+        _lifetime: PhantomCovariantLifetime::new()
+    }}
 }

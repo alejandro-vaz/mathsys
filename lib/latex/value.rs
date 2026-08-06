@@ -3,9 +3,9 @@
 //^
 
 //> HEAD -> CRATE
-use crate::syntax::level5::{
+use crate::syntax::value::{
     Infinite,
-    Variable,
+    Identifier,
     Nest,
     Vector,
     Number,
@@ -19,58 +19,60 @@ use super::LaTeX;
 
 
 //^
-//^ 5ºLEVEL
+//^ VALUE
 //^
 
-//> 5ºLEVEL -> INFINITE
+//> VALUE -> INFINITE
 impl LaTeX for Infinite {
     fn render(&self) -> String {return String::from(r"\infty ")}
 }
 
-//> 5ºLEVEL -> VARIABLE
-impl<'valid> LaTeX for Variable<'valid> {
+//> VALUE -> IDENTIFIER
+impl<'valid> LaTeX for Identifier<'valid> {
     fn render(&self) -> String {return self.name.to_string()}
 }
 
-//> 5ºLEVEL -> NEST
+//> VALUE -> NEST
 impl<'valid> LaTeX for Nest<'valid> {
     fn render(&self) -> String {return format!(
         r"\left( {}\right) ", 
-        self.value.as_ref().map(LaTeX::render).unwrap_or_default()
+        self.inside.as_ref().map(LaTeX::render).unwrap_or_default()
     )}
 }
 
-//> 5ºLEVEL -> VECTOR
+//> VALUE -> VECTOR
 impl<'valid> LaTeX for Vector<'valid> {
     fn render(&self) -> String {return format!(
         r"\begin{{bmatrix}}{}\end{{bmatrix}}", 
-        match self.values.len() {
+        match self.expressions.len() {
             0 => String::from(r"\; "),
-            _ => self.values.iter().map(LaTeX::render).collect::<Vec<String>>().join(r"\\ ")
+            _ => self.expressions.iter().map(LaTeX::render).collect::<Vec<String>>().join(r"\\ ")
         }
     )}
 }
 
-//> 5ºLEVEL -> NUMBER
+//> VALUE -> NUMBER
 impl<'valid> LaTeX for Number<'valid> {
     fn render(&self) -> String {return self.number.to_string()}
 }
 
-//> 5ºLEVEL -> ABSOLUTE
+//> VALUE -> ABSOLUTE
 impl<'valid> LaTeX for Absolute<'valid> {
-    fn render(&self) -> String {return format!(r"\left| {}\right| ", self.value.render())}
+    fn render(&self) -> String {
+        return format!(r"\left| {}\right| ", self.expression.render());
+    }
 }
 
-//> 5ºLEVEL -> UNDEFINED
+//> VALUE -> UNDEFINED
 impl LaTeX for Undefined {
     fn render(&self) -> String {return String::from(r"\left. ?\right. ")}
 }
 
-//> 5ºLEVEL -> CALL
+//> VALUE -> CALL
 impl<'valid> LaTeX for Call<'valid> {
     fn render(&self) -> String {return format!(
         r"{}\left( {}\right) ", 
-        self.to.render(), 
+        self.identifier.render(), 
         self.with.iter().map(LaTeX::render).collect::<Vec<String>>().join(",")
     )}
 }

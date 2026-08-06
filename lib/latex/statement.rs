@@ -3,7 +3,7 @@
 //^
 
 //> HEAD -> CRATE
-use crate::syntax::level1::{
+use crate::syntax::statement::{
     Definition,
     Function,
     Node,
@@ -16,41 +16,39 @@ use super::LaTeX;
 
 
 //^ 
-//^ 1ºLEVEL
+//^ STATEMENT
 //^ 
 
-//> 1ºLEVEL -> DEFINITION
+//> STATEMENT -> DEFINITION
 impl<'valid> LaTeX for Definition<'valid> {
     fn render(&self) -> String {
-        return format!("{}:={}", self.variable.render(), self.value.render());
+        return format!("{}:={}", self.identifier.render(), self.expression.render());
     }
 }
 
-//> 1ºLEVEL -> FUNCTION
+//> STATEMENT -> FUNCTION
 impl<'valid> LaTeX for Function<'valid> {
     fn render(&self) -> String {return format!(
         r"{}\left( {}\right) :={}", 
-        self.variable.render(),
+        self.identifier.render(),
         self.arguments.iter().map(LaTeX::render).collect::<Vec<String>>().join(","),
         self.expression.render()
     )}
 }
 
-//> 1ºLEVEL -> NODE
+//> STATEMENT -> NODE
 impl<'valid> LaTeX for Node<'valid> {
-    fn render(&self) -> String {return self.value.render()}
+    fn render(&self) -> String {return self.expression.render()}
 }
 
-//> 1ºLEVEL -> EQUATION
+//> STATEMENT -> EQUATION
 impl<'valid> LaTeX for Equation<'valid> {
-    fn render(&self) -> String {return format!(
-        "{}={}", 
-        self.left.render(), 
-        self.right.render()
-    )}
+    fn render(&self) -> String {
+        return self.expressions.each_ref().map(LaTeX::render).join("=");
+    }
 }
 
-//> 1ºLEVEL -> USE
+//> STATEMENT -> USE
 impl<'valid> LaTeX for Use<'valid> {
     fn render(&self) -> String {return String::new()}
 }

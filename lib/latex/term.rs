@@ -3,17 +3,17 @@
 //^
 
 //> HEAD -> CRATE
-use crate::syntax::level3::Term;
+use crate::syntax::term::Term;
 
 //> HEAD -> SUPER
 use super::LaTeX;
 
 
 //^
-//^ 3ºLEVEL
+//^ TERM
 //^
 
-//> 3ºLEVEL -> TERM
+//> TERM -> IMPLEMENTATION
 impl<'valid> LaTeX for Term<'valid> {
     fn render(&self) -> String {return if self.denominator.is_empty() {format!(
         "{}",

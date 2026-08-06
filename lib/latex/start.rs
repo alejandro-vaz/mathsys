@@ -13,9 +13,9 @@ use super::LaTeX;
 //^ START
 //^
 
-//> START -> LATEX
+//> START -> IMPLEMENTATION
 impl<'valid> LaTeX for Start<'valid> {
-    fn render(&self) -> String {return self.stream.iter().map(LaTeX::render).filter(|string| {
+    fn render(&self) -> String {return self.statements.iter().map(LaTeX::render).filter(|string| {
         !string.is_empty()
     }).collect::<Vec<String>>().join(r"\\ ")}
 }

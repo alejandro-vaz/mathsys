@@ -3,8 +3,8 @@
 //^
 
 //> HEAD -> CRATE
-use crate::syntax::level4::{
-    Factor,
+use crate::syntax::factor::{
+    Raised,
     Limit
 };
 
@@ -13,11 +13,11 @@ use super::LaTeX;
 
 
 //^
-//^ 4ºLEVEL
+//^ FACTOR
 //^
 
-//> 4ºLEVEL -> FACTOR
-impl<'valid> LaTeX for Factor<'valid> {
+//> FACTOR -> RAISED
+impl<'valid> LaTeX for Raised<'valid> {
     fn render(&self) -> String {return format!(
         "{}{}", 
         self.value.render(), 
@@ -28,12 +28,12 @@ impl<'valid> LaTeX for Factor<'valid> {
     )}
 }
 
-//> 4ºLEVEL -> LIMIT
+//> FACTOR -> LIMIT
 impl<'valid> LaTeX for Limit<'valid> {
     fn render(&self) -> String {return format!(
         "\\lim_{{{}\\to {}{}}}{}{}",
-        self.variable.render(),
-        self.approach.render(),
+        self.identifier.render(),
+        self.expression.render(),
         match self.direction {
             None => '\0',
             Some(false) => '-',

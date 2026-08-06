@@ -11,12 +11,16 @@ use crate::tokenizer::position::Position;
 //> HEAD -> CORE
 use core::str::Utf8Error;
 
+//> HEAD -> ENUM_AS_INNER
+use enum_as_inner::EnumAsInner;
+
 
 //^
 //^ FAILURE
 //^
 
 //> FAILURE -> ENUM
+#[derive(EnumAsInner)]
 pub enum Failure<'valid> {
     UnknownToken {
         filename: &'valid str,
@@ -34,7 +38,13 @@ pub enum Failure<'valid> {
         filename: &'valid str,
         starting: Position,
         error: Utf8Error
-    }
+    },
+    TokenNotFound,
+    CouldntParseStatement,
+    CouldntParseFactor,
+    CouldntParseValue,
+    TokenStreamDepleted,
+    CouldntParseMore
 }
 
 //> FAILURE -> INTO ISSUE
@@ -73,6 +83,30 @@ impl<'valid> Into<Issue> for Failure<'valid> {
                 starting.line,
                 starting.column
             )),
+            ..
+        },
+        Failure::TokenNotFound => Issue {
+            name: "Failed to find token",
+            ..
+        },
+        Failure::CouldntParseStatement => Issue {
+            name: "Failed to parse statement",
+            ..
+        },
+        Failure::CouldntParseFactor => Issue {
+            name: "Failed to parse factor",
+            ..
+        },
+        Failure::CouldntParseValue => Issue {
+            name: "Failed to parse value",
+            ..
+        },
+        Failure::TokenStreamDepleted => Issue {
+            name: "Token stream depleted",
+            ..
+        },
+        Failure::CouldntParseMore => Issue {
+            name: "Failed to parse more",
             ..
         }
     }.assert_normal()}

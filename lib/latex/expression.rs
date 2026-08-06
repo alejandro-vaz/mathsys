@@ -3,17 +3,17 @@
 //^
 
 //> HEAD -> CRATE
-use crate::syntax::level2::Expression;
+use crate::syntax::expression::Expression;
 
 //> HEAD -> SUPER
 use super::LaTeX;
 
 
 //^
-//^ 2ºLEVEL
+//^ EXPRESSION
 //^
 
-//> 2ºLEVEL -> EXPRESSION
+//> EXPRESSION -> IMPLEMENTATION
 impl<'valid> LaTeX for Expression<'valid> {
     fn render(&self) -> String {return self.terms.iter().map(|(signs, level3)| format!(
         "{}{}", 

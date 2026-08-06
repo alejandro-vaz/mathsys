@@ -28,17 +28,16 @@ use position::Position;
 //^
 
 //> TOKENIZER -> FUNCTION
-pub fn tokenize<'input>(
+pub fn tokenize<'input, Implementation: Runtime<'input>>(
     content: &'input [u8], 
-    filename: &'input str,
-    runtime: &'input impl Runtime<'input>
+    filename: &'input str
 ) -> Vec<Token<'input>> {
     let mut tokens = Vec::new();
     let mut position = Position {..};
     loop {
         let (token, amount) = match scan(content, &position, filename) {
             Ok(tuple) => tuple,
-            Err(failure) => runtime.critical(failure)
+            Err(failure) => Implementation::critical(failure)
         };
         position.cursor += amount;
         match token {

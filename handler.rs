@@ -31,7 +31,7 @@ pub struct Handler<'valid> {
 
 //> HANDLER -> RUNTIME
 impl<'valid> Runtime<'valid> for Handler<'valid> {
-    fn critical(&'valid self, failure: Failure<'valid>) -> ! {System::critical(failure)}
+    fn critical(failure: Failure<'valid>) -> ! {System::critical([failure])}
     fn resolve(&'valid self, module: &'valid str) -> &'valid [u8] {
         return match self.cache.get(module) {
             Some(cached) => cached,
@@ -40,6 +40,6 @@ impl<'valid> Runtime<'valid> for Handler<'valid> {
             ).read_bytes()))
         }
     }
-    fn error(&'valid self, failure: Failure<'valid>) -> () {System::error(failure)}
-    fn warning(&'valid self, failure: Failure<'valid>) -> () {System::error(failure)}
+    fn error(failure: Failure<'valid>) -> () {System::error(failure)}
+    fn warning(failure: Failure<'valid>) -> () {System::error(failure)}
 }
