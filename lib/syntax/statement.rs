@@ -25,8 +25,7 @@ pub enum Statement<'valid> {
     Definition(Definition<'valid>),
     Function(Function<'valid>),
     Node(Node<'valid>),
-    Equation(Equation<'valid>),
-    Use(Use<'valid>)
+    Equation(Equation<'valid>)
 }
 
 //> STATEMENT -> DEFINITION
@@ -50,9 +49,4 @@ pub struct Node<'valid> {
 //> STATEMENT -> EQUATION
 pub struct Equation<'valid> {
     pub expressions: [Expression<'valid>; 2]
-} 
-
-//> STATEMENT -> USE
-pub struct Use<'valid> {
-    pub module: &'valid str
-} 
+}

@@ -27,9 +27,6 @@ pub enum Token<'input> {
     Identifier {
         name: &'input str
     },
-    Module {
-        name: &'input str
-    },
     Number {
         value: &'input str
     },
@@ -55,7 +52,6 @@ pub enum Token<'input> {
     Pipe,
     To,
     Undefined,
-    Use,
     EndOfFile
 }
 
@@ -63,7 +59,7 @@ pub enum Token<'input> {
 impl<'valid> Token<'valid> {
     pub fn responsibility(&self) -> Responsibility {return match self {
         Token::Spaces | Token::Comment => Responsibility::Null,
-        Token::Module {..} | Token::Sign {..} | Token::Operator {..} | Token::Number {..} | Token::Identifier {..} => Responsibility::Full,
+        Token::Sign {..} | Token::Operator {..} | Token::Number {..} | Token::Identifier {..} => Responsibility::Full,
         _ => Responsibility::Structural
     }}
 }

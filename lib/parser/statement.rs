@@ -16,8 +16,7 @@ use crate::{
         Definition,
         Function,
         Node,
-        Equation,
-        Use
+        Equation
     },
     failure::Failure
 };
@@ -34,11 +33,8 @@ pub fn statement<'input>(
     None => match state.optional(function) {
         None => match state.optional(node) {
             None => match state.optional(equation) {
-                None => match state.optional(r#use) {
-                    Some(r#use) => Ok(Statement::Use(r#use)),
-                    None => Err(Failure::CouldntParseStatement)
-                },
                 Some(equation) => Ok(Statement::Equation(equation)),
+                None => Err(Failure::CouldntParseStatement)
             },
             Some(node) => Ok(Statement::Node(node))
         },
@@ -101,15 +97,4 @@ pub fn equation<'input>(
     return Ok(Equation {
         expressions: [left, expression(state)?]
     });
-}
-
-//> STATEMENT -> USE
-pub fn r#use<'input>(
-    state: &mut State<'input>
-) -> Result<Use<'input>, Failure<'input>> {
-    state.advance(|token| token.is_use().then_some(()))?;
-    let module = state.advance(|token| token.as_module().map(|module| *module))?;
-    return Ok(Use {
-        module: module,
-    })
 }

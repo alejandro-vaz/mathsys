@@ -1,6 +1,6 @@
 [package]
 name = "mathsys"
-version = "2.0.0"
+version = "2.0.1"
 edition = "2024"
 rust-version = "1.99"
 authors = ["Alejandro Vaz <alejandro.vaz.myt@gmail.com>"]
@@ -35,7 +35,6 @@ typed-arena = "2.0"
 enum-as-inner = "0.7"
 elsa = "1.11"
 libutils = "21.1"
-petgraph = "0.8"
 
 [dev-dependencies]
 criterion = "0.8"

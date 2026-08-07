@@ -7,8 +7,7 @@ use crate::syntax::statement::{
     Definition,
     Function,
     Node,
-    Equation,
-    Use
+    Equation
 };
 
 //> HEAD -> SUPER
@@ -46,9 +45,4 @@ impl<'valid> LaTeX for Equation<'valid> {
     fn render(&self) -> String {
         return self.expressions.each_ref().map(LaTeX::render).join("=");
     }
-}
-
-//> STATEMENT -> USE
-impl<'valid> LaTeX for Use<'valid> {
-    fn render(&self) -> String {return String::new()}
 }

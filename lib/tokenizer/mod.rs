@@ -63,21 +63,6 @@ fn scan<'input>(
         [b' ', following @ ..] => Ok((Token::Spaces, meanwhile(following, b' ') + 1)),
         [b'\n', following @ ..] => Ok((Token::Newlines, meanwhile(following, b'\n') + 1)),
         [b'#', following @ ..] => Ok((Token::Comment, until(following, b'\n') + 1)),
-        [b'"', following @ ..] => {
-            let amount = delimited(following, b'"').ok_or_else(|| Failure::UnmatchedModuleDelimiter {
-                filename: filename, 
-                start: *position
-            })? + 1;
-            Ok((Token::Module {
-                name: str::from_utf8(
-                    &content[position.cursor .. position.cursor + amount]
-                ).map_err(|error| Failure::IrregularText {
-                    filename: filename,
-                    starting: *position, 
-                    error: error 
-                })?
-            }, amount))
-        },
         [b'?', ..] => Ok((Token::Undefined, 1)),
         [b'^', ..] => Ok((Token::Exponentiation, 1)),
         [b'|', ..] => Ok((Token::Pipe, 1)),
@@ -122,7 +107,6 @@ fn scan<'input>(
                 starting: *position, 
                 error: error 
             })? {
-                "use" => (Token::Use, 3),
                 "lim" => (Token::Limit, 3),
                 "inf" => (Token::Infinite, 3),
                 "of" => (Token::Of, 2),
@@ -137,19 +121,6 @@ fn scan<'input>(
             position: *position
         })
     };
-}
-
-//> TOKENIZER -> DELIMITED
-fn delimited(
-    content: &[u8], 
-    value: u8
-) -> Option<usize> {
-    let mut amount = 0;
-    for now in content {
-        amount += 1;
-        if *now == value {return Some(amount)}
-    }
-    return None;
 }
 
 //> TOKENIZER -> UNTIL
