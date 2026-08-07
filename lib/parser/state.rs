@@ -34,11 +34,13 @@ impl<'valid> State<'valid> {
     pub fn record(
         &mut self,
         filter: fn(u8) -> bool
-    ) -> Result<&'valid [u8], Failure<'valid>> {
+    ) -> Result<&'valid str, Failure<'valid>> {
         let position = self.index;
         while let Some(&byte) = self.input.get(self.index) && filter(byte) {self.index += 1}
         return match self.index == position {
-            false => Ok(&self.input[position..self.index]),
+            false => Ok(str::from_utf8(
+                &self.input[position..self.index]
+            ).map_err(|_| Failure::NonUtf8Sequence)?),
             true => Err(Failure::TokenNotFound)
         }
     }

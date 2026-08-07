@@ -71,8 +71,8 @@ pub fn identifier<'input>(
     state: &mut State<'input>
 ) -> Result<Identifier<'input>, Failure<'input>> {return state.record(|byte| {
     matches!(byte, b'a'..=b'z' | b'A'..=b'Z' | b'$'..=b'%')
-}).map(|sequence| Identifier {
-    name: str::from_utf8(sequence).unwrap()
+}).map(|name| Identifier {
+    name: name
 })}
 
 //> VALUE -> NEST
@@ -109,8 +109,8 @@ pub fn vector<'input>(
 pub fn number<'input>(
     state: &mut State<'input>
 ) -> Result<Number<'input>, Failure<'input>> {
-    return state.record(|byte| matches!(byte, b'0'..=b'9' | b'_')).map(|sequence| Number {
-        number: str::from_utf8(sequence).unwrap()
+    return state.record(|byte| matches!(byte, b'0'..=b'9' | b'_')).map(|number| Number {
+        number: number
     });
 }
 

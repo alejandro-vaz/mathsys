@@ -26,7 +26,8 @@ pub enum Failure<'valid> {
     CouldntParseValue,
     TokenStreamDepleted,
     CouldntParseMore,
-    UnfinishedInputParse
+    UnfinishedInputParse,
+    NonUtf8Sequence
 }
 
 //> FAILURE -> INTO ISSUE
@@ -65,6 +66,10 @@ impl<'valid> Into<Issue> for Failure<'valid> {
         },
         Failure::UnfinishedInputParse => Issue {
             name: "failed to parse whole input",
+            ..
+        },
+        Failure::NonUtf8Sequence => Issue {
+            name: "tried to parse a non-UTF8 sequence",
             ..
         }
     }.assert_normal()}

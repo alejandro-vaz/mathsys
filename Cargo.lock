@@ -485,9 +485,9 @@ checksum = "3eaf3ede3fee6db1a4c2ee091bf8a8b4dccdc6d17f656fb07896ee72867612f2"
 
 [[package]]
 name = "libutils"
-version = "21.1.0"
+version = "21.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "24948ce03ab55cd29b713b7d1ee94c20327818b2e436940e5f8b81ae2daf084c"
+checksum = "e29752c5c5d94e2a5cef3fa27a1bee0eb364f9e1f19452904a111d24fe803aeb"
 dependencies = [
  "constrangeiter",
  "ebnftobnf",
@@ -966,9 +966,9 @@ checksum = "6ce2be8dc25455e1f91df71bfa12ad37d7af1092ae736f3a6cd0e37bc7810596"
 
 [[package]]
 name = "stack-array"
-version = "1.1.3"
+version = "1.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4e4727220f060af31702b639b7107d429a1820e6befd807ec2b2156367bde617"
+checksum = "968692077a6b6ede19231f0496eae206c861b2266b1aff4263c720754024a522"
 dependencies = [
  "constrangeiter",
 ]
