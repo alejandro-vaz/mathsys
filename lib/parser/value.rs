@@ -60,86 +60,94 @@ pub fn value<'input>(
 
 //> VALUE -> INFINITE
 pub fn infinite<'input>(state: &mut State<'input>) -> Result<Infinite, Failure<'input>> {
-    return state.advance(|token| token.is_infinite().then_some(Infinite));
+    state.advance(|byte| byte == b'i')?;
+    state.advance(|byte| byte == b'n')?;
+    state.advance(|byte| byte == b'f')?;
+    return Ok(Infinite);
 }
 
 //> VALUE -> IDENTIFIER
 pub fn identifier<'input>(
     state: &mut State<'input>
-) -> Result<Identifier<'input>, Failure<'input>> {
-    return state.advance(|token| token.as_identifier().map(|identifier| Identifier {
-        name: *identifier
-    }));
-}
+) -> Result<Identifier<'input>, Failure<'input>> {return state.record(|byte| {
+    matches!(byte, b'a'..=b'z' | b'A'..=b'Z' | b'$'..=b'%')
+}).map(|sequence| Identifier {
+    name: str::from_utf8(sequence).unwrap()
+})}
 
 //> VALUE -> NEST
 pub fn nest<'input>(state: &mut State<'input>) -> Result<Nest<'input>, Failure<'input>> {
-    state.advance(|token| token.is_open().then_some(()))?;
+    state.advance(|byte| byte == b'(')?;
     let inside = state.optional(expression);
-    return state.advance(|token| token.is_close().then_some(Nest {
+    state.advance(|byte| byte == b')')?;
+    return Ok(Nest {
         inside: inside
-    }));
+    });
 }
 
 //> VALUE -> VECTOR
 pub fn vector<'input>(
     state: &mut State<'input>
 ) -> Result<Vector<'input>, Failure<'input>> {
-    state.advance(|token| token.is_enter().then_some(()))?;
+    state.advance(|byte| byte == b'[')?;
     let expressions = state.optional(|state| {
         let first = expression(state)?;
         let mut rest = state.multiple(|state| {
-            state.advance(|token| token.is_comma().then_some(()))?;
+            state.advance(|byte| byte == b',')?;
             expression(state)
         });
         rest.insert(0, first);
         Ok(rest)
     }).unwrap_or_default();
-    return state.advance(|token| token.is_exit().then_some(Vector {
+    state.advance(|byte| byte == b']')?;
+    return Ok(Vector {
         expressions: expressions
-    }));
+    });
 }
 
 //> VALUE -> NUMBER
 pub fn number<'input>(
     state: &mut State<'input>
 ) -> Result<Number<'input>, Failure<'input>> {
-    return state.advance(|token| token.as_number().map(|number| Number {
-        number: *number
-    }));
+    return state.record(|byte| matches!(byte, b'0'..=b'9' | b'_')).map(|sequence| Number {
+        number: str::from_utf8(sequence).unwrap()
+    });
 }
 
 //> VALUE -> ABSOLUTE
 pub fn absolute<'input>(
     state: &mut State<'input>
 ) -> Result<Absolute<'input>, Failure<'input>> {
-    state.advance(|token| token.is_pipe().then_some(()))?;
+    state.advance(|byte| byte == b'|')?;
     let expression = expression(state)?;
-    return state.advance(|token| token.is_pipe().then_some(Absolute {
+    state.advance(|byte| byte == b'|')?;
+    return Ok(Absolute {
         expression: expression
-    }));
+    });
 }
 
 //> VALUE -> UNDEFINED
 pub fn undefined<'input>(state: &mut State<'input>) -> Result<Undefined, Failure<'input>> {
-    return state.advance(|token| token.is_undefined().then_some(Undefined));
+    state.advance(|byte| byte == b'?')?;
+    return Ok(Undefined);
 }
 
 //> VALUE -> CALL
 pub fn call<'input>(state: &mut State<'input>) -> Result<Call<'input>, Failure<'input>> {
     let identifier = identifier(state)?;
-    state.advance(|token| token.is_open().then_some(()))?;
+    state.advance(|byte| byte == b'(')?;
     let with = state.optional(|state| {
         let first = expression(state)?;
         let mut rest = state.multiple(|state| {
-            state.advance(|token| token.is_comma().then_some(()))?;
+            state.advance(|byte| byte == b',')?;
             expression(state)
         });
         rest.insert(0, first);
         Ok(rest)
     }).unwrap_or_default();
-    return state.advance(|token| token.is_close().then_some(Call {
+    state.advance(|byte| byte == b')')?;
+    return Ok(Call {
         identifier: identifier,
         with: with
-    }));
+    });
 }

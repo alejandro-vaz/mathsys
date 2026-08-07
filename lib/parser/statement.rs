@@ -48,7 +48,8 @@ pub fn definition<'input>(
     state: &mut State<'input>
 ) -> Result<Definition<'input>, Failure<'input>> {
     let identifier = identifier(state)?;
-    state.advance(|token| token.is_definition().then_some(()))?;
+    state.advance(|byte| byte == b':')?;
+    state.advance(|byte| byte == b'=')?;
     return Ok(Definition {
         identifier: identifier,
         expression: expression(state)?
@@ -60,18 +61,19 @@ pub fn function<'input>(
     state: &mut State<'input>
 ) -> Result<Function<'input>, Failure<'input>> {
     let name = identifier(state)?;
-    state.advance(|token| token.is_open().then_some(()))?;
+    state.advance(|byte| byte == b'(')?;
     let arguments = state.optional(|state| {
         let first = identifier(state)?;
         let mut rest = state.multiple(|state| {
-            state.advance(|token| token.is_comma().then_some(()))?;
+            state.advance(|byte| byte == b',')?;
             identifier(state)
         });
         rest.insert(0, first);
         Ok(rest)
     }).unwrap_or_default();
-    state.advance(|token| token.is_close().then_some(()))?;
-    state.advance(|token| token.is_definition().then_some(()))?;
+    state.advance(|byte| byte == b')')?;
+    state.advance(|byte| byte == b':')?;
+    state.advance(|byte| byte == b'=')?;
     return Ok(Function {
         identifier: name,
         arguments: arguments,
@@ -93,7 +95,7 @@ pub fn equation<'input>(
     state: &mut State<'input>
 ) -> Result<Equation<'input>, Failure<'input>> {
     let left = expression(state)?;
-    state.advance(|token| token.is_equality().then_some(()))?;
+    state.advance(|byte| byte == b'=')?;
     return Ok(Equation {
         expressions: [left, expression(state)?]
     });

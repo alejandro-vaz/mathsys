@@ -3,10 +3,7 @@
 //^
 
 //> HEAD -> CRATE
-use crate::{
-    failure::Failure,
-    tokenizer::token::Token
-};
+use crate::failure::Failure;
 
 
 //^
@@ -15,23 +12,45 @@ use crate::{
 
 //> STATE -> STRUCT
 pub struct State<'valid> {
-    tokens: Vec<Token<'valid>>,
+    input: &'valid [u8],
     index: usize
 }
 
 //> STATE -> IMPLEMENTATION
 impl<'valid> State<'valid> {
-    pub fn advance<
-        Return: 'valid,
-        Mapping: FnOnce(&Token<'valid>) -> Option<Return>
-    >(&mut self, mapping: Mapping) -> Result<Return, Failure<'valid>> {return match mapping(
-        self.tokens.get(self.index).ok_or(Failure::TokenStreamDepleted)?
-    ) {
-        None => Err(Failure::TokenNotFound),
-        Some(data) => {
-            self.index += 1;
-            Ok(data)
+    pub fn advance(
+        &mut self, 
+        mapping: fn(u8) -> bool
+    ) -> Result<u8, Failure<'valid>> {
+        let byte = *self.input.get(self.index).ok_or(Failure::TokenStreamDepleted)?;
+        return match mapping(byte) {
+            false => Err(Failure::TokenNotFound),
+            true => {
+                self.index += 1;
+                Ok(byte)
+            }
         }
+    }
+    pub fn record(
+        &mut self,
+        filter: fn(u8) -> bool
+    ) -> Result<&'valid [u8], Failure<'valid>> {
+        let position = self.index;
+        while let Some(&byte) = self.input.get(self.index) && filter(byte) {self.index += 1}
+        return match self.index == position {
+            false => Ok(&self.input[position..self.index]),
+            true => Err(Failure::TokenNotFound)
+        }
+    }
+    pub fn skip(&mut self, byte: u8) -> () {
+        while let Some(&next) = self.input.get(self.index) && next == byte {self.index += 1}
+    }
+    pub fn depleted<Return: 'valid>(
+        &self, 
+        value: Return
+    ) -> Result<Return, Failure<'valid>> {return match self.input.len() == self.index {
+        true => Ok(value),
+        false => Err(Failure::UnfinishedInputParse)
     }}
     pub fn optional<Return: 'valid>(
         &mut self, 
@@ -69,9 +88,9 @@ impl<'valid> State<'valid> {
 }
 
 //> STATE -> FROM TOKENS
-impl<'valid> From<Vec<Token<'valid>>> for State<'valid> {
-    fn from(value: Vec<Token<'valid>>) -> Self {return Self {
-        tokens: value,
+impl<'valid> From<&'valid [u8]> for State<'valid> {
+    fn from(value: &'valid [u8]) -> Self {return Self {
+        input: value,
         index: 0
     }}
 }

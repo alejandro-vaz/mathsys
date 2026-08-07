@@ -45,9 +45,10 @@ pub fn raised<'input>(
 ) -> Result<Raised<'input>, Failure<'input>> {return Ok(Raised {
     value: value(state)?,
     exponent: state.optional(|state| {
-        state.advance(|token| token.is_exponentiation().then_some(()))?;
+        state.advance(|byte| byte == b'^')?;
         let expression = expression(state)?;
-        state.advance(|token| token.is_exponentiation().then_some(expression))
+        state.advance(|byte| byte == b'^')?;
+        Ok(expression)
     })
 })}
 
@@ -55,23 +56,28 @@ pub fn raised<'input>(
 pub fn limit<'input>(
     state: &mut State<'input>
 ) -> Result<Limit<'input>, Failure<'input>> {
-    state.advance(|token| token.is_limit().then_some(()))?;
+    state.advance(|byte| byte == b'l')?;
+    state.advance(|byte| byte == b'i')?;
+    state.advance(|byte| byte == b'm')?;
     let identifier = identifier(state)?;
-    state.advance(|token| token.is_to().then_some(()))?;
+    state.advance(|byte| byte == b'-')?;
+    state.advance(|byte| byte == b'>')?;
     let approach = expression(state)?;
-    let direction = state.optional(|state| state.advance(|token| {
-        token.as_sign().map(|sign| *sign)
-    }));
-    state.advance(|token| token.is_of().then_some(()))?;
+    let direction = state.optional(|state| {
+        state.advance(|byte| matches!(byte, b'+' | b'-')).map(|sign| sign == b'+')
+    });
+    state.advance(|byte| byte == b'o')?;
+    state.advance(|byte| byte == b'f')?;
     return Ok(Limit {
         identifier: identifier,
         expression: approach,
         direction: direction,
         nest: nest(state)?,
         exponent: state.optional(|state| {
-            state.advance(|token| token.is_exponentiation().then_some(()))?;
+            state.advance(|byte| byte == b'^')?;
             let expression = expression(state)?;
-            state.advance(|token| token.is_exponentiation().then_some(expression))
+            state.advance(|byte| byte == b'^')?;
+            Ok(expression)
         })
     })
 }

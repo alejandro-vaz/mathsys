@@ -28,7 +28,7 @@ pub fn term<'input>(
     let mut position = true;
     for (change, factor) in state.multiple(|state| {
         let operator = state.optional(|state| {
-            state.advance(|token| token.as_operator().copied())
+            state.advance(|byte| matches!(byte, b'*' | b'/')).map(|symbol| symbol == b'*')
         });
         Ok((operator, factor(state)?))
     }) {

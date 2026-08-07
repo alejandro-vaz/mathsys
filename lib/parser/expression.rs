@@ -24,13 +24,12 @@ pub fn expression<'input>(
     state: &mut State<'input>
 ) -> Result<Expression<'input>, Failure<'input>> {
     let signs = state.multiple(|state| {
-        state.advance(|token| token.as_sign().copied())
+        state.advance(|byte| matches!(byte, b'+' | b'-')).map(|sign| sign == b'+')
     });
     let first = term(state)?;
-    let mut terms = state.multiple(|state| {
-        let signs = state.more(|state| state.advance(|token| token.as_sign().copied()))?;
-        Ok((signs, term(state)?))
-    });
+    let mut terms = state.multiple(|state| Ok((state.more(|state| {
+        state.advance(|byte| matches!(byte, b'+' | b'-')).map(|sign| sign == b'+')
+    })?, term(state)?)));
     terms.insert(0, (signs, first));
     return Ok(Expression {
         terms: terms

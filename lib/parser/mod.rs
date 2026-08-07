@@ -13,8 +13,7 @@ pub mod value;
 
 //> HEAD -> CRATE
 use crate::{
-    syntax::Start, 
-    tokenizer::token::Token,
+    syntax::Start,
     runtime::Runtime
 };
 
@@ -31,8 +30,8 @@ use start::start;
 
 //> PARSER -> FUNCTION6
 pub fn parse<'input, Implementation: Runtime<'input>>(
-    tokens: Vec<Token<'input>>
-) -> Start<'input> {return match start(&mut State::from(tokens)) {
+    input: &'input [u8]
+) -> Start<'input> {return match start(&mut State::from(input)) {
     Ok(start) => start,
     Err(failure) => Implementation::critical(failure)
 }}
